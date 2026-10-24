@@ -1,0 +1,522 @@
+PACKAGE PHOTO ATTRIBUTIONS
+==========================
+
+All images are locally stored JPEGs, resized to a maximum 1600 px and optimized. Each work is credited below; license terms remain those shown on the linked Wikimedia Commons file page.
+
+public/assets/package-photo-2.jpg
+Work: Cherry Blossoms - Kyoto (33142637823).jpg
+Creator: 白士 李
+Source: https://commons.wikimedia.org/wiki/File%3ACherry_Blossoms_-_Kyoto_%2833142637823%29.jpg
+License: CC BY 2.0 (https://creativecommons.org/licenses/by/2.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-3.jpg
+Work: Cherry blossom @ Kyoto - panoramio (1).jpg
+Creator: ::::=UT=::::
+Source: https://commons.wikimedia.org/wiki/File%3ACherry_blossom_%40_Kyoto_-_panoramio_%281%29.jpg
+License: CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-4.jpg
+Work: 20181110 Fushimi Inari shrine 3.jpg
+Creator: Balon Greyjoy
+Source: https://commons.wikimedia.org/wiki/File%3A20181110_Fushimi_Inari_shrine_3.jpg
+License: CC0 (http://creativecommons.org/publicdomain/zero/1.0/deed.en)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-7.jpg
+Work: 20181110 Fushimi Inari shrine 6.jpg
+Creator: Balon Greyjoy
+Source: https://commons.wikimedia.org/wiki/File%3A20181110_Fushimi_Inari_shrine_6.jpg
+License: CC0 (http://creativecommons.org/publicdomain/zero/1.0/deed.en)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-8.jpg
+Work: Amalfi Coast (Positano).jpg
+Creator: Wiki.Bianco
+Source: https://commons.wikimedia.org/wiki/File%3AAmalfi_Coast_%28Positano%29.jpg
+License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-9.jpg
+Work: Amalfi vista dal mare 2 Campania.jpg
+Creator: This Photo was taken by Wolfgang Moroder . Feel free to use my photos, but please mention me as the author and send me a message . This image is not in the public domain . Please respect the copyright protection. It may only be used according to the rules mentioned here. This specifically excludes use in social media , if applicable terms of the licenses listed here not appropriate. Please do not upload an updated image here without consultation with the Author. The author would like to make corrections only at his own source. This ensures that the changes are preserved. Please if you think that any changes should be required, please inform the author. Otherwise you can upload a new image with a new name. Please use one of the templates derivative or extract .
+Source: https://commons.wikimedia.org/wiki/File%3AAmalfi_vista_dal_mare_2_Campania.jpg
+License: CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-11.jpg
+Work: Positano, Amalfi Coast, Italy (21689385354).jpg
+Creator: VV Nincic from Toronto, Canada
+Source: https://commons.wikimedia.org/wiki/File%3APositano%2C_Amalfi_Coast%2C_Italy_%2821689385354%29.jpg
+License: CC BY 2.0 (https://creativecommons.org/licenses/by/2.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-17.jpg
+Work: 1000 Three domes of Oia in Santorini Photo by Giles Laurent.jpg
+Creator: Giles Laurent
+Source: https://commons.wikimedia.org/wiki/File%3A1000_Three_domes_of_Oia_in_Santorini_Photo_by_Giles_Laurent.jpg
+License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-18.jpg
+Work: Crater rim - Fira - Santorini - Greece - 10.jpg
+Creator: Norbert Nagel
+Source: https://commons.wikimedia.org/wiki/File%3ACrater_rim_-_Fira_-_Santorini_-_Greece_-_10.jpg
+License: CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-19.jpg
+Work: Excursion boat - Athinios port - Santorini - Greece - 07.jpg
+Creator: Norbert Nagel
+Source: https://commons.wikimedia.org/wiki/File%3AExcursion_boat_-_Athinios_port_-_Santorini_-_Greece_-_07.jpg
+License: CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-20.jpg
+Work: 80 - Machu Picchu - Juin 2009 - edit.2.jpg
+Creator: Martin St-Amant ( S23678 )
+Source: https://commons.wikimedia.org/wiki/File%3A80_-_Machu_Picchu_-_Juin_2009_-_edit.2.jpg
+License: CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-24.jpg
+Work: Maasai Mara, Kenya (33858484408).jpg
+Creator: Nina R from Africa
+Source: https://commons.wikimedia.org/wiki/File%3AMaasai_Mara%2C_Kenya_%2833858484408%29.jpg
+License: CC BY 2.0 (https://creativecommons.org/licenses/by/2.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-26.jpg
+Work: Maasai Mara, Kenya (46651416425).jpg
+Creator: Nina R from Africa
+Source: https://commons.wikimedia.org/wiki/File%3AMaasai_Mara%2C_Kenya_%2846651416425%29.jpg
+License: CC BY 2.0 (https://creativecommons.org/licenses/by/2.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-27.jpg
+Work: Maasai Mara, Kenya (46723420055).jpg
+Creator: Nina R from Africa
+Source: https://commons.wikimedia.org/wiki/File%3AMaasai_Mara%2C_Kenya_%2846723420055%29.jpg
+License: CC BY 2.0 (https://creativecommons.org/licenses/by/2.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-28.jpg
+Work: 1.Ko Hong Island - Andaman Sea - Krabi Province, Thailand.jpg
+Creator: Wolfgang Holzem
+Source: https://commons.wikimedia.org/wiki/File%3A1.Ko_Hong_Island_-_Andaman_Sea_-_Krabi_Province%2C_Thailand.jpg
+License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-29.jpg
+Work: 14.Ko Hong Island - Andaman Sea - Krabi Province, Thailand.jpg
+Creator: Wolfgang Holzem
+Source: https://commons.wikimedia.org/wiki/File%3A14.Ko_Hong_Island_-_Andaman_Sea_-_Krabi_Province%2C_Thailand.jpg
+License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-31.jpg
+Work: 16.Ko Hong Island - Andaman Sea - Krabi Province, Thailand.jpg
+Creator: Wolfgang Holzem
+Source: https://commons.wikimedia.org/wiki/File%3A16.Ko_Hong_Island_-_Andaman_Sea_-_Krabi_Province%2C_Thailand.jpg
+License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-32.jpg
+Work: Acanthurus lineatus Flynn Reef.jpg
+Creator: Toby Hudson
+Source: https://commons.wikimedia.org/wiki/File%3AAcanthurus_lineatus_Flynn_Reef.jpg
+License: CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-33.jpg
+Work: Aerial shots of The Great Barrier Reef, Queensland, Australia (Ank Kumar) 01.jpg
+Creator: Ank Kumar
+Source: https://commons.wikimedia.org/wiki/File%3AAerial_shots_of_The_Great_Barrier_Reef%2C_Queensland%2C_Australia_%28Ank_Kumar%29_01.jpg
+License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-34.jpg
+Work: Aerial shots of The Great Barrier Reef, Queensland, Australia (Ank Kumar) 02.jpg
+Creator: Ank Kumar
+Source: https://commons.wikimedia.org/wiki/File%3AAerial_shots_of_The_Great_Barrier_Reef%2C_Queensland%2C_Australia_%28Ank_Kumar%29_02.jpg
+License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-37.jpg
+Work: Bali, Rice fields, Rice terraces in East Bali, Indonesia.jpg
+Creator: Vyacheslav Argenberg
+Source: https://commons.wikimedia.org/wiki/File%3ABali%2C_Rice_fields%2C_Rice_terraces_in_East_Bali%2C_Indonesia.jpg
+License: CC BY 4.0 (https://creativecommons.org/licenses/by/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-38.jpg
+Work: Bali, Rice fields and forest, East Bali, Indonesia.jpg
+Creator: Vyacheslav Argenberg
+Source: https://commons.wikimedia.org/wiki/File%3ABali%2C_Rice_fields_and_forest%2C_East_Bali%2C_Indonesia.jpg
+License: CC BY 4.0 (https://creativecommons.org/licenses/by/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-39.jpg
+Work: Bali, Rice fields in the forest, East Bali, Indonesia.jpg
+Creator: Vyacheslav Argenberg
+Source: https://commons.wikimedia.org/wiki/File%3ABali%2C_Rice_fields_in_the_forest%2C_East_Bali%2C_Indonesia.jpg
+License: CC BY 4.0 (https://creativecommons.org/licenses/by/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-45.jpg
+Work: Otaru Canal, Hokkaido; August 2005.jpg
+Creator: Motohiko Tokuriki
+Source: https://commons.wikimedia.org/wiki/File%3AOtaru_Canal%2C_Hokkaido%3B_August_2005.jpg
+License: CC BY 2.0 (https://creativecommons.org/licenses/by/2.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-48.jpg
+Work: 51714-Terracota-Army.jpg
+Creator: xiquinhosilva
+Source: https://commons.wikimedia.org/wiki/File%3A51714-Terracota-Army.jpg
+License: CC BY 2.0 (https://creativecommons.org/licenses/by/2.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-50.jpg
+Work: China - Xian 21 - Terracotta warriors (135952563).jpg
+Creator: McKay Savage from London, UK
+Source: https://commons.wikimedia.org/wiki/File%3AChina_-_Xian_21_-_Terracotta_warriors_%28135952563%29.jpg
+License: CC BY 2.0 (https://creativecommons.org/licenses/by/2.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-51.jpg
+Work: Qin Shihuang Terracotta Army, Pit 1.jpg
+Creator: Gary Todd
+Source: https://commons.wikimedia.org/wiki/File%3AQin_Shihuang_Terracotta_Army%2C_Pit_1.jpg
+License: CC0 (http://creativecommons.org/publicdomain/zero/1.0/deed.en)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-52.jpg
+Work: Aerial view of Cappadocia from hot air balloon 01.jpg
+Creator: Netha Hussain
+Source: https://commons.wikimedia.org/wiki/File%3AAerial_view_of_Cappadocia_from_hot_air_balloon_01.jpg
+License: CC0 (http://creativecommons.org/publicdomain/zero/1.0/deed.en)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-54.jpg
+Work: Balloons in Flight over Goreme - Cappadocia - Turkey - 02 (5761025929).jpg
+Creator: Adam Jones from Kelowna, BC, Canada
+Source: https://commons.wikimedia.org/wiki/File%3ABalloons_in_Flight_over_Goreme_-_Cappadocia_-_Turkey_-_02_%285761025929%29.jpg
+License: CC BY-SA 2.0 (https://creativecommons.org/licenses/by-sa/2.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-55.jpg
+Work: Cappadocia Aerial View Landscape.jpg
+Creator: Benh LIEU SONG ( Flickr )
+Source: https://commons.wikimedia.org/wiki/File%3ACappadocia_Aerial_View_Landscape.jpg
+License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-57.jpg
+Work: 043 Matterhorn reflecting in Stellisee at sunset Photo by Giles Laurent.jpg
+Creator: Giles Laurent
+Source: https://commons.wikimedia.org/wiki/File%3A043_Matterhorn_reflecting_in_Stellisee_at_sunset_Photo_by_Giles_Laurent.jpg
+License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-58.jpg
+Work: 050 Matterhorn with plane flying night sky Photo by Giles Laurent.jpg
+Creator: Giles Laurent
+Source: https://commons.wikimedia.org/wiki/File%3A050_Matterhorn_with_plane_flying_night_sky_Photo_by_Giles_Laurent.jpg
+License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-59.jpg
+Work: 0 106 Walliser Alpen - Matterhorn.jpg
+Creator: W. Bulach
+Source: https://commons.wikimedia.org/wiki/File%3A0_106_Walliser_Alpen_-_Matterhorn.jpg
+License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-60.jpg
+Work: Budapest, Országház, 2014 (01).jpg
+Creator: Draceane
+Source: https://commons.wikimedia.org/wiki/File%3ABudapest%2C_Orsz%C3%A1gh%C3%A1z%2C_2014_%2801%29.jpg
+License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-62.jpg
+Work: Budapest and the Danube -- at night -b.jpg
+Creator: John
+Source: https://commons.wikimedia.org/wiki/File%3ABudapest_and_the_Danube_--_at_night_-b.jpg
+License: CC BY 2.0 (https://creativecommons.org/licenses/by/2.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-63.jpg
+Work: Danube at Budapest.jpg
+Creator: Klearchos Kapoutsis
+Source: https://commons.wikimedia.org/wiki/File%3ADanube_at_Budapest.jpg
+License: CC BY 2.0 (https://creativecommons.org/licenses/by/2.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-68.jpg
+Work: 2018-09-18 MS EURODAM - IMO 9378448 - Glacier Bay, Alaska USA.jpg
+Creator: Gordon Leggett
+Source: https://commons.wikimedia.org/wiki/File%3A2018-09-18_MS_EURODAM_-_IMO_9378448_-_Glacier_Bay%2C_Alaska_USA.jpg
+License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-70.jpg
+Work: Alaska Cruise - September 2019 (1230).jpg
+Creator: Gregory Varnum
+Source: https://commons.wikimedia.org/wiki/File%3AAlaska_Cruise_-_September_2019_%281230%29.jpg
+License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-71.jpg
+Work: Alaska Cruise - September 2019 (4562).jpg
+Creator: Gregory Varnum
+Source: https://commons.wikimedia.org/wiki/File%3AAlaska_Cruise_-_September_2019_%284562%29.jpg
+License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-73.jpg
+Work: Princess Marguerite II in Victoria Harbour BC Canada (1).jpg
+Creator: Barry Lewis
+Source: https://commons.wikimedia.org/wiki/File%3APrincess_Marguerite_II_in_Victoria_Harbour_BC_Canada_%281%29.jpg
+License: CC BY 2.0 (https://creativecommons.org/licenses/by/2.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-74.jpg
+Work: 2023-05-14 01 MS FREYA - IMO 7912020 - Svalbard.jpg
+Creator: Gordon Leggett
+Source: https://commons.wikimedia.org/wiki/File%3A2023-05-14_01_MS_FREYA_-_IMO_7912020_-_Svalbard.jpg
+License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-76.jpg
+Work: 2023-05-14 03 MS FREYA - IMO 7912020 - Svalbard.jpg
+Creator: Gordon Leggett
+Source: https://commons.wikimedia.org/wiki/File%3A2023-05-14_03_MS_FREYA_-_IMO_7912020_-_Svalbard.jpg
+License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-77.jpg
+Work: Arctic ocean panorama, off the coast of Longyearbyen buiobuione.jpg
+Creator: Buiobuione
+Source: https://commons.wikimedia.org/wiki/File%3AArctic_ocean_panorama%2C_off_the_coast_of_Longyearbyen_buiobuione.jpg
+License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-78.jpg
+Work: 0611 PO Polarlys departing from Geiranger - starboard bow - V-P.jpg
+Creator: Virtual-Pano
+Source: https://commons.wikimedia.org/wiki/File%3A0611_PO_Polarlys_departing_from_Geiranger_-_starboard_bow_-_V-P.jpg
+License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-80.jpg
+Work: 0613 Polarlys departing from Geiranger - starboard side aft - V-P.jpg
+Creator: Virtual-Pano
+Source: https://commons.wikimedia.org/wiki/File%3A0613_Polarlys_departing_from_Geiranger_-_starboard_side_aft_-_V-P.jpg
+License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-81.jpg
+Work: 0614 MSC Virtuosa at Geiranger Seawalk V-P.jpg
+Creator: Virtual-Pano
+Source: https://commons.wikimedia.org/wiki/File%3A0614_MSC_Virtuosa_at_Geiranger_Seawalk_V-P.jpg
+License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-82.jpg
+Work: Pisces. Hong Kong. (14432087552).jpg
+Creator: Bernard Spragg. NZ from Christchurch, New Zealand
+Source: https://commons.wikimedia.org/wiki/File%3APisces._Hong_Kong._%2814432087552%29.jpg
+License: CC0 (http://creativecommons.org/publicdomain/zero/1.0/deed.en)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-83.jpg
+Work: Cascada Dynjandi, Vestfirðir, Islandia, 2014-08-14, DD 136-138 HDR.JPG
+Creator: Diego Delso
+Source: https://commons.wikimedia.org/wiki/File%3ACascada_Dynjandi%2C_Vestfir%C3%B0ir%2C_Islandia%2C_2014-08-14%2C_DD_136-138_HDR.JPG
+License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-84.jpg
+Work: Foss Waterfall Iceland Landscape Photography (229750203).jpeg
+Creator: Giuseppe Milo
+Source: https://commons.wikimedia.org/wiki/File%3AFoss_Waterfall_Iceland_Landscape_Photography_%28229750203%29.jpeg
+License: CC BY 3.0 (https://creativecommons.org/licenses/by/3.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-86.jpg
+Work: GothafossWinter.jpg
+Creator: Andreas Tille
+Source: https://commons.wikimedia.org/wiki/File%3AGothafossWinter.jpg
+License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-88.jpg
+Work: Battery Park City New York January 2018 002.jpg
+Creator: King of Hearts
+Source: https://commons.wikimedia.org/wiki/File%3ABattery_Park_City_New_York_January_2018_002.jpg
+License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-89.jpg
+Work: Brooklyn Bridge and the Lower Manhattan skyline from Pebble Beach, New York.jpg
+Creator: Christian David
+Source: https://commons.wikimedia.org/wiki/File%3ABrooklyn_Bridge_and_the_Lower_Manhattan_skyline_from_Pebble_Beach%2C_New_York.jpg
+License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-91.jpg
+Work: An island in Ha Long Bay, Vietnam.jpg
+Creator: Poom Pengcharoen
+Source: https://commons.wikimedia.org/wiki/File%3AAn_island_in_Ha_Long_Bay%2C_Vietnam.jpg
+License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-92.jpg
+Work: Ha Long Bay, Vietnam, Rock formations.jpg
+Creator: Vyacheslav Argenberg
+Source: https://commons.wikimedia.org/wiki/File%3AHa_Long_Bay%2C_Vietnam%2C_Rock_formations.jpg
+License: CC BY 4.0 (https://creativecommons.org/licenses/by/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-94.jpg
+Work: Ha Long Bay, northern Vietnam (19) (37654300555).jpg
+Creator: Richard Mortel from Riyadh, Saudi Arabia
+Source: https://commons.wikimedia.org/wiki/File%3AHa_Long_Bay%2C_northern_Vietnam_%2819%29_%2837654300555%29.jpg
+License: CC BY 2.0 (https://creativecommons.org/licenses/by/2.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-96.jpg
+Work: Beach umbrellas, Sanya, Hainan, China - 三亚，海南，中国 (10225974024).jpg
+Creator: Romain Pontida
+Source: https://commons.wikimedia.org/wiki/File%3ABeach_umbrellas%2C_Sanya%2C_Hainan%2C_China_-_%E4%B8%89%E4%BA%9A%EF%BC%8C%E6%B5%B7%E5%8D%97%EF%BC%8C%E4%B8%AD%E5%9B%BD_%2810225974024%29.jpg
+License: CC BY-SA 2.0 (https://creativecommons.org/licenses/by-sa/2.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-97.jpg
+Work: Beaches in Sanya, Hainan, China12.jpg
+Creator: Huangdan2060
+Source: https://commons.wikimedia.org/wiki/File%3ABeaches_in_Sanya%2C_Hainan%2C_China12.jpg
+License: CC0 (http://creativecommons.org/publicdomain/zero/1.0/deed.en)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-98.jpg
+Work: Beaches in Sanya, Hainan, China13.jpg
+Creator: Huangdan2060
+Source: https://commons.wikimedia.org/wiki/File%3ABeaches_in_Sanya%2C_Hainan%2C_China13.jpg
+License: CC0 (http://creativecommons.org/publicdomain/zero/1.0/deed.en)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-103.jpg
+Work: ArtScience Museum, Marina Bay Sands, Singapore.jpg
+Creator: Basile Morin
+Source: https://commons.wikimedia.org/wiki/File%3AArtScience_Museum%2C_Marina_Bay_Sands%2C_Singapore.jpg
+License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-105.jpg
+Work: Marina Bay, Singapore (P1110054).jpg
+Creator: Matti Blume
+Source: https://commons.wikimedia.org/wiki/File%3AMarina_Bay%2C_Singapore_%28P1110054%29.jpg
+License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/deed.en)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-109.jpg
+Work: Coal Harbor (6157932880).jpg
+Creator: Francisco Anzola
+Source: https://commons.wikimedia.org/wiki/File%3ACoal_Harbor_%286157932880%29.jpg
+License: CC BY 2.0 (https://creativecommons.org/licenses/by/2.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-110.jpg
+Work: English Bay (219184181).jpeg
+Creator: Ian Spence
+Source: https://commons.wikimedia.org/wiki/File%3AEnglish_Bay_%28219184181%29.jpeg
+License: CC BY 3.0 (https://creativecommons.org/licenses/by/3.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-111.jpg
+Work: 20130202 Stockholm Skärgård (17).jpg
+Creator: Belola80
+Source: https://commons.wikimedia.org/wiki/File%3A20130202_Stockholm_Sk%C3%A4rg%C3%A5rd_%2817%29.jpg
+License: CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-114.jpg
+Work: GEORGETOWN WATERFRONT PENANG ISLAND MALAYSIA JAN 2012 (6817725862).jpg
+Creator: calflier001
+Source: https://commons.wikimedia.org/wiki/File%3AGEORGETOWN_WATERFRONT_PENANG_ISLAND_MALAYSIA_JAN_2012_%286817725862%29.jpg
+License: CC BY-SA 2.0 (https://creativecommons.org/licenses/by-sa/2.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-117.jpg
+Work: Penang Malaysia Waterfront-01.jpg
+Creator: CEphoto, Uwe Aranas
+Source: https://commons.wikimedia.org/wiki/File%3APenang_Malaysia_Waterfront-01.jpg
+License: CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-118.jpg
+Work: Belem Tower - April 2019 (2).jpg
+Creator: Rehman Abubakr
+Source: https://commons.wikimedia.org/wiki/File%3ABelem_Tower_-_April_2019_%282%29.jpg
+License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-122.jpg
+Work: Arch Colosseum Rome Italy.jpg
+Creator: Jebulon
+Source: https://commons.wikimedia.org/wiki/File%3AArch_Colosseum_Rome_Italy.jpg
+License: CC0 (http://creativecommons.org/publicdomain/zero/1.0/deed.en)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-125.jpg
+Work: Colosseum and Via Sacra (Rome).jpg
+Creator: Livioandronico2013
+Source: https://commons.wikimedia.org/wiki/File%3AColosseum_and_Via_Sacra_%28Rome%29.jpg
+License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-127.jpg
+Work: Gamla stan.jpg
+Creator: Dkganesh
+Source: https://commons.wikimedia.org/wiki/File%3AGamla_stan.jpg
+License: CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-128.jpg
+Work: Sweden, Stockholm, Gamla Stan (Old Town), Dusk 150628-69.jpg
+Creator: Richardmaackphotography
+Source: https://commons.wikimedia.org/wiki/File%3ASweden%2C_Stockholm%2C_Gamla_Stan_%28Old_Town%29%2C_Dusk_150628-69.jpg
+License: CC BY 4.0 (https://creativecommons.org/licenses/by/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-130.jpg
+Work: Mirador en el valle sagrado.jpg
+Creator: Killacc
+Source: https://commons.wikimedia.org/wiki/File%3AMirador_en_el_valle_sagrado.jpg
+License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-131.jpg
+Work: Salineras de Maras, Maras, Perú, 2015-07-30, DD 02.JPG
+Creator: Diego Delso
+Source: https://commons.wikimedia.org/wiki/File%3ASalineras_de_Maras%2C_Maras%2C_Per%C3%BA%2C_2015-07-30%2C_DD_02.JPG
+License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-133.jpg
+Work: Hokkaido-Toya Lake-xl.jpg
+Creator: 洞爺湖町
+Source: https://commons.wikimedia.org/wiki/File:Hokkaido-Toya_Lake-xl.jpg
+License: CC BY 4.0 (https://creativecommons.org/licenses/by/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/package-photo-134.jpg
+Work: Jigokudani (Hell Valley), Noboribetsu Onsen, Hokkaido, April 2023 02.jpg
+Creator: Calistemon
+Source: https://commons.wikimedia.org/wiki/File:Jigokudani_(Hell_Valley)%2C_Noboribetsu_Onsen%2C_Hokkaido%2C_April_2023_02.jpg
+License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.

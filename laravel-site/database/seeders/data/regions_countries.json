@@ -1,0 +1,330 @@
+{
+  "countries": [
+    {
+      "id": "japan",
+      "name": "Japan",
+      "region": "Asia",
+      "image": "countries/japan-package-thumbnail.jpg",
+      "blurb": "Temples, bullet trains and blossom season."
+    },
+    {
+      "id": "usa",
+      "name": "United States of America",
+      "region": "North America",
+      "image": "countries/usa-package-thumbnail.jpg",
+      "blurb": "Skyline cities, epic road trips and national parks."
+    },
+    {
+      "id": "mexico",
+      "name": "Mexico",
+      "region": "North America",
+      "image": "countries/mexico-package-thumbnail.jpg",
+      "blurb": "Ancient ruins, vibrant markets and Caribbean beaches."
+    },
+    {
+      "id": "brazil",
+      "name": "Brazil",
+      "region": "South America",
+      "image": "countries/brazil-package-thumbnail.jpg",
+      "blurb": "Rio carnival, Amazon rainforest and golden coastlines."
+    },
+    {
+      "id": "argentina",
+      "name": "Argentina",
+      "region": "South America",
+      "image": "countries/argentina-package-thumbnail.jpg",
+      "blurb": "Tango nights, Patagonian glaciers and world-class wine."
+    },
+    {
+      "id": "peru",
+      "name": "Peru",
+      "region": "South America",
+      "image": "countries/peru-package-thumbnail.jpg",
+      "blurb": "Machu Picchu, Andean trails and Inca heritage."
+    },
+    {
+      "id": "chile",
+      "name": "Chile",
+      "region": "South America",
+      "image": "countries/chile-package-thumbnail.jpg",
+      "blurb": "Desert skies, Torres del Paine and Easter Island mysteries."
+    },
+    {
+      "id": "turkiye",
+      "name": "Türkiye",
+      "region": "Asia",
+      "image": "countries/turkiye-package-thumbnail.jpg",
+      "blurb": "Hot air balloons, grand bazaars and Ottoman history."
+    },
+    {
+      "id": "uae",
+      "name": "United Arab Emirates",
+      "region": "Asia",
+      "image": "countries/uae-package-thumbnail.jpg",
+      "blurb": "Futuristic skylines, desert safaris and luxury shopping."
+    },
+    {
+      "id": "new-zealand",
+      "name": "New Zealand",
+      "region": "Oceania",
+      "image": "countries/new-zealand-package-thumbnail.jpg",
+      "blurb": "Fjords, adventure sports and Middle-earth landscapes."
+    },
+    {
+      "id": "australia",
+      "name": "Australia",
+      "region": "Oceania",
+      "image": "countries/australia-package-thumbnail.jpg",
+      "blurb": "Great Barrier Reef, the Outback and iconic coastlines."
+    },
+    {
+      "id": "switzerland",
+      "name": "Switzerland",
+      "region": "Europe",
+      "image": "countries/switzerland-package-thumbnail.jpg",
+      "blurb": "Alpine peaks, scenic rail journeys and lakeside villages."
+    },
+    {
+      "id": "italy",
+      "name": "Italy",
+      "region": "Europe",
+      "image": "countries/italy-package-thumbnail.jpg",
+      "blurb": "Ancient Rome, Tuscan hills and unforgettable cuisine."
+    },
+    {
+      "id": "iceland",
+      "name": "Iceland",
+      "region": "Europe",
+      "image": "countries/iceland-package-thumbnail.jpg",
+      "blurb": "Northern lights, waterfalls and volcanic wonders."
+    },
+    {
+      "id": "finland",
+      "name": "Finland",
+      "region": "Europe",
+      "image": "countries/finland-package-thumbnail.jpg",
+      "blurb": "Lapland magic, glass igloos and saunas by the lake."
+    },
+    {
+      "id": "spain",
+      "name": "Spain",
+      "region": "Europe",
+      "image": "countries/spain-package-thumbnail.jpg",
+      "blurb": "Flamenco, Gaudí architecture and sun-soaked tapas trails."
+    },
+    {
+      "id": "portugal",
+      "name": "Portugal",
+      "region": "Europe",
+      "image": "countries/portugal-package-thumbnail.jpg",
+      "blurb": "Tiled streets, Douro vineyards and Atlantic beaches."
+    },
+    {
+      "id": "germany",
+      "name": "Germany",
+      "region": "Europe",
+      "image": "countries/germany-package-thumbnail.jpg",
+      "blurb": "Fairytale castles, Christmas markets and Black Forest charm."
+    },
+    {
+      "id": "greece",
+      "name": "Greece",
+      "region": "Europe",
+      "image": "countries/greece-package-thumbnail.jpg",
+      "blurb": "Whitewashed islands, ancient ruins and Aegean sunsets."
+    },
+    {
+      "id": "scotland",
+      "name": "Scotland",
+      "region": "Europe",
+      "image": "countries/scotland-package-thumbnail.jpg",
+      "blurb": "Misty highlands, historic castles and legendary lochs."
+    },
+    {
+      "id": "england",
+      "name": "England",
+      "region": "Europe",
+      "image": "countries/england-package-thumbnail.jpg",
+      "blurb": "Royal London, countryside villages and literary landmarks."
+    },
+    {
+      "id": "russia",
+      "name": "Russia",
+      "region": "Europe",
+      "image": "countries/russia-package-thumbnail.jpg",
+      "blurb": "Onion-domed cathedrals, grand palaces and the Trans-Siberian."
+    },
+    {
+      "id": "poland",
+      "name": "Poland",
+      "region": "Europe",
+      "image": "countries/poland-package-thumbnail.jpg",
+      "blurb": "Medieval old towns, rich history and cosy pierogi cafés."
+    },
+    {
+      "id": "france",
+      "name": "France",
+      "region": "Europe",
+      "image": "countries/france-package-thumbnail.jpg",
+      "blurb": "Paris romance, lavender fields and Riviera glamour."
+    },
+    {
+      "id": "thailand",
+      "name": "Thailand",
+      "region": "Asia",
+      "image": "countries/thailand-package-thumbnail.jpg",
+      "blurb": "Golden temples, island beaches and legendary street food."
+    },
+    {
+      "id": "vietnam",
+      "name": "Vietnam",
+      "region": "Asia",
+      "image": "countries/vietnam-package-thumbnail.jpg",
+      "blurb": "Ha Long Bay cruises, lantern towns and bustling cities."
+    },
+    {
+      "id": "indonesia",
+      "name": "Indonesia",
+      "region": "Asia",
+      "image": "countries/indonesia-package-thumbnail.jpg",
+      "blurb": "Bali retreats, volcano treks and thousands of islands."
+    },
+    {
+      "id": "malaysia",
+      "name": "Malaysia",
+      "region": "Asia",
+      "image": "countries/malaysia-package-thumbnail.jpg",
+      "blurb": "Twin towers, rainforests and a melting pot of cultures."
+    },
+    {
+      "id": "philippines",
+      "name": "Philippines",
+      "region": "Asia",
+      "image": "countries/philippines-package-thumbnail.jpg",
+      "blurb": "Turquoise lagoons, island hopping and warm hospitality."
+    },
+    {
+      "id": "south-korea",
+      "name": "South Korea",
+      "region": "Asia",
+      "image": "countries/south-korea-package-thumbnail.jpg",
+      "blurb": "K-culture, historic palaces and neon-lit Seoul nights."
+    },
+    {
+      "id": "china",
+      "name": "China",
+      "region": "Asia",
+      "image": "countries/china-package-thumbnail.jpg",
+      "blurb": "The Great Wall, imperial heritage and futuristic megacities."
+    },
+    {
+      "id": "japan",
+      "name": "Japan",
+      "region": "Asia",
+      "image": "countries/japan-package-thumbnail.jpg",
+      "blurb": "Temples, bullet trains and blossom season."
+    },
+    {
+      "id": "maldives",
+      "name": "Maldives",
+      "region": "Asia",
+      "image": "countries/maldives-package-thumbnail.jpg",
+      "blurb": "Overwater villas, coral reefs and crystal-clear lagoons."
+    },
+    {
+      "id": "morocco",
+      "name": "Morocco",
+      "region": "Africa",
+      "image": "countries/morocco-package-thumbnail.jpg",
+      "blurb": "Colourful souks, Sahara dunes and ornate riads."
+    },
+    {
+      "id": "tunisia",
+      "name": "Tunisia",
+      "region": "Africa",
+      "image": "countries/tunisia-package-thumbnail.webp",
+      "blurb": "Carthage ruins, blue-and-white villages and Med beaches."
+    },
+    {
+      "id": "egypt",
+      "name": "Egypt",
+      "region": "Africa",
+      "image": "countries/egypt-package-thumbnail.jpg",
+      "blurb": "Pyramids, Nile cruises and pharaonic treasures."
+    },
+    {
+      "id": "kenya",
+      "name": "Kenya",
+      "region": "Africa",
+      "image": "countries/kenya-package-thumbnail.jpg",
+      "blurb": "Savannah safaris, Maasai culture and the Great Migration."
+    }
+  ],
+  "packages": [],
+  "deals": [],
+  "ships": [],
+  "promos": {
+    "WELCOME10": 0.1,
+    "SUMMER15": 0.15
+  },
+  "blog": [
+    {
+      "id": "sakura-timing",
+      "title": "When to chase the cherry blossoms in Japan",
+      "tag": "Japan",
+      "read": "6 min",
+      "image": "1558870832-c8db4b5b47d1",
+      "body": "The blossom front moves north at roughly 25 km a day. Tokyo usually peaks in the last days of March, Kyoto in the first week of April, and Hokkaido in early May. Build a loose itinerary and keep two days of slack: a single rain shower can end peak bloom overnight. Book hotels in Kyoto at least six months out; weekends sell out first."
+    },
+    {
+      "id": "cruise-first",
+      "title": "Your first cruise: five things nobody tells you",
+      "tag": "Cruising",
+      "read": "5 min",
+      "image": "1559599746-8823b38544c6",
+      "body": "Pick a deck mid-ship for the least motion. Book specialty dining on day one, not day three. Shore excursions through the ship cost more than independent ones, but they guarantee the ship will wait. Pack a lanyard, a power strip without surge protection (many lines ban surge strips) and a light layer for the air-conditioned theatre."
+    },
+    {
+      "id": "migration",
+      "title": "Reading the Great Migration like a guide",
+      "tag": "Africa",
+      "read": "7 min",
+      "image": "1535940360221-641a69c43bac",
+      "body": "The herds reach the Mara River between July and September, but the exact crossings depend on rain in the Serengeti. Guides watch for restless clusters at the bank and the behaviour of the zebra, who tend to lead. Patience matters more than a long lens: sit with one crossing point for a full morning."
+    },
+    {
+      "id": "iceland-winter",
+      "title": "Iceland in February: what to pack and what to skip",
+      "tag": "Europe",
+      "read": "4 min",
+      "image": "1476610182048-b716b8518aae",
+      "body": "Bring waterproof outer layers, merino base layers and ice cleats. Skip the heavy snow boots: insulated waterproof hikers with cleats work better on wet black sand. Keep your camera battery in an inside pocket and charge your phone every night; the cold drains both faster than you expect."
+    }
+  ],
+  "faqs": [
+    {
+      "q": "How do I book a tour package?",
+      "a": "Choose a package, pick a departure date and number of guests, then add it to your cart. Proceed to checkout, enter traveller details and pay by card, PayPal or bank transfer."
+    },
+    {
+      "q": "Can I change the date or number of guests after adding to cart?",
+      "a": "Yes. Open your cart and edit the date, guest count or add-ons. Prices update instantly. Once a booking is confirmed, changes are handled by our support team."
+    },
+    {
+      "q": "When is the balance due?",
+      "a": "A 20% deposit confirms most bookings. The balance is due 90 days before departure for land tours and 120 days for cruises."
+    },
+    {
+      "q": "What is your cancellation policy?",
+      "a": "Free cancellation up to 90 days before departure. Between 89 and 45 days a 30% fee applies, and inside 44 days the booking is non-refundable. See the full policy for details."
+    },
+    {
+      "q": "Do I need travel insurance?",
+      "a": "We strongly recommend it and offer a comprehensive policy as an add-on at checkout. It is required for expedition cruises."
+    },
+    {
+      "q": "Do you offer group discounts?",
+      "a": "Yes. Groups of six or more qualify for selected departures. Check the Deals page or contact us for a custom quote."
+    }
+  ]
+}

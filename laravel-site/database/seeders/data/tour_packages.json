@@ -1,0 +1,3851 @@
+{
+  "meta": {
+    "generated": "2026-10-20",
+    "source_files": 11,
+    "notes": [
+      "null = not printed in the brochure",
+      "times are 24h local port times as printed",
+      "Chinese descriptions not duplicated; zh names included where the brochure had them",
+      "data_quality_flags list inconsistencies found in the source PDFs"
+    ]
+  },
+  "packages": [
+    {
+      "id": "JPD-12",
+      "slug": "6d4n-hokkaido-noboribetsu-lake-toya-otaru-sapporo",
+      "category": "guided_land_tour",
+      "brand": "Golden Destinations (Amazing Japan)",
+      "operator": "Ice Holidays Sdn Bhd (230643-X) KPK/LN:2441",
+      "source_file": "6D4N_GO_Hokkaido_GJPD-12.pdf",
+      "title": {
+        "en": "Hokkaido (Noboribetsu / Lake Toya / Otaru / Sapporo)",
+        "zh": "北海道（登别 / 洞爷湖 / 小樽 / 札幌）"
+      },
+      "duration": {
+        "days": 6,
+        "nights": 4,
+        "label": "6D4N"
+      },
+      "country": "Japan",
+      "destinations": [
+        "Chitose",
+        "Noboribetsu",
+        "Lake Toya",
+        "Otaru",
+        "Sapporo"
+      ],
+      "departure_city": null,
+      "arrival_airport": "New Chitose Airport (Chitose)",
+      "aircraft_types": [
+        "A330 (AirAsia livery shown)"
+      ],
+      "tags": [
+        "hot spring",
+        "snow",
+        "city",
+        "family",
+        "shopping"
+      ],
+      "cover_photo_captions": [
+        "Mt. Moiwa",
+        "Noboribetsu Marine Park Nixe",
+        "Otaru Canal",
+        "Noboribetsu Date Jidai Village",
+        "Hokkaido Shrine",
+        "Shiroi Koibito Park",
+        "Mt. Showa-Shinzan",
+        "Noboribetsu Jigokudani",
+        "Odori Park",
+        "Tanukikoji Shopping Arcade"
+      ],
+      "itinerary": [
+        {
+          "day": 1,
+          "title": "Departure → Chitose",
+          "route": [
+            "Departure",
+            "Chitose"
+          ],
+          "meals": [],
+          "activities": []
+        },
+        {
+          "day": 2,
+          "title": "Arrival Chitose → Noboribetsu → Lake Toya",
+          "route": [
+            "Chitose",
+            "Noboribetsu",
+            "Lake Toya"
+          ],
+          "meals": [
+            "meals on board",
+            "lunch",
+            "dinner"
+          ],
+          "activities": [
+            {
+              "name": "Noboribetsu Date Jidaimura",
+              "name_zh": "登别伊达时代村",
+              "note": "Entrance ticket included",
+              "type": "included_entry"
+            },
+            {
+              "name": "Noboribetsu Jigokudani",
+              "name_zh": "登别地狱谷",
+              "type": "visit"
+            },
+            {
+              "name": "Mt. Showa-Shinzan",
+              "name_zh": "昭和新山",
+              "note": "Outlook",
+              "type": "view"
+            }
+          ]
+        },
+        {
+          "day": 3,
+          "title": "Lake Toya → Noboribetsu → Otaru → Sapporo",
+          "route": [
+            "Lake Toya",
+            "Noboribetsu",
+            "Otaru",
+            "Sapporo"
+          ],
+          "meals": [
+            "breakfast",
+            "lunch",
+            "dinner"
+          ],
+          "activities": [
+            {
+              "name": "Snow Mobile",
+              "name_zh": "雪上摩托车",
+              "note": "Optional, own expense; Dec–Mar only; subject to weather",
+              "type": "optional"
+            },
+            {
+              "name": "Noboribetsu Marine Park Nixe – Penguin Parade",
+              "name_zh": "登别尼克斯海洋公园～企鹅游行",
+              "note": "Penguin parade subject to weather",
+              "type": "visit"
+            },
+            {
+              "name": "Otaru Canal",
+              "name_zh": "小樽运河街",
+              "type": "visit"
+            },
+            {
+              "name": "Sakaimachi Street (Music Box Museum)",
+              "name_zh": "音乐风铃馆",
+              "type": "visit"
+            },
+            {
+              "name": "Kitaichi Glass",
+              "name_zh": "北一哨子店",
+              "type": "visit"
+            }
+          ]
+        },
+        {
+          "day": 4,
+          "title": "Sapporo",
+          "route": [
+            "Sapporo"
+          ],
+          "meals": [
+            "breakfast",
+            "dinner"
+          ],
+          "activities": [
+            {
+              "name": "Hokkaido Shrine",
+              "name_zh": "北海道神宫",
+              "type": "visit"
+            },
+            {
+              "name": "Nijo Market",
+              "name_zh": "二条市场",
+              "type": "visit"
+            },
+            {
+              "name": "Odori Park",
+              "name_zh": "大通公园",
+              "type": "visit"
+            },
+            {
+              "name": "Mt. Moiwa",
+              "name_zh": "藻岩山",
+              "note": "Cable car included; subject to weather",
+              "type": "included_entry"
+            }
+          ]
+        },
+        {
+          "day": 5,
+          "title": "Sapporo",
+          "route": [
+            "Sapporo"
+          ],
+          "meals": [
+            "breakfast",
+            "lunch",
+            "dinner"
+          ],
+          "activities": [
+            {
+              "name": "Shiroi Koibito Park",
+              "name_zh": "白色恋人公园",
+              "note": "Includes 1 cup of ice cream",
+              "type": "included_entry"
+            },
+            {
+              "name": "Former Hokkaido Government Office Building",
+              "name_zh": "北海道厅旧本厅舍",
+              "type": "visit"
+            },
+            {
+              "name": "Duty Free Shop",
+              "name_zh": "免税店",
+              "type": "shopping"
+            },
+            {
+              "name": "Tanukikoji Shopping Arcade",
+              "name_zh": "狸小路购物街",
+              "type": "shopping"
+            }
+          ]
+        },
+        {
+          "day": 6,
+          "title": "Sapporo → Chitose → Departure",
+          "route": [
+            "Sapporo",
+            "Chitose",
+            "Departure"
+          ],
+          "meals": [
+            "meals on board"
+          ],
+          "activities": []
+        }
+      ],
+      "meals_summary": {
+        "breakfast": 3,
+        "lunch": 3,
+        "dinner": 4,
+        "special_cuisine": [
+          "Grilled Fish Set",
+          "3 Types Hokkaido Crab Buffet (printed 'Carb' in English; Chinese text says crab)",
+          "Japanese Set",
+          "BBQ Buffet",
+          "Hot Spring Hotel Cuisine",
+          "Sukiyaki Set"
+        ]
+      },
+      "accommodation": {
+        "nights_total": 4,
+        "hotels": [
+          {
+            "name": "Toyako Manseikaku Hot Spring Hotel (or similar class)",
+            "name_zh": "洞爷湖万世阁温泉酒店",
+            "location": "Lake Toya",
+            "nights": 1,
+            "onsen": true
+          },
+          {
+            "name": "Sapporo Excel Hotel Tokyu / Sapporo Tokyu REI Hotel (or similar class)",
+            "name_zh": "东急札幌卓越大酒店 / 札幌东急 REI 酒店",
+            "location": "Sapporo",
+            "nights": 3,
+            "onsen": false
+          }
+        ]
+      },
+      "attractions": [
+        {
+          "area": "Noboribetsu",
+          "name": "Noboribetsu Date Jidaimura",
+          "name_zh": "登别伊达时代村",
+          "description": "A history theme park highlighting the Edo Period, one of the most attractive eras in Japanese history. Step back in time to enjoy traditional games, activities, theaters and street performances. Mingle with the Ninja and Oiran courtesans symbolic of the Edo Period."
+        },
+        {
+          "area": "Noboribetsu",
+          "name": "Noboribetsu Jigokudani",
+          "name_zh": "登别地狱谷",
+          "description": "A spectacular valley just above the town of Noboribetsu Onsen, displaying hot steam vents, sulfurous streams and other volcanic activity."
+        },
+        {
+          "area": "Noboribetsu / Lake Toya",
+          "name": "Mt. Showa-Shinzan",
+          "name_zh": "昭和新山",
+          "description": "Literally 'Showa new mountain', formed during the reign of Emperor Hirohito, known as the Showa period."
+        },
+        {
+          "area": "Noboribetsu",
+          "name": "Noboribetsu Marine Park Nixe",
+          "name_zh": "登别尼克斯海洋公园",
+          "description": "A popular theme park focusing on fish, marine mammals, sea creatures and other animals. Includes a touch pool with small sharks, rays and horseshoe crabs, and a reptile house with snakes, turtles and lizards. Activities and events such as the Parade of the king penguins (subject to weather)."
+        },
+        {
+          "area": "Otaru",
+          "name": "Otaru Canal",
+          "name_zh": "小樽运河街",
+          "description": "Rows of old stone warehouses stand along the canal, with a stone-paved promenade and old-fashioned gas lamps that give a romantic atmosphere."
+        },
+        {
+          "area": "Otaru",
+          "name": "Sakaimachi Street",
+          "name_zh": "堺町通 / 音乐风铃馆",
+          "description": "An attractive preserved merchant street in central Otaru, famous for Kitaichi Glass and the Music Box Museum (3,000+ antique and modern music boxes per the Chinese text)."
+        },
+        {
+          "area": "Sapporo",
+          "name": "Shiroi Koibito Park",
+          "name_zh": "白色恋人公园",
+          "description": "A space themed on sweets from a bygone era. Houses the Shiroi Koibito Factory (well-known Hokkaido confectionery), a cafe for Ishiya's original sweets (self-paid per Chinese text), the Cookie Craft Studio, a toy exhibition room and the Rose Garden."
+        },
+        {
+          "area": "Sapporo",
+          "name": "Hokkaido Shrine",
+          "name_zh": "北海道神宫",
+          "description": "In 1869 the Meiji Emperor decided to enshrine three Shinto deities: Sukunahikona, Okunitama and Okuninushi, who became the three deities of Hokkaido. The shrine was built in 1871 and first called 'Sapporo Shrine'."
+        },
+        {
+          "area": "Sapporo",
+          "name": "Tanukikoji Shopping Arcade",
+          "name_zh": "狸小路购物街",
+          "description": "Approximately 1 km-long arcade with around 200 shops."
+        },
+        {
+          "area": "Sapporo",
+          "name": "Mt. Moiwa (cable car included)",
+          "name_zh": "藻岩山",
+          "description": "One of Japan's 'New Three Great Night Views' and one of Sapporo's most iconic scenic spots. After sunset the city lights sparkle below; the summit observatory gives a 360-degree panorama of Sapporo."
+        }
+      ],
+      "optional_tours": [
+        {
+          "name": "Snow Mobile",
+          "season": "Dec–Mar",
+          "price": null,
+          "note": "Own expense; subject to weather"
+        }
+      ],
+      "shopping_stops": [
+        "Duty Free Shop (Day 5)",
+        "Tanukikoji Shopping Arcade (Day 5)"
+      ],
+      "pricing": {
+        "currency_hint": "MYR",
+        "departure_dates": [],
+        "tour_fare": null,
+        "tipping": null,
+        "visa": null,
+        "airport_tax_fuel_surcharge": null,
+        "agent_collection_fee": null,
+        "travel_insurance": null,
+        "note": "Fare form on the general-info page is blank; fill per departure."
+      },
+      "general_info": {
+        "country": "Japan",
+        "currency": "Japanese Yen (JPY)",
+        "exchange_rate": "100 JPY = MYR 2.70 (subject to rate of the day)",
+        "credit_cards": "Visa and Mastercard widely used; call card centre to extend credit limit",
+        "dial_code": "+81",
+        "voltage": "220 V (as printed; verify – Japan's mains is normally 100 V)",
+        "power_sockets": [
+          "Type A (2 flat blade pins)",
+          "Type B (2 flat blade pins + 1 round pin)"
+        ],
+        "time_difference": "1 hour ahead of Malaysia",
+        "luggage": {
+          "checked": "1 piece, max 20 kg",
+          "hand_carry": "1 piece, max 7 kg"
+        },
+        "weather": [
+          {
+            "season": "Spring",
+            "months": "Mar–May",
+            "temp_c": "6–20"
+          },
+          {
+            "season": "Summer",
+            "months": "Jun–Aug",
+            "temp_c": "19–28"
+          },
+          {
+            "season": "Autumn",
+            "months": "Sep–Nov",
+            "temp_c": "10–25"
+          },
+          {
+            "season": "Winter",
+            "months": "Dec–Feb",
+            "temp_c": "3–13"
+          }
+        ]
+      },
+      "terms": [
+        "Golden Destinations reserves the right to alter the sequence, change, amend or alter the itinerary if necessary, with or without prior notice.",
+        "No refund or replacement if tour logistics are affected by the above.",
+        "Pictures are for illustration only.",
+        "Sequence of itinerary subject to local arrangement."
+      ],
+      "data_quality_flags": [
+        "Departure city not printed (flight shown only as 'Departure → Chitose').",
+        "Weather figures are generic national ranges.",
+        "Voltage printed as 220 V."
+      ]
+    },
+    {
+      "id": "CUS-6",
+      "slug": "8d6n-xian-luoyang-dengfeng-sanmenxia-mt-hua",
+      "category": "guided_land_tour",
+      "brand": "Golden Destinations (Amazing China)",
+      "operator": "Ice Holidays Sdn Bhd (230643-X) KPK/LN:2441",
+      "source_file": "8D6N_GO_Xian_Luoyang_KaiFeng_GCUS-6.pdf",
+      "title": {
+        "en": "Xi'an / Luoyang / Dengfeng / Sanmenxia / Mt. Hua",
+        "zh": "西安 / 洛阳 / 登封 / 三门峡 / 华山"
+      },
+      "duration": {
+        "days": 8,
+        "nights": 6,
+        "label": "8D6N"
+      },
+      "country": "China",
+      "destinations": [
+        "Xi'an",
+        "Mt. Hua",
+        "Luoyang",
+        "Dengfeng",
+        "Sanmenxia",
+        "Lintong"
+      ],
+      "departure_city": null,
+      "aircraft_types": [
+        "A330",
+        "B737",
+        "B787"
+      ],
+      "tags": [
+        "no shopping stop",
+        "history",
+        "UNESCO",
+        "mountain",
+        "Shaolin",
+        "Terracotta Warriors"
+      ],
+      "highlight_badges": [
+        "No Shopping Stop (全程无购物站)"
+      ],
+      "cover_photo_captions": [
+        "Longmen Grottoes",
+        "Shaolin Temple",
+        "Bell and Drum Square",
+        "Mt. Hua",
+        "Emperor Qinshihuang's Mausoleum Site Museum",
+        "Luoyi Ancient City",
+        "Yongxingfang Food Street",
+        "Datang Everbright City",
+        "Muslim Street",
+        "Giant Wild Goose Pagoda Music Fountain"
+      ],
+      "itinerary": [
+        {
+          "day": 1,
+          "title": "Departure → Xi'an",
+          "route": [
+            "Departure",
+            "Xi'an"
+          ],
+          "meals": [
+            "meals on board"
+          ],
+          "activities": [
+            {
+              "name": "Check in hotel",
+              "type": "free"
+            }
+          ]
+        },
+        {
+          "day": 2,
+          "title": "Xi'an → Mt. Hua",
+          "route": [
+            "Xi'an",
+            "Mt. Hua"
+          ],
+          "distance_km": [
+            140
+          ],
+          "meals": [
+            "breakfast",
+            "lunch",
+            "dinner"
+          ],
+          "activities": [
+            {
+              "name": "Mt. Hua scenic area",
+              "name_zh": "华山风景区",
+              "note": "Includes shuttle ride + 2-way cable car (North Peak, per Chinese text)",
+              "type": "included_entry"
+            }
+          ]
+        },
+        {
+          "day": 3,
+          "title": "Mt. Hua → Luoyang",
+          "route": [
+            "Mt. Hua",
+            "Luoyang"
+          ],
+          "distance_km": [
+            270
+          ],
+          "meals": [
+            "breakfast",
+            "lunch",
+            "dinner"
+          ],
+          "activities": [
+            {
+              "name": "Longmen Grottoes",
+              "name_zh": "龙门石窟",
+              "note": "Includes 2-way buggy ride + earphone",
+              "type": "included_entry"
+            },
+            {
+              "name": "Viewing peonies",
+              "name_zh": "赏牡丹花",
+              "note": "April only",
+              "type": "seasonal"
+            },
+            {
+              "name": "Luoyi Ancient City",
+              "name_zh": "洛邑古城",
+              "type": "visit"
+            }
+          ]
+        },
+        {
+          "day": 4,
+          "title": "Luoyang → Dengfeng → Sanmenxia",
+          "route": [
+            "Luoyang",
+            "Dengfeng",
+            "Sanmenxia"
+          ],
+          "distance_km": [
+            60,
+            195
+          ],
+          "meals": [
+            "breakfast",
+            "lunch",
+            "dinner"
+          ],
+          "activities": [
+            {
+              "name": "Shaolin Temple",
+              "name_zh": "少林寺",
+              "note": "Includes 2-way buggy ride + earphone",
+              "type": "included_entry"
+            },
+            {
+              "name": "Pagoda Forest",
+              "name_zh": "塔林",
+              "type": "visit"
+            },
+            {
+              "name": "Martial Arts Performance",
+              "name_zh": "少林功夫表演",
+              "type": "show"
+            }
+          ]
+        },
+        {
+          "day": 5,
+          "title": "Sanmenxia → Lintong → Xi'an",
+          "route": [
+            "Sanmenxia",
+            "Lintong",
+            "Xi'an"
+          ],
+          "distance_km": [
+            200,
+            45
+          ],
+          "meals": [
+            "breakfast",
+            "lunch",
+            "dinner"
+          ],
+          "activities": [
+            {
+              "name": "Shanzhou Silo Cave (underground courtyard dwellings)",
+              "name_zh": "陕州地坑院",
+              "type": "visit"
+            },
+            {
+              "name": "Emperor Qinshihuang's Mausoleum Site Museum (Terracotta Warriors) – Pit 1, Pit 2, Pit 3",
+              "name_zh": "秦始皇兵马俑博物馆（一号坑、二号坑、三号坑）",
+              "note": "Includes one-way buggy + earphone",
+              "type": "included_entry"
+            }
+          ]
+        },
+        {
+          "day": 6,
+          "title": "Xi'an (free day)",
+          "route": [
+            "Xi'an"
+          ],
+          "meals": [
+            "breakfast"
+          ],
+          "activities": [
+            {
+              "name": "Full day free at own leisure",
+              "type": "free"
+            },
+            {
+              "name": "Optional tour: Daming Palace National Heritage Park + DIY Mini Terracotta Warrior + Xi'an MixC (free & easy, Tree of Life view) + Xi'an Eternal Love Show",
+              "name_zh": "大明宫国家遗址公园 + DIY体验制作小兵马俑 + 万象城 + 西安千古情",
+              "note": "RMB390/pax; minimum 6 people; includes bus & tour guide; excludes meals",
+              "type": "optional",
+              "price": {
+                "currency": "RMB",
+                "amount": 390,
+                "unit": "per person"
+              }
+            }
+          ]
+        },
+        {
+          "day": 7,
+          "title": "Xi'an → Departure",
+          "route": [
+            "Xi'an",
+            "Departure"
+          ],
+          "meals": [
+            "breakfast",
+            "lunch",
+            "dinner"
+          ],
+          "activities": [
+            {
+              "name": "Coffee at the base of Xi'an City Wall",
+              "name_zh": "西安城墙根儿品咖啡",
+              "type": "visit"
+            },
+            {
+              "name": "Bell and Drum Square",
+              "name_zh": "钟鼓楼广场",
+              "type": "visit"
+            },
+            {
+              "name": "Muslim Street",
+              "name_zh": "回民一条街",
+              "type": "visit"
+            },
+            {
+              "name": "Yongxingfang Food Street",
+              "name_zh": "永兴坊美食街",
+              "type": "visit"
+            },
+            {
+              "name": "Giant Wild Goose Pagoda Music Fountain",
+              "name_zh": "大雁塔北音乐喷泉广场",
+              "type": "visit"
+            },
+            {
+              "name": "Datang Everbright City",
+              "name_zh": "大唐不夜城",
+              "type": "visit"
+            }
+          ]
+        },
+        {
+          "day": 8,
+          "title": "Arrival",
+          "route": [
+            "Arrival"
+          ],
+          "meals": [
+            "meals on board"
+          ],
+          "activities": []
+        }
+      ],
+      "meals_summary": {
+        "breakfast": 6,
+        "lunch": 5,
+        "dinner": 5,
+        "special_cuisine": [
+          "Huashan Hero Feast",
+          "Shaolin Vegetarian Cuisine Flavor",
+          "Tang Style Grand Feast",
+          "Qiguo (steam pot) Chicken Flavor",
+          "Roujiamo Flavor",
+          "Shuixi Banquet Flavor + Hakka Cuisine Flavor"
+        ]
+      },
+      "accommodation": {
+        "nights_total": 6,
+        "hotels": [
+          {
+            "name": "Xi'an Holiday Inn Express (or similar class)",
+            "name_zh": "西安智选假日酒店",
+            "location": "Xi'an",
+            "nights": 1
+          },
+          {
+            "name": "Huashan Xinghe International Hotel (or similar class)",
+            "name_zh": "华山兴和酒店",
+            "location": "Mt. Hua",
+            "nights": 1
+          },
+          {
+            "name": "Luoyang Wuduo Rezen Hotel (or similar class)",
+            "name_zh": "洛阳吾朵丽呈酒店",
+            "location": "Luoyang",
+            "nights": 1,
+            "note": "No triple room"
+          },
+          {
+            "name": "Sanmenxia Wanda Meihua Hotel (or similar class)",
+            "name_zh": "三门峡万达美华酒店",
+            "location": "Sanmenxia",
+            "nights": 1
+          },
+          {
+            "name": "Novotel Xi'an Daming Palace Hotel (or similar class)",
+            "name_zh": "西安大明宫诺富特酒店",
+            "location": "Xi'an",
+            "nights": 2
+          }
+        ]
+      },
+      "attractions": [
+        {
+          "area": "Xi'an",
+          "name": "Emperor Qinshihuang's Mausoleum Site Museum",
+          "name_zh": "秦始皇兵马俑博物馆",
+          "description": "The most magnificent ancient underground military museum in China, known as 'the eighth wonder of the world' and 'one of the great discoveries in the archaeological history of the 20th century'."
+        },
+        {
+          "area": "Xi'an",
+          "name": "Bell and Drum Square",
+          "name_zh": "钟鼓楼广场",
+          "description": "Located at the intersection of the four east, west, north and south streets. The Bell Tower (600+ years old) stands on the east side and the largest Drum Tower in the country on the west side."
+        },
+        {
+          "area": "Xi'an",
+          "name": "Datang Everbright City",
+          "name_zh": "大唐不夜城",
+          "description": "At the foot of the Giant Wild Goose Pagoda, themed on the Tang dynasty so visitors can experience Tang culture; a night-time highlight."
+        },
+        {
+          "area": "Mt. Hua",
+          "name": "Mt. Hua",
+          "name_zh": "华山",
+          "description": "One of China's 'Five Great Mountains', known for the world's most dangerous hiking trail, scenic views and temples; a China National 5A tourist spot."
+        },
+        {
+          "area": "Luoyang",
+          "name": "Longmen Grottoes",
+          "name_zh": "龙门石窟",
+          "description": "Houses tens of thousands of statues of Shakyamuni Buddha and his disciples, nearly 2,500 stelae and inscriptions ('Forest of Ancient Stelae') and over sixty Buddhist pagodas. 5A scenic area and UNESCO World Heritage Site."
+        },
+        {
+          "area": "Luoyang",
+          "name": "Luoyi Ancient City",
+          "name_zh": "洛邑古城",
+          "description": "A place carrying thousands of years of history and culture where every brick and tile has a story."
+        },
+        {
+          "area": "Dengfeng",
+          "name": "Shaolin Temple",
+          "name_zh": "少林寺",
+          "description": "5A tourist spot, famous Buddhist temple and the ancestral home of Chinese Zen Buddhism; Shaolin martial arts made its monks famous worldwide."
+        }
+      ],
+      "optional_tours": [
+        {
+          "name": "Daming Palace National Heritage Park + DIY Mini Terracotta Warrior + Xi'an MixC + Xi'an Eternal Love Show",
+          "day": 6,
+          "price": {
+            "currency": "RMB",
+            "amount": 390,
+            "unit": "per person"
+          },
+          "min_pax": 6,
+          "includes": [
+            "bus",
+            "tour guide"
+          ],
+          "excludes": [
+            "meals"
+          ]
+        },
+        {
+          "name": "3D Reality Performing Arts 'Camel Bell Legend' Show",
+          "name_zh": "驼铃传奇",
+          "price": {
+            "currency": "RMB",
+            "amount": 298,
+            "unit": "per person"
+          }
+        }
+      ],
+      "shopping_stops": [],
+      "pricing": {
+        "currency_hint": "MYR",
+        "departure_dates": [],
+        "tour_fare": null,
+        "tipping": null,
+        "visa": null,
+        "airport_tax_fuel_surcharge": null,
+        "agent_collection_fee": null,
+        "travel_insurance": null,
+        "note": "Fare form is blank."
+      },
+      "general_info": {
+        "country": "China",
+        "currency": "Chinese Yuan / Renminbi (CNY / RMB)",
+        "exchange_rate": "10 CNY = MYR 6.50 (subject to rate of the day)",
+        "credit_cards": "Visa and Mastercard widely used; call card centre to extend credit limit",
+        "dial_code": "+86",
+        "voltage": "220 V",
+        "power_sockets": [
+          "Type A (2 flat blade pins)",
+          "Type B (2 flat blade pins + 1 round pin)",
+          "Type I (3 oblique flat blade pins, V-shape)"
+        ],
+        "time_difference": "None vs Malaysia",
+        "luggage": {
+          "checked": "1 piece, max 20 kg",
+          "hand_carry": "1 piece, max 7 kg"
+        },
+        "weather": [
+          {
+            "season": "Spring",
+            "months": "Mar–May",
+            "temp_c": "1–10 (as printed)"
+          },
+          {
+            "season": "Summer",
+            "months": "Jun–Aug",
+            "temp_c": "22–32"
+          },
+          {
+            "season": "Autumn",
+            "months": "Sep–Nov",
+            "temp_c": "17–28"
+          },
+          {
+            "season": "Winter",
+            "months": "Dec–Feb",
+            "temp_c": "5–14 (as printed)"
+          }
+        ]
+      },
+      "terms": [
+        "Itinerary may be adjusted (including sequence) due to local/religious festivals, public holidays, weather, transport technical issues or acts of nature; brochure also cites Covid-19 restrictions.",
+        "No refund or replacement if tour logistics are affected.",
+        "Pictures for illustration only.",
+        "Sequence of itinerary subject to local arrangement."
+      ],
+      "data_quality_flags": [
+        "Spring and winter temperature ranges look implausible (spring 1–10 °C, winter 5–14 °C) – verify.",
+        "Stray word 'QINGDAO' at the end of the PDF text (template leftover).",
+        "Departure city not printed; file name mentions Kai Feng but the itinerary does not."
+      ]
+    },
+    {
+      "id": "10XBI",
+      "slug": "10d8n-turkiye-wonders",
+      "category": "guided_land_tour",
+      "brand": "Exotic Destinations (异国风情)",
+      "operator": "Ice Holidays Sdn Bhd (230643-X) KPK/LN:2441",
+      "source_file": "10D8N_GO_Turkiye_Wonders_G-10XBI.pdf",
+      "title": {
+        "en": "Türkiye Wonders",
+        "zh": null
+      },
+      "duration": {
+        "days": 10,
+        "nights": 8,
+        "label": "10D8N"
+      },
+      "country": "Türkiye (Turkey)",
+      "destinations": [
+        "Istanbul",
+        "Izmit / Bolu",
+        "Ankara",
+        "Cappadocia",
+        "Konya",
+        "Pamukkale",
+        "Kusadasi",
+        "Selcuk",
+        "Canakkale"
+      ],
+      "departure_city": "Kuala Lumpur",
+      "flight_time": {
+        "outbound": "11h40m++",
+        "return": "10h40m++"
+      },
+      "aircraft_types": [
+        "A320",
+        "A330",
+        "Boeing 777"
+      ],
+      "tags": [
+        "culture",
+        "heritage",
+        "scenic",
+        "shopping",
+        "cave hotel"
+      ],
+      "highlight_badges": [
+        "Included 2 nights Modern Cave Design Hotel / Stone Cave Design Hotel / Stone House Hotel",
+        "Balat Old Town City Tour",
+        "FREE Turkish Ice Cream",
+        "Bosphorus Cruise Tour",
+        "Belly Dance Show at Cappadocia Cave"
+      ],
+      "highlights": [
+        "Historical Ataturk Mausoleum in Ankara",
+        "Cappadocia: Uchisar Castle Village, Pigeon Valley, Three Beauties, Avanos Pottery Village & Goreme Valley",
+        "Belly Dance Show in cave",
+        "Mevlana Museum",
+        "Cotton Castle terraces, a UNESCO World Heritage Site (brochure says listed in the 1970s)",
+        "Ephesus Ancient City",
+        "Trojan Horse in Canakkale",
+        "Bosphorus Cruise on the 32 km (20-mile) strait linking the Sea of Marmara and the Black Sea",
+        "Blue Mosque with its 6 minarets"
+      ],
+      "route_map_order": [
+        "Kuala Lumpur",
+        "Istanbul",
+        "Izmit/Bolu",
+        "Ankara",
+        "Cappadocia",
+        "Konya",
+        "Pamukkale",
+        "Kusadasi",
+        "Selcuk",
+        "Canakkale",
+        "Istanbul",
+        "Kuala Lumpur"
+      ],
+      "itinerary": [
+        {
+          "day": 1,
+          "title": "Kuala Lumpur → Istanbul → Izmit / Bolu",
+          "route": [
+            "Kuala Lumpur",
+            "Istanbul",
+            "Izmit / Bolu"
+          ],
+          "distance_km": {
+            "Istanbul–Izmit": 127,
+            "Istanbul–Bolu": 294
+          },
+          "drive_time": {
+            "Istanbul–Izmit": "2h",
+            "Istanbul–Bolu": "3h15m"
+          },
+          "meals": [
+            "meals on board",
+            "dinner"
+          ],
+          "activities": [
+            {
+              "name": "Check in hotel",
+              "type": "free"
+            }
+          ]
+        },
+        {
+          "day": 2,
+          "title": "Izmit / Bolu → Ankara → Cappadocia",
+          "route": [
+            "Izmit / Bolu",
+            "Ankara",
+            "Cappadocia"
+          ],
+          "distance_km": {
+            "Izmit–Ankara": 346,
+            "Bolu–Ankara": 187,
+            "Ankara–Cappadocia": 302
+          },
+          "drive_time": {
+            "Izmit–Ankara": "3h45m",
+            "Bolu–Ankara": "2h15m",
+            "Ankara–Cappadocia": "3h30m"
+          },
+          "meals": [
+            "breakfast",
+            "lunch",
+            "dinner"
+          ],
+          "activities": [
+            {
+              "name": "Ataturk Mausoleum",
+              "note": "Walking orientation",
+              "type": "walking"
+            },
+            {
+              "name": "Salt Lake",
+              "note": "Photo stop",
+              "type": "photo_stop"
+            }
+          ]
+        },
+        {
+          "day": 3,
+          "title": "Cappadocia",
+          "route": [
+            "Cappadocia"
+          ],
+          "meals": [
+            "breakfast",
+            "lunch",
+            "dinner"
+          ],
+          "activities": [
+            {
+              "name": "Underground City",
+              "note": "Entrance included",
+              "type": "included_entry"
+            },
+            {
+              "name": "Uchisar Castle Village",
+              "note": "Photo stop; steep streets, difficult for those with walking difficulties",
+              "type": "photo_stop"
+            },
+            {
+              "name": "Pigeon Valley",
+              "note": "Photo stop",
+              "type": "photo_stop"
+            },
+            {
+              "name": "Uc Guzeller 'Three Beauties'",
+              "note": "Photo stop",
+              "type": "photo_stop"
+            },
+            {
+              "name": "Goreme Valley",
+              "note": "Photo stop",
+              "type": "photo_stop"
+            },
+            {
+              "name": "FREE Turkish Ice Cream",
+              "type": "included_extra"
+            },
+            {
+              "name": "Belly Dance Show",
+              "note": "In a cave venue",
+              "type": "show"
+            },
+            {
+              "name": "Shopping: Avanos Pottery Village & Carpet Manufacture",
+              "type": "shopping"
+            },
+            {
+              "name": "Hot Air Balloon Tour & Jeep Safari Tour",
+              "note": "Optional; price not printed",
+              "type": "optional"
+            }
+          ]
+        },
+        {
+          "day": 4,
+          "title": "Cappadocia → Konya → Pamukkale",
+          "route": [
+            "Cappadocia",
+            "Konya",
+            "Pamukkale"
+          ],
+          "distance_km": [
+            238,
+            393
+          ],
+          "drive_time": [
+            "3h30m",
+            "5h30m"
+          ],
+          "meals": [
+            "breakfast",
+            "lunch",
+            "dinner"
+          ],
+          "activities": [
+            {
+              "name": "Ancient Caravanserai",
+              "note": "Photo stop",
+              "type": "photo_stop"
+            },
+            {
+              "name": "Mevlana Museum",
+              "note": "Visit",
+              "type": "visit"
+            },
+            {
+              "name": "Shopping: Turkish Turquoise",
+              "type": "shopping"
+            }
+          ]
+        },
+        {
+          "day": 5,
+          "title": "Pamukkale → Kusadasi",
+          "route": [
+            "Pamukkale",
+            "Kusadasi"
+          ],
+          "distance_km": [
+            189
+          ],
+          "drive_time": [
+            "3h"
+          ],
+          "meals": [
+            "breakfast",
+            "lunch",
+            "dinner"
+          ],
+          "activities": [
+            {
+              "name": "Ancient City of Hierapolis",
+              "note": "View",
+              "type": "view"
+            },
+            {
+              "name": "Cotton Castle",
+              "note": "Entrance included",
+              "type": "included_entry"
+            },
+            {
+              "name": "House of Virgin Mary",
+              "note": "Entrance included",
+              "type": "included_entry"
+            },
+            {
+              "name": "Shopping: Turkish Delight Store & Turkish Textile Shop",
+              "type": "shopping"
+            }
+          ]
+        },
+        {
+          "day": 6,
+          "title": "Kusadasi → Selcuk → Canakkale",
+          "route": [
+            "Kusadasi",
+            "Selcuk",
+            "Canakkale"
+          ],
+          "distance_km": [
+            20,
+            426
+          ],
+          "drive_time": [
+            "30m",
+            "5h20m"
+          ],
+          "meals": [
+            "breakfast",
+            "lunch",
+            "dinner"
+          ],
+          "activities": [
+            {
+              "name": "Ephesus Ancient City",
+              "note": "Entrance included",
+              "type": "included_entry"
+            },
+            {
+              "name": "Aegean Sea",
+              "note": "Drive pass",
+              "type": "pass_by"
+            },
+            {
+              "name": "Trojan Horse",
+              "note": "Photo stop",
+              "type": "photo_stop"
+            },
+            {
+              "name": "Shopping: Leather Store & Fashion Show",
+              "type": "shopping"
+            }
+          ]
+        },
+        {
+          "day": 7,
+          "title": "Canakkale → Istanbul",
+          "route": [
+            "Canakkale",
+            "Istanbul"
+          ],
+          "distance_km": [
+            308
+          ],
+          "drive_time": [
+            "4h"
+          ],
+          "meals": [
+            "breakfast",
+            "lunch",
+            "dinner"
+          ],
+          "activities": [
+            {
+              "name": "Grand Bazaar",
+              "note": "Shopping; closed on Sunday",
+              "type": "shopping"
+            },
+            {
+              "name": "Bosphorus Cruise Tour",
+              "note": "Ticket included",
+              "type": "included_entry"
+            }
+          ]
+        },
+        {
+          "day": 8,
+          "title": "Istanbul",
+          "route": [
+            "Istanbul"
+          ],
+          "meals": [
+            "breakfast",
+            "lunch",
+            "dinner"
+          ],
+          "activities": [
+            {
+              "name": "Blue Mosque",
+              "note": "Walking orientation",
+              "type": "walking"
+            },
+            {
+              "name": "Hippodrome Square",
+              "note": "Walking orientation",
+              "type": "walking"
+            },
+            {
+              "name": "St. Sophia (Hagia Sophia)",
+              "note": "Entrance included",
+              "type": "included_entry"
+            },
+            {
+              "name": "Topkapi Palace",
+              "note": "Entrance included",
+              "type": "included_entry"
+            },
+            {
+              "name": "Balat City Tour",
+              "note": "Walking orientation",
+              "type": "walking"
+            }
+          ]
+        },
+        {
+          "day": 9,
+          "title": "Istanbul → Kuala Lumpur",
+          "route": [
+            "Istanbul",
+            "Kuala Lumpur"
+          ],
+          "meals": [
+            "breakfast",
+            "meals on board"
+          ],
+          "activities": [
+            {
+              "name": "Free at leisure until departure",
+              "type": "free"
+            }
+          ]
+        },
+        {
+          "day": 10,
+          "title": "Arrive Kuala Lumpur",
+          "route": [
+            "Kuala Lumpur"
+          ],
+          "meals": [],
+          "activities": []
+        }
+      ],
+      "meals_summary": {
+        "breakfast": 8,
+        "lunch": 7,
+        "dinner": 8,
+        "special_cuisine": [
+          "Mixtures of buffet, local cuisine, kebab"
+        ]
+      },
+      "accommodation": {
+        "nights_total": 8,
+        "description": "5-star hotels (6 nights) + 2 nights Modern Cave Design Hotel / Stone Cave Design Hotel / Stone House Hotel (no star rating)",
+        "hotels": [
+          {
+            "location": "Izmit / Bolu",
+            "nights": 1,
+            "type": "5-star"
+          },
+          {
+            "location": "Cappadocia",
+            "nights": 2,
+            "type": "Modern Cave Design Hotel / Stone Cave Design Hotel / Stone House Hotel (no star rating)"
+          },
+          {
+            "location": "Pamukkale",
+            "nights": 1,
+            "type": "5-star"
+          },
+          {
+            "location": "Kusadasi",
+            "nights": 1,
+            "type": "5-star"
+          },
+          {
+            "location": "Canakkale",
+            "nights": 1,
+            "type": "5-star"
+          },
+          {
+            "location": "Istanbul",
+            "nights": 2,
+            "type": "5-star"
+          }
+        ],
+        "notes": [
+          "June to mid-September: many cave hotels have no air-conditioning, so Cappadocia stays move to a local 5-star hotel instead.",
+          "Single room = single bed; Twin = 2 single beds; Double = 1 queen-size bed (2 singles combined); Triple = built-in 3 singles or 1 double + 1 single, or 3rd bed is a sofa/roll-in bed.",
+          "Some hotels may not have specific twin or double room types."
+        ]
+      },
+      "attractions": [
+        {
+          "area": "Ankara",
+          "name": "Ataturk Mausoleum",
+          "description": "Mausoleum of Mustafa Kemal Atatürk, leader of the Turkish War of Independence and first President of the Republic of Turkey. Also the resting place of İsmet İnönü, the second President (died 1973), whose tomb faces the mausoleum across the Ceremonial Ground."
+        },
+        {
+          "area": "Cappadocia",
+          "name": "Underground City",
+          "description": "Underground cities likely built to withstand attack and protect large numbers of people and animals during crises."
+        },
+        {
+          "area": "Cappadocia",
+          "name": "Uchisar 'Castle' Village",
+          "description": "At the highest point of Cappadocia; very hilly, so difficult for those with walking difficulties. A castle and one of the most magnificent views of the landscape are at the top."
+        },
+        {
+          "area": "Cappadocia",
+          "name": "Pigeon Valley",
+          "description": "Named for the thousands of pigeon houses carved into soft tuff since ancient times; pigeons were a source of food and fertilizer."
+        },
+        {
+          "area": "Cappadocia",
+          "name": "Three Beauties (Uc Guzeller)",
+          "description": "Icon of Cappadocia's natural beauty with the most famous fairy chimneys."
+        },
+        {
+          "area": "Konya route",
+          "name": "Ancient Caravanserai",
+          "description": "A roadside inn where travelers rested; supported commerce and movement along Silk Road trade routes covering Asia, North Africa and southeastern Europe."
+        },
+        {
+          "area": "Pamukkale",
+          "name": "Cotton Castle",
+          "description": "Famous for the white, cottony mineral bath terraces, rich in calcium; a 'spa town' since Roman times with warm therapeutic waters."
+        },
+        {
+          "area": "Pamukkale",
+          "name": "Ancient City of Hierapolis",
+          "description": "Ancient city on hot springs in classical Phrygia, southwestern Anatolia; now an archaeological museum and UNESCO World Heritage Site."
+        },
+        {
+          "area": "Selcuk",
+          "name": "Ephesus Ancient City",
+          "description": "One of the world's most outstanding archaeological sites; walk its marble streets to the Library of Celsus, the Odeon, Grand Theatre, Temple of Hadrian, Roman Bath etc."
+        },
+        {
+          "area": "Canakkale",
+          "name": "Trojan Horse",
+          "description": "One of Canakkale's biggest attractions; the 'wooden horse' made famous by the movie Troy. Troy Museum excluded."
+        },
+        {
+          "area": "Istanbul",
+          "name": "Blue Mosque",
+          "description": "Sultan Ahmed Mosque, called the Blue Mosque for the blue tiles lining its interior; unique 6 minarets."
+        },
+        {
+          "area": "Istanbul",
+          "name": "Hippodrome Square",
+          "description": "Site of horse-carriage races and gladiator fights in the Byzantine Empire; now decorated with an Egyptian Column, Serpentine Column and Ibrahim Pasha Palace."
+        },
+        {
+          "area": "Istanbul",
+          "name": "St. Sophia (Hagia Sophia)",
+          "description": "Known as Hagia Sophia after the Ottomans captured Constantinople in 1453; one of the finest examples of Byzantine architecture. The brochure describes it as a museum."
+        },
+        {
+          "area": "Istanbul",
+          "name": "Topkapi Palace",
+          "description": "Residence of the Ottoman sultans and the administrative and educational centre of the state; now a large museum."
+        },
+        {
+          "area": "Istanbul",
+          "name": "Grand Bazaar",
+          "description": "One of the largest and oldest markets in the world, often regarded as one of the first shopping malls."
+        }
+      ],
+      "optional_tours": [
+        {
+          "name": "Hot Air Balloon Tour",
+          "day": 3,
+          "price": null
+        },
+        {
+          "name": "Jeep Safari Tour",
+          "day": 3,
+          "price": null
+        }
+      ],
+      "shopping_stops": [
+        "Leather",
+        "Carpet",
+        "Textile",
+        "Jewelry",
+        "Turkish Delight",
+        "Ceramic",
+        "Avanos Pottery Village",
+        "Turkish Turquoise",
+        "Leather store & fashion show"
+      ],
+      "pricing": {
+        "currency_hint": "MYR",
+        "departure_dates": [],
+        "tour_fare": null,
+        "tipping": null,
+        "visa": null,
+        "airport_tax_fuel_surcharge": null,
+        "agent_collection_fee": null,
+        "travel_insurance": null,
+        "note": "Fare form is blank."
+      },
+      "general_info": {
+        "country": "Turkey",
+        "currency": "Turkish Lira (TRY); US Dollar (USD)",
+        "exchange_rate": "TRY 1 = RM 0.25; USD 1 = RM 4.40 (subject to current rate)",
+        "credit_cards": "Widely used; call card centre to extend credit limit",
+        "dial_code": "+90",
+        "voltage": "230 V, 50 Hz",
+        "power_sockets": [
+          "Type C (2-pin)",
+          "Type F (2-pin)"
+        ],
+        "power_note": "Bring a universal adapter",
+        "time_difference": "Approximately 5 hours behind Malaysia",
+        "luggage": {
+          "checked": "1 piece, max 20 kg",
+          "hand_carry": "1 piece, max 7 kg"
+        },
+        "weather": [
+          {
+            "season": "Spring",
+            "months": "Mar–May",
+            "temp_c": "10–25"
+          },
+          {
+            "season": "Summer",
+            "months": "Jun–Aug",
+            "temp_c": "28–37"
+          },
+          {
+            "season": "Autumn",
+            "months": "Sep–Nov",
+            "temp_c": "8–20"
+          },
+          {
+            "season": "Winter",
+            "months": "Dec–Feb",
+            "temp_c": "-5–11"
+          }
+        ]
+      },
+      "terms": [
+        "During major conferences, fairs and festivals, acts of nature and heavy tourist flow, the itinerary sequence may change and accommodation may be in an alternative city without prior notice.",
+        "No refund or replacement if tour logistics are affected.",
+        "Pictures for illustration only."
+      ],
+      "data_quality_flags": [
+        "Cotton Castle UNESCO listing year printed as '1970s' (UNESCO inscription was 1988).",
+        "Chinese title not provided.",
+        "Optional balloon/jeep prices not printed.",
+        "Source typos corrected: 'Celcius' → Celsus, 'Istabul' → Istanbul."
+      ]
+    },
+    {
+      "id": "PECZ-3",
+      "slug": "10d7n-mono-switzerland",
+      "category": "guided_land_tour",
+      "brand": "Golden Destinations (Europe Destinations 欧洲游)",
+      "operator": "Ice Holidays Sdn Bhd (230643-X) KPK/LN:2441",
+      "source_file": "107N_Mono_Swiss_GD-PECZ3_v3.pdf",
+      "title": {
+        "en": "Mono Switzerland (Zurich / Lucerne / Interlaken / Thun / Bern / Chexbres / Zermatt)",
+        "zh": "纯美瑞士（苏黎世 / 卢塞恩 / 因特拉肯 / 图恩 / 伯恩 / 谢布尔 / 策马特）"
+      },
+      "duration": {
+        "days": 10,
+        "nights": 7,
+        "label": "10D7N"
+      },
+      "country": "Switzerland",
+      "destinations": [
+        "Zurich",
+        "Mt. Rigi",
+        "Lucerne",
+        "Interlaken",
+        "Thun",
+        "Bern",
+        "Chexbres",
+        "Montreux",
+        "Zermatt",
+        "Chur"
+      ],
+      "departure_city": "Penang",
+      "arrival_airport": "Zurich",
+      "aircraft_types": [
+        "A320",
+        "Boeing 787",
+        "Boeing 777"
+      ],
+      "tags": [
+        "scenic trains",
+        "Alps",
+        "lakes",
+        "glacier"
+      ],
+      "itinerary": [
+        {
+          "day": 1,
+          "title": "Penang → transit city → Zurich",
+          "route": [
+            "Penang",
+            "Transit city",
+            "Zurich"
+          ],
+          "meals": [
+            "meals on board"
+          ],
+          "activities": [
+            {
+              "name": "Overnight on board",
+              "type": "free"
+            }
+          ]
+        },
+        {
+          "day": 2,
+          "title": "Arrival Zurich",
+          "route": [
+            "Zurich"
+          ],
+          "meals": [
+            "lunch",
+            "dinner"
+          ],
+          "activities": [
+            {
+              "name": "Münsterbrücke",
+              "name_zh": "大教堂桥",
+              "note": "Pass by",
+              "type": "pass_by"
+            },
+            {
+              "name": "Fraumünster",
+              "name_zh": "苏黎世圣母大教堂",
+              "note": "Pass by",
+              "type": "pass_by"
+            },
+            {
+              "name": "Gothic-style church",
+              "name_zh": "哥德式建筑",
+              "note": "Photo stop",
+              "type": "photo_stop"
+            },
+            {
+              "name": "Lindenhof Hill",
+              "name_zh": "林登霍夫山",
+              "note": "Walking orientation",
+              "type": "walking"
+            },
+            {
+              "name": "Swiss National Museum",
+              "name_zh": "瑞士国家博物馆",
+              "note": "Entrance included; Zurich museums closed Mondays – alternative arranged",
+              "type": "included_entry"
+            },
+            {
+              "name": "Bahnhofstrasse",
+              "name_zh": "班霍夫大街",
+              "note": "Shopping",
+              "type": "shopping"
+            }
+          ]
+        },
+        {
+          "day": 3,
+          "title": "Zurich → Goldau → Mt. Rigi → Vitznau → Lucerne",
+          "route": [
+            "Zurich",
+            "Goldau",
+            "Mt. Rigi",
+            "Vitznau",
+            "Lucerne"
+          ],
+          "distance_km": [
+            65,
+            25
+          ],
+          "drive_time": [
+            "1h",
+            "30m"
+          ],
+          "meals": [
+            "breakfast"
+          ],
+          "activities": [
+            {
+              "name": "Cogwheel railway from Arth-Goldau to Rigi Kulm",
+              "name_zh": "搭乘齿轮动车前往瑞吉山",
+              "note": "Panoramic views",
+              "type": "included_entry"
+            },
+            {
+              "name": "Lake Lucerne",
+              "name_zh": "卢塞恩湖",
+              "note": "Boat ride included",
+              "type": "included_entry"
+            },
+            {
+              "name": "Chapel Bridge",
+              "name_zh": "卡佩尔桥",
+              "note": "Photo stop",
+              "type": "photo_stop"
+            },
+            {
+              "name": "Lion Monument",
+              "name_zh": "狮子纪念碑",
+              "note": "Photo stop",
+              "type": "photo_stop"
+            },
+            {
+              "name": "Old Town",
+              "name_zh": "老城区",
+              "note": "Walking orientation",
+              "type": "walking"
+            },
+            {
+              "name": "Glacier Garden",
+              "name_zh": "冰川公园",
+              "note": "Entrance included",
+              "type": "included_entry"
+            }
+          ]
+        },
+        {
+          "day": 4,
+          "title": "Lucerne → Interlaken → Thun → Interlaken",
+          "route": [
+            "Lucerne",
+            "Interlaken",
+            "Thun",
+            "Interlaken"
+          ],
+          "distance_km": [
+            31,
+            38
+          ],
+          "drive_time": [
+            "30m",
+            "45m"
+          ],
+          "meals": [
+            "breakfast",
+            "dinner"
+          ],
+          "activities": [
+            {
+              "name": "Train from Lucerne to Interlaken",
+              "name_zh": "乘搭动车从卢塞恩前往因特拉肯",
+              "type": "included_entry"
+            },
+            {
+              "name": "Lake Thun",
+              "name_zh": "图恩湖",
+              "note": "Ticket included",
+              "type": "included_entry"
+            },
+            {
+              "name": "Iseltwald",
+              "name_zh": "伊瑟尔特瓦尔德",
+              "note": "Photo stop",
+              "type": "photo_stop"
+            }
+          ]
+        },
+        {
+          "day": 5,
+          "title": "Interlaken → Bern → Chexbres → Montreux",
+          "route": [
+            "Interlaken",
+            "Bern",
+            "Chexbres",
+            "Montreux"
+          ],
+          "distance_km": [
+            56,
+            90,
+            16
+          ],
+          "drive_time": [
+            "1h",
+            "1h30m",
+            "15m"
+          ],
+          "meals": [
+            "breakfast",
+            "lunch",
+            "dinner"
+          ],
+          "activities": [
+            {
+              "name": "Bern Old Town",
+              "name_zh": "伯恩老城区",
+              "note": "Walking orientation",
+              "type": "walking"
+            },
+            {
+              "name": "Bärengraben (Bear Pit)",
+              "name_zh": "熊公园",
+              "note": "Photo stop",
+              "type": "photo_stop"
+            },
+            {
+              "name": "Zytglogge (Clock Tower)",
+              "name_zh": "时钟塔",
+              "note": "Photo stop",
+              "type": "photo_stop"
+            },
+            {
+              "name": "House of Parliament",
+              "name_zh": "国会大厦",
+              "note": "Photo stop",
+              "type": "photo_stop"
+            },
+            {
+              "name": "Chexbres Village",
+              "name_zh": "谢布尔拉沃葡萄园",
+              "note": "Lavaux Panoramic Train included",
+              "type": "included_entry"
+            },
+            {
+              "name": "Wine tasting",
+              "name_zh": "品尝当地葡萄酒",
+              "type": "included_extra"
+            }
+          ]
+        },
+        {
+          "day": 6,
+          "title": "Montreux → Fiesch → Täsch → Zermatt",
+          "route": [
+            "Montreux",
+            "Fiesch",
+            "Täsch",
+            "Zermatt"
+          ],
+          "distance_km": [
+            136,
+            57
+          ],
+          "drive_time": [
+            "2h45m",
+            "1h15m"
+          ],
+          "meals": [
+            "breakfast",
+            "dinner"
+          ],
+          "activities": [
+            {
+              "name": "Chillon Castle",
+              "name_zh": "西庸城堡",
+              "note": "Entrance included",
+              "type": "included_entry"
+            },
+            {
+              "name": "Aletsch Glacier Viewpoint",
+              "name_zh": "阿莱奇冰川观景台",
+              "note": "Photo stop",
+              "type": "photo_stop"
+            },
+            {
+              "name": "Cogwheel railway to Gornergrat (Europe's highest, per brochure)",
+              "name_zh": "搭乘欧洲海拔最高的齿轮动车前往戈尔内格拉特",
+              "type": "included_entry"
+            }
+          ]
+        },
+        {
+          "day": 7,
+          "title": "Zermatt",
+          "route": [
+            "Zermatt"
+          ],
+          "meals": [
+            "breakfast",
+            "dinner"
+          ],
+          "activities": [
+            {
+              "name": "Cable car (round-trip)",
+              "name_zh": "乘坐缆车",
+              "type": "included_entry"
+            },
+            {
+              "name": "Glacier Palace",
+              "name_zh": "冰宫",
+              "note": "Entrance included",
+              "type": "included_entry"
+            }
+          ]
+        },
+        {
+          "day": 8,
+          "title": "Zermatt → Chur → Zurich",
+          "route": [
+            "Zermatt",
+            "Chur",
+            "Zurich"
+          ],
+          "distance_km": [
+            119
+          ],
+          "drive_time": [
+            "1h45m"
+          ],
+          "meals": [
+            "breakfast"
+          ],
+          "activities": [
+            {
+              "name": "Glacier Express",
+              "name_zh": "冰川列车",
+              "note": "Replaced by a regular train if unavailable or under maintenance",
+              "type": "included_entry"
+            },
+            {
+              "name": "Furka Pass",
+              "name_zh": "富尔卡山口",
+              "note": "Pass by; if closed, route replaced via Simplon Pass or via Bern/Montreux",
+              "type": "pass_by"
+            }
+          ]
+        },
+        {
+          "day": 9,
+          "title": "Zurich → transit city",
+          "route": [
+            "Zurich",
+            "Transit city"
+          ],
+          "meals": [
+            "breakfast",
+            "meals on board"
+          ],
+          "activities": [
+            {
+              "name": "Transfer to airport",
+              "type": "transfer"
+            }
+          ]
+        },
+        {
+          "day": 10,
+          "title": "Arrival Penang",
+          "route": [
+            "Penang"
+          ],
+          "meals": [],
+          "activities": []
+        }
+      ],
+      "meals_summary": {
+        "breakfast": 7,
+        "lunch": 2,
+        "dinner": 5,
+        "special_cuisine": [
+          "Hot breakfast",
+          "Mix of Western and Chinese meals"
+        ]
+      },
+      "accommodation": {
+        "nights_total": 7,
+        "hotels": [
+          {
+            "location": "Zurich",
+            "nights": 3
+          },
+          {
+            "location": "Interlaken",
+            "nights": 1
+          },
+          {
+            "location": "Vevey",
+            "nights": 1
+          },
+          {
+            "location": "Zermatt",
+            "nights": 2
+          }
+        ],
+        "notes": [
+          "During major conferences, fairs and festivals, accommodation may be in an alternative city without prior notice.",
+          "Some accommodations may not have specific twin or double room types.",
+          "Triple-share rooms may have a rollaway or sofa bed as the third bed, depending on the hotel."
+        ]
+      },
+      "attractions": [
+        {
+          "area": "Zurich",
+          "name": "Bahnhofstrasse",
+          "name_zh": "班霍夫大街",
+          "description": "Zurich's main downtown street and one of the world's most expensive and exclusive shopping avenues; in 2011 named the most expensive street for retail property in Europe (third worldwide), ninth in 2016."
+        },
+        {
+          "area": "Zurich",
+          "name": "Lindenhof Hill",
+          "name_zh": "林登霍夫山",
+          "description": "A peaceful green oasis in the heart of Zurich with views over the Old Town, the Limmat River and historic landmarks; once a Roman fort and later a medieval stronghold, now a quiet park under linden trees."
+        },
+        {
+          "area": "Zurich",
+          "name": "Swiss National Museum",
+          "name_zh": "瑞士国家博物馆",
+          "description": "One of Europe's most important cultural history museums, in a fairytale-castle-like building, covering ancient artefacts, medieval art, traditional crafts and modern exhibits."
+        },
+        {
+          "area": "Zurich",
+          "name": "Fraumünster",
+          "name_zh": "苏黎世圣母大教堂",
+          "description": "(From the Chinese text) Reformed church founded in 853 by Louis the German for his daughter; known for its blue-topped spire and five stained-glass windows by Marc Chagall installed in 1970."
+        },
+        {
+          "area": "Mount Rigi",
+          "name": "Mount Rigi",
+          "name_zh": "瑞吉山",
+          "description": "'Queen of the Mountains', highest peak 1,797 m; 360-degree views of Lake Lucerne, the Swiss Alps and, on clear days, the Black Forest. Popular for hiking and photography."
+        },
+        {
+          "area": "Lucerne",
+          "name": "Chapel Bridge",
+          "name_zh": "卡佩尔桥",
+          "description": "Built in the 14th century; covered roof decorated with 17th-century paintings of Swiss history and mythology."
+        },
+        {
+          "area": "Lucerne",
+          "name": "Lion Monument",
+          "name_zh": "狮子纪念碑",
+          "description": "Carved into a sandstone cliff: a dying lion on a shield bearing the Swiss coat of arms, pierced by a spear and surrounded by broken weapons."
+        },
+        {
+          "area": "Bern",
+          "name": "Bärengraben (Bear Pit)",
+          "name_zh": "熊公园",
+          "description": "A recreation area at the lower end of Bern's old town, open around the clock and free; brown bears have lived in the enclosure on the banks of the Aare since 2009."
+        },
+        {
+          "area": "Montreux",
+          "name": "Chillon Castle",
+          "name_zh": "西庸城堡",
+          "description": "Island castle on Lake Geneva at the eastern end of the lake between Montreux and Villeneuve; among the most visited medieval castles in Europe. Held by the House of Savoy, then Bernese from 1536 to 1798; now a Swiss Cultural Property of National Significance."
+        }
+      ],
+      "optional_tours": [],
+      "shopping_stops": [
+        "Bahnhofstrasse (shopping, Day 2)"
+      ],
+      "pricing": {
+        "currency_hint": "MYR",
+        "departure_dates": [],
+        "tour_fare": null,
+        "tipping": null,
+        "visa": null,
+        "airport_tax_fuel_surcharge": null,
+        "agent_collection_fee": null,
+        "travel_insurance": null,
+        "note": "Fare form is blank."
+      },
+      "general_info": {
+        "country": "Switzerland",
+        "currency": "Swiss Franc (CHF)",
+        "exchange_rate": "CHF 1 = RM 5.29 (subject to rate of the day)",
+        "credit_cards": "Widely used in Europe; call card centre to extend credit limit",
+        "dial_code": "+41",
+        "voltage": "230 V, 50 Hz",
+        "power_sockets": [
+          "Type C (2-pin)",
+          "Type J (3-pin)"
+        ],
+        "power_note": "Bring a universal adapter",
+        "time_difference": "Apr–Sep: about 6 hours behind Malaysia; Oct–Mar: about 7 hours behind",
+        "luggage": {
+          "checked": "1 piece, max 25 kg",
+          "hand_carry": "1 piece, max 7 kg"
+        },
+        "weather": [
+          {
+            "season": "Spring",
+            "months": "Mar–May",
+            "temp_c": "10–25"
+          },
+          {
+            "season": "Summer",
+            "months": "Jun–Aug",
+            "temp_c": "28–37"
+          },
+          {
+            "season": "Autumn",
+            "months": "Sep–Nov",
+            "temp_c": "8–20"
+          },
+          {
+            "season": "Winter",
+            "months": "Dec–Feb",
+            "temp_c": "-5–11"
+          }
+        ]
+      },
+      "terms": [
+        "Itinerary may be adjusted due to local/religious festivals, public holidays, weather, transport technical issues or acts of nature (brochure also cites Covid-19 restrictions).",
+        "No refund or replacement if tour logistics are affected.",
+        "Pictures for illustration only.",
+        "Sequence of itinerary subject to local arrangement."
+      ],
+      "data_quality_flags": [
+        "Weather table is identical to the Türkiye brochure (summer 28–37 °C) and looks copied – verify for Switzerland.",
+        "Hotel list has no Lucerne night even though Day 3 ends in Lucerne (Zurich ×3 presumably covers it).",
+        "Chinese text shows 25 kg checked baggage while other brochures show 20 kg.",
+        "Gornergrat ride is listed on Day 6 with Chillon and Aletsch; Day 7 is Zermatt cable car + Glacier Palace."
+      ]
+    },
+    {
+      "id": "AMA-DANUBE-LNY-2027",
+      "slug": "amaasia-lunar-new-year-best-of-the-danube-2027",
+      "category": "river_cruise",
+      "brand": "AmaWaterways (AmaAsia)",
+      "source_file": "AmaAsia_Lunar_NY.pdf",
+      "title": {
+        "en": "AmaAsia: Lunar New Year Cruise – Best of the Danube"
+      },
+      "tagline": "Celebrate Lunar New Year along Europe's legendary Danube",
+      "duration": {
+        "nights": 7,
+        "label": "7-night luxury river cruise"
+      },
+      "dates": {
+        "start": "2027-01-31",
+        "end": "2027-02-07"
+      },
+      "ship": {
+        "name": "AmaLea",
+        "length_ft": 443,
+        "width_ft": 38,
+        "crew": 51,
+        "staterooms": 78,
+        "passengers": 156,
+        "registry": "Switzerland",
+        "decks": [
+          "Sun Deck",
+          "Violin Deck",
+          "Cello Deck",
+          "Piano Deck"
+        ],
+        "facilities": [
+          "The Chef's Table",
+          "Journeys Restaurant",
+          "The Lark Lounge & Bar",
+          "Reception",
+          "Boutique",
+          "Fitness",
+          "Massage",
+          "Spa",
+          "Pool",
+          "Sun Deck & The Deck Club",
+          "Wheelhouse"
+        ],
+        "elevator_note": "On AmaLea the elevator reaches the Violin, Cello and Piano decks (not the Sun Deck); on AmaStella and AmaViola it reaches Violin and Cello only."
+      },
+      "cities": [
+        "Budapest",
+        "Bratislava",
+        "Melk",
+        "Linz",
+        "Vienna",
+        "Budapest"
+      ],
+      "countries": [
+        "Hungary",
+        "Slovakia",
+        "Austria"
+      ],
+      "description": "Journey along the Danube to Budapest, Bratislava and Vienna. Explore Budapest's Liszt Museum and Opera House, follow The Sound of Music through Salzburg (birthplace of Mozart), and enjoy Lunar New Year celebrations onboard including a festive Gala Dinner with Mandarin-speaking services and menus.",
+      "itinerary": [
+        {
+          "date": "2027-01-31",
+          "port": "Budapest",
+          "activities": [
+            "River cruise embarkation"
+          ]
+        },
+        {
+          "date": "2027-02-01",
+          "port": "Bratislava",
+          "activities": [
+            "Walking tour OR 'Tastes of Slovakia' OR Bratislava Castle hike OR Bike tour"
+          ]
+        },
+        {
+          "date": "2027-02-02",
+          "port": "Melk",
+          "activities": [
+            "Scenic cruising through Strudengau",
+            "Melk Abbey visit"
+          ]
+        },
+        {
+          "date": "2027-02-03",
+          "port": "Linz",
+          "activities": [
+            "'UNESCO City of Media Arts' walking tour OR 'Cultural Mile' bike tour OR full-day Salzburg city tour OR full-day Cesky Krumlov excursion",
+            "Distillery tour (listed after the options; may be an additional/separate item)"
+          ]
+        },
+        {
+          "date": "2027-02-04",
+          "port": "Vienna",
+          "activities": [
+            "Scenic cruising to Vienna",
+            "'Imperial Vienna' carriage tour OR Vienna by bike"
+          ]
+        },
+        {
+          "date": "2027-02-05",
+          "port": "Vienna",
+          "activities": [
+            "Schönbrunn Palace and Gardens OR Vienna Woods hike",
+            "Free time",
+            "Lunar New Year Gala Dinner"
+          ]
+        },
+        {
+          "date": "2027-02-06",
+          "port": "Budapest",
+          "activities": [
+            "Buda city tour OR Castle Hill hike OR Pest tour",
+            "Free time"
+          ]
+        },
+        {
+          "date": "2027-02-07",
+          "port": "Budapest",
+          "activities": [
+            "River cruise disembarkation"
+          ]
+        }
+      ],
+      "pricing": {
+        "currency": "USD",
+        "basis": "per person, double occupancy",
+        "from_price": 2724,
+        "tiers": [
+          {
+            "code": "Suite",
+            "description": "French & Outside Balcony",
+            "size_sqft": 300,
+            "deck": "Violin",
+            "price": 5323
+          },
+          {
+            "code": "AA",
+            "description": "French & Outside Balcony",
+            "size_sqft": 235,
+            "deck": "Violin",
+            "price": 3724
+          },
+          {
+            "code": "AB",
+            "description": "French & Outside Balcony",
+            "size_sqft": 235,
+            "deck": "Cello",
+            "price": 3724
+          },
+          {
+            "code": "BA",
+            "description": "French & Outside Balcony",
+            "size_sqft": 210,
+            "deck": "Violin",
+            "price": 3724
+          },
+          {
+            "code": "BB",
+            "description": "French & Outside Balcony",
+            "size_sqft": 210,
+            "deck": "Cello",
+            "price": 3724
+          },
+          {
+            "code": "CA",
+            "description": "French Balcony",
+            "size_sqft": 170,
+            "deck": "Violin & Cello",
+            "price": 3324
+          },
+          {
+            "code": "CB",
+            "description": "French Balcony",
+            "size_sqft": 166,
+            "deck": "Violin",
+            "price": 3324
+          },
+          {
+            "code": "D",
+            "description": "Fixed Windows",
+            "size_sqft": 160,
+            "deck": "Piano",
+            "price": 2724
+          },
+          {
+            "code": "E",
+            "description": "Fixed Windows",
+            "size_sqft": 160,
+            "deck": "Piano",
+            "price": 2724
+          }
+        ],
+        "single_supplement": "Single occupancy at 150% of the fare (Suites 100% supplement)",
+        "included_in_fare": [
+          "Non-commissionable port charges USD 280 pp",
+          "Gratuities USD 245 pp"
+        ],
+        "taxes_fees": {
+          "port_charges_usd": 280,
+          "gratuities_usd": 245,
+          "included": true
+        }
+      },
+      "inclusions": [
+        "7 nights luxury accommodation in an outside stateroom",
+        "All onboard dining in a variety of venues",
+        "Regionally inspired and Asian cuisine made with locally sourced ingredients",
+        "Unlimited fine wine, beer and soft drinks with lunch and dinner",
+        "Soft drinks between lunch and dinner",
+        "24/7 coffee & tea station and Nespresso machine in stateroom",
+        "Immersive shore experiences in every destination (special-interest tours, bike tours, hikes) with Mandarin Vox Aura translation",
+        "Wellness activities with a dedicated Wellness Host",
+        "Prepaid gratuities",
+        "Daily entertainment including cultural performances",
+        "Internet and Wi-Fi access"
+      ],
+      "highlights": [
+        "Expertly guided shore experiences with Mandarin translation",
+        "Daily programs in English & Mandarin",
+        "Menus in English and Mandarin",
+        "European and Asian culinary delights",
+        "Exclusive Lunar New Year Gala Dinner",
+        "Mandarin-speaking crew onboard"
+      ],
+      "exclusions": [
+        "Airfares",
+        "Airport transfers",
+        "Optional land packages",
+        "Visas"
+      ],
+      "terms": [
+        "Rates in USD; based on double occupancy in specified category.",
+        "Savings apply to new reservations made 1 June 2026 – 31 January 2027.",
+        "Solo travellers in a double-occupancy cabin pay a single supplement before any eligible discounts.",
+        "Combinable with Past Guest rates and Future Cruise Benefit program (excluding Suites).",
+        "Not combinable with Consortia Block and Amenity Programs, solo traveller promotions or other retail promotions.",
+        "Capacity controlled, combinability limited, subject to change or withdrawal without notice. Ref V26JUN11AB."
+      ],
+      "contact": {
+        "email": "resasia@amawaterways.com",
+        "web": "AmaWaterways.com/AmaAsia"
+      },
+      "data_quality_flags": [
+        "Price table lists Suite as 300 sq ft and CB as 166 sq ft; the deck-plan legend says 350 sq ft and 155 sq ft respectively.",
+        "Deck-plan cabin numbers are colour-coded in the image and cannot be reliably mapped to categories from text."
+      ]
+    },
+    {
+      "id": "OCE-SIRENA-MAR2027",
+      "slug": "oceania-mediterranean-sunrise-lisbon-rome-2027",
+      "category": "ocean_cruise",
+      "brand": "Oceania Cruises",
+      "seller": "Jebsen Travel & Tours Services Sdn Bhd",
+      "source_file": "Oceania_Cruise_Sailing_MAR-JUNE_2027.pdf (page 1)",
+      "title": {
+        "en": "Mediterranean Sunrise – Lisbon to Rome"
+      },
+      "duration": {
+        "days": 9,
+        "label": "9 days"
+      },
+      "dates": {
+        "start": "2027-03-03",
+        "end": "2027-03-11"
+      },
+      "ship": {
+        "name": "Oceania Sirena",
+        "built": 1999,
+        "tonnage": 30277,
+        "guest_capacity": 684,
+        "cabins": 342,
+        "length_ft": 593.7
+      },
+      "embark_port": "Lisbon, Portugal",
+      "disembark_port": "Rome (Civitavecchia), Italy",
+      "itinerary": [
+        {
+          "date": "2027-03-03",
+          "port": "Lisbon",
+          "country": "Portugal",
+          "arrival": "13:00",
+          "departure": "17:00"
+        },
+        {
+          "date": "2027-03-04",
+          "port": "Portimão",
+          "country": "Portugal",
+          "arrival": "07:00",
+          "departure": "17:00"
+        },
+        {
+          "date": "2027-03-05",
+          "port": "Seville (Cádiz)",
+          "country": "Spain",
+          "arrival": "07:00",
+          "departure": "19:00"
+        },
+        {
+          "date": "2027-03-06",
+          "port": "Málaga",
+          "country": "Spain",
+          "arrival": "08:00",
+          "departure": "20:00"
+        },
+        {
+          "date": "2027-03-07",
+          "port": "At sea",
+          "arrival": null,
+          "departure": null
+        },
+        {
+          "date": "2027-03-08",
+          "port": "Barcelona",
+          "country": "Spain",
+          "arrival": "07:00",
+          "departure": "16:00"
+        },
+        {
+          "date": "2027-03-09",
+          "port": "Cannes",
+          "country": "France",
+          "arrival": "09:00",
+          "departure": "18:00"
+        },
+        {
+          "date": "2027-03-10",
+          "port": "Cinque Terre (La Spezia)",
+          "country": "Italy",
+          "arrival": "07:00",
+          "departure": "18:00"
+        },
+        {
+          "date": "2027-03-11",
+          "port": "Rome (Civitavecchia)",
+          "country": "Italy",
+          "arrival": "08:00",
+          "departure": null
+        }
+      ],
+      "pricing": {
+        "currency": "USD",
+        "basis": "per person on twin",
+        "tiers": [
+          {
+            "code": "C2",
+            "name": "Oceanview",
+            "price": 1110
+          },
+          {
+            "code": "B2",
+            "name": "Balcony",
+            "price": 1659
+          },
+          {
+            "code": "A30",
+            "name": "Concierge",
+            "price": 1792,
+            "note": "code printed as 'A30'; may be 'A3'"
+          },
+          {
+            "code": "PH3",
+            "name": "Penthouse",
+            "price": 2605
+          }
+        ],
+        "taxes_fees_additional": 905,
+        "taxes_fees_included": false
+      },
+      "inclusions": {
+        "always": [
+          "Free Wi-Fi for 2 accounts",
+          "Free gratuities for 2 pax"
+        ],
+        "choose_one_of": [
+          "Free complimentary wine & beer for 2 pax during lunch & dinner",
+          "Free onboard shore-excursion credit USD 400 for 2 pax"
+        ],
+        "listed_after_the_OR_line": [
+          "Free non-alcoholic beverages for 24 hours",
+          "Fees for specialty restaurants (printed as shown; presumably waived)"
+        ],
+        "note": "The brochure places 'OR' between the wine & beer item and the shore-excursion credit; items beneath it are ambiguous."
+      },
+      "exclusions": [
+        "All other items"
+      ],
+      "contact": {
+        "company": "Jebsen Travel & Tours Services Sdn Bhd",
+        "email": "Cruise@jebsen.com.my",
+        "phone": "+603-21485583"
+      }
+    },
+    {
+      "id": "OCE-RIVIERA-APR2027",
+      "slug": "oceania-palms-and-pagodas-singapore-hong-kong-2027",
+      "category": "ocean_cruise",
+      "brand": "Oceania Cruises",
+      "seller": "Jebsen Travel & Tours Services Sdn Bhd",
+      "source_file": "Oceania_Cruise_Sailing_MAR-JUNE_2027.pdf (page 2)",
+      "title": {
+        "en": "Palms & Pagodas – Singapore to Hong Kong"
+      },
+      "duration": {
+        "days": 12,
+        "label": "12 days"
+      },
+      "dates": {
+        "start": "2027-04-05",
+        "end": "2027-04-16"
+      },
+      "ship": {
+        "name": "Oceania Riviera",
+        "built": 2012,
+        "tonnage": 66084,
+        "guest_capacity": 1250,
+        "length_ft": 784.9
+      },
+      "embark_port": "Singapore",
+      "disembark_port": "Hong Kong",
+      "itinerary": [
+        {
+          "date": "2027-04-05",
+          "port": "Singapore",
+          "country": "Singapore",
+          "arrival": "13:00",
+          "departure": null
+        },
+        {
+          "date": "2027-04-06",
+          "port": "Singapore",
+          "country": "Singapore",
+          "arrival": null,
+          "departure": "15:00"
+        },
+        {
+          "date": "2027-04-07",
+          "port": "At sea",
+          "arrival": null,
+          "departure": null
+        },
+        {
+          "date": "2027-04-08",
+          "port": "Muara",
+          "country": "Brunei",
+          "arrival": "10:00",
+          "departure": "20:00"
+        },
+        {
+          "date": "2027-04-09",
+          "port": "Kota Kinabalu (Borneo)",
+          "country": "Malaysia",
+          "arrival": "07:00",
+          "departure": "15:00"
+        },
+        {
+          "date": "2027-04-10",
+          "port": "Puerto Princesa",
+          "country": "Philippines",
+          "arrival": "11:00",
+          "departure": "18:00"
+        },
+        {
+          "date": "2027-04-11",
+          "port": "Boracay Island",
+          "country": "Philippines",
+          "arrival": "10:00",
+          "departure": "18:00"
+        },
+        {
+          "date": "2027-04-12",
+          "port": "Manila",
+          "country": "Philippines",
+          "arrival": "09:00",
+          "departure": "18:00"
+        },
+        {
+          "date": "2027-04-13",
+          "port": "At sea",
+          "arrival": null,
+          "departure": null
+        },
+        {
+          "date": "2027-04-14",
+          "port": "Kaohsiung",
+          "country": "Taiwan",
+          "arrival": "07:00",
+          "departure": "16:00"
+        },
+        {
+          "date": "2027-04-15",
+          "port": "Hong Kong",
+          "country": "China",
+          "arrival": "14:00",
+          "departure": null
+        },
+        {
+          "date": "2027-04-16",
+          "port": "Hong Kong",
+          "country": "China",
+          "arrival": "08:00",
+          "departure": null,
+          "note": "Disembarkation"
+        }
+      ],
+      "pricing": {
+        "currency": "USD",
+        "basis": "per person on twin",
+        "tiers": [
+          {
+            "code": "G",
+            "name": "Inside",
+            "price": 3072
+          },
+          {
+            "code": "C",
+            "name": "Outside",
+            "price": 4232
+          },
+          {
+            "code": "B4",
+            "name": "Balcony",
+            "price": 4352
+          },
+          {
+            "code": "A4",
+            "name": "Concierge",
+            "price": 4512
+          },
+          {
+            "code": "PH3",
+            "name": "Penthouse",
+            "price": 5632
+          }
+        ],
+        "taxes_fees_additional": 848,
+        "taxes_fees_included": false
+      },
+      "inclusions": {
+        "always": [
+          "Free Wi-Fi for 2 accounts",
+          "Free gratuities for 2 pax"
+        ],
+        "choose_one_of": [
+          "Free complimentary wine & beer for 2 pax during lunch & dinner",
+          "Free onboard shore-excursion credit USD 600 for 2 pax"
+        ],
+        "listed_after_the_OR_line": [
+          "Free non-alcoholic beverages for 24 hours",
+          "Fees for specialty restaurants (printed as shown; presumably waived)"
+        ]
+      },
+      "exclusions": [
+        "All other items"
+      ],
+      "contact": {
+        "company": "Jebsen Travel & Tours Services Sdn Bhd",
+        "email": "Cruise@jebsen.com.my",
+        "phone": "+603-21485583"
+      }
+    },
+    {
+      "id": "OCE-RIVIERA-MAY2027-ALASKA",
+      "slug": "oceania-alaska-discoverer-seattle-2027",
+      "category": "ocean_cruise",
+      "brand": "Oceania Cruises",
+      "seller": "Jebsen Travel & Tours Services Sdn Bhd",
+      "source_file": "Oceania_Cruise_Sailing_MAR-JUNE_2027.pdf (page 3)",
+      "title": {
+        "en": "Alaska Discoverer – Seattle to Seattle"
+      },
+      "duration": {
+        "days": 11,
+        "label": "11 days"
+      },
+      "dates": {
+        "start": "2027-05-24",
+        "end": "2027-06-03"
+      },
+      "ship": {
+        "name": "Oceania Riviera",
+        "built": 2012,
+        "tonnage": 66084,
+        "guest_capacity": 1250,
+        "length_ft": 784.9
+      },
+      "embark_port": "Seattle, Washington",
+      "disembark_port": "Seattle, Washington",
+      "itinerary": [
+        {
+          "date": "2027-05-24",
+          "port": "Seattle, Washington",
+          "arrival": "13:00",
+          "departure": "17:00"
+        },
+        {
+          "date": "2027-05-25",
+          "port": "At sea",
+          "arrival": null,
+          "departure": null
+        },
+        {
+          "date": "2027-05-26",
+          "port": "Ketchikan, Alaska",
+          "arrival": "09:00",
+          "departure": "18:00"
+        },
+        {
+          "date": "2027-05-27",
+          "port": "Wrangell, Alaska",
+          "arrival": "07:00",
+          "departure": "17:00"
+        },
+        {
+          "date": "2027-05-28",
+          "port": "Icy Strait Point (Hoonah), Alaska",
+          "arrival": "08:00",
+          "departure": "18:00"
+        },
+        {
+          "date": "2027-05-29",
+          "port": "Juneau, Alaska",
+          "arrival": "07:00",
+          "departure": "18:00"
+        },
+        {
+          "date": "2027-05-30",
+          "port": "Cruising Holkham Bay Glacier Fjords",
+          "arrival": null,
+          "departure": null
+        },
+        {
+          "date": "2027-05-31",
+          "port": "Klawock, Alaska",
+          "arrival": "08:00",
+          "departure": "18:00"
+        },
+        {
+          "date": "2027-06-01",
+          "port": "At sea",
+          "arrival": null,
+          "departure": null
+        },
+        {
+          "date": "2027-06-02",
+          "port": "Victoria, British Columbia",
+          "arrival": "11:00",
+          "departure": "23:00"
+        },
+        {
+          "date": "2027-06-03",
+          "port": "Seattle, Washington",
+          "arrival": "08:00",
+          "departure": null
+        }
+      ],
+      "pricing": {
+        "currency": "USD",
+        "basis": "per person on twin",
+        "tiers": [
+          {
+            "code": "G",
+            "name": "Inside",
+            "price": 1353
+          },
+          {
+            "code": "C",
+            "name": "Outside",
+            "price": 1833
+          },
+          {
+            "code": "B4",
+            "name": "Balcony",
+            "price": 2193
+          },
+          {
+            "code": "A4",
+            "name": "Concierge",
+            "price": 2433
+          },
+          {
+            "code": "PH3",
+            "name": "Penthouse",
+            "price": 3543
+          }
+        ],
+        "taxes_fees_additional": 987,
+        "taxes_fees_included": false
+      },
+      "inclusions": {
+        "always": [
+          "Free Wi-Fi for 2 accounts",
+          "Free gratuities for 2 pax"
+        ],
+        "choose_one_of": [
+          "Free complimentary wine & beer for 2 pax during lunch & dinner",
+          "Free onboard shore-excursion credit USD 600 for 2 pax"
+        ],
+        "listed_after_the_OR_line": [
+          "Free non-alcoholic beverages for 24 hours",
+          "Fees for specialty restaurants (printed as shown; presumably waived)"
+        ]
+      },
+      "exclusions": [
+        "All other items"
+      ],
+      "contact": {
+        "company": "Jebsen Travel & Tours Services Sdn Bhd",
+        "email": "Cruise@jebsen.com.my",
+        "phone": "+603-21485583"
+      }
+    },
+    {
+      "id": "OCE-RIVIERA-MAY2027-WONDER",
+      "slug": "oceania-worlds-of-wonder-vancouver-seattle-2027",
+      "category": "ocean_cruise",
+      "brand": "Oceania Cruises",
+      "seller": "Jebsen Travel & Tours Services Sdn Bhd",
+      "source_file": "Oceania_Cruise_Sailing_MAR-JUNE_2027.pdf (page 4)",
+      "title": {
+        "en": "Worlds of Wonder – Vancouver to Seattle"
+      },
+      "duration": {
+        "days": 12,
+        "label": "12 days"
+      },
+      "dates": {
+        "start": "2027-05-13",
+        "end": "2027-05-24"
+      },
+      "ship": {
+        "name": "Oceania Riviera",
+        "built": 2012,
+        "tonnage": 66084,
+        "guest_capacity": 1250,
+        "length_ft": 784.9
+      },
+      "embark_port": "Vancouver, British Columbia, Canada",
+      "disembark_port": "Seattle, Washington, United States",
+      "itinerary": [
+        {
+          "date": "2027-05-13",
+          "port": "Vancouver, British Columbia",
+          "country": "Canada",
+          "arrival": "13:00",
+          "departure": "17:00"
+        },
+        {
+          "date": "2027-05-14",
+          "port": "Cruising the Inside Passage",
+          "arrival": null,
+          "departure": null
+        },
+        {
+          "date": "2027-05-15",
+          "port": "Ketchikan, Alaska",
+          "arrival": "09:00",
+          "departure": "18:00"
+        },
+        {
+          "date": "2027-05-16",
+          "port": "Sitka, Alaska",
+          "arrival": "09:00",
+          "departure": "18:00"
+        },
+        {
+          "date": "2027-05-17",
+          "port": "Cruising Holkham Bay Glacier Fjords",
+          "arrival": null,
+          "departure": null
+        },
+        {
+          "date": "2027-05-18",
+          "port": "Haines, Alaska",
+          "arrival": "08:00",
+          "departure": "18:00"
+        },
+        {
+          "date": "2027-05-19",
+          "port": "Juneau, Alaska",
+          "arrival": "08:00",
+          "departure": "18:00"
+        },
+        {
+          "date": "2027-05-20",
+          "port": "Wrangell, Alaska",
+          "arrival": "09:00",
+          "departure": "17:00"
+        },
+        {
+          "date": "2027-05-21",
+          "port": "Klawock, Alaska",
+          "arrival": "08:00",
+          "departure": "17:00"
+        },
+        {
+          "date": "2027-05-22",
+          "port": "At sea",
+          "arrival": null,
+          "departure": null
+        },
+        {
+          "date": "2027-05-23",
+          "port": "Victoria, British Columbia",
+          "country": "Canada",
+          "arrival": "14:00",
+          "departure": "23:00"
+        },
+        {
+          "date": "2027-05-24",
+          "port": "Seattle, Washington",
+          "country": "United States",
+          "arrival": "08:00",
+          "departure": null
+        }
+      ],
+      "pricing": {
+        "currency": "USD",
+        "basis": "per person on twin",
+        "tiers": [
+          {
+            "code": "G",
+            "name": "Inside",
+            "price": 1588
+          },
+          {
+            "code": "C",
+            "name": "Outside",
+            "price": 2008
+          },
+          {
+            "code": "B4",
+            "name": "Balcony",
+            "price": 2278
+          },
+          {
+            "code": "A4",
+            "name": "Concierge",
+            "price": 2518
+          },
+          {
+            "code": "PH3",
+            "name": "Penthouse",
+            "price": 3988
+          }
+        ],
+        "taxes_fees_additional": 992,
+        "taxes_fees_included": false
+      },
+      "inclusions": {
+        "always": [
+          "Free Wi-Fi for 2 accounts",
+          "Free gratuities for 2 pax"
+        ],
+        "choose_one_of": [
+          "Free complimentary wine & beer for 2 pax during lunch & dinner",
+          "Free onboard shore-excursion credit USD 600 for 2 pax"
+        ],
+        "listed_after_the_OR_line": [
+          "Free non-alcoholic beverages for 24 hours",
+          "Fees for specialty restaurants (printed as shown; presumably waived)"
+        ]
+      },
+      "exclusions": [
+        "All other items"
+      ],
+      "contact": {
+        "company": "Jebsen Travel & Tours Services Sdn Bhd",
+        "email": "Cruise@jebsen.com.my",
+        "phone": "+603-21485583"
+      },
+      "data_quality_flags": [
+        "The Alaska Discoverer sails 24 May from Seattle, the day this cruise ends in Seattle (back-to-back possible; not stated in brochure)."
+      ]
+    },
+    {
+      "id": "SILV-ENDEAVOUR-JUL2027",
+      "slug": "silversea-endeavour-svalbard-north-cape-2027",
+      "category": "expedition_cruise",
+      "brand": "Silversea Expeditions",
+      "seller": "Jebsen Travel & Tours Services Sdn Bhd",
+      "source_file": "SILVER_ENDEAVOUR_11_DAYS_ARTIC_SVALBARD___TROSMO.pdf",
+      "title": {
+        "en": "Arctic: Exploring Svalbard (Arctic & North Cape) – Longyearbyen to Tromsø"
+      },
+      "duration": {
+        "days": 11,
+        "nights_on_ship": 9,
+        "label": "11 days"
+      },
+      "dates": {
+        "start": "2027-06-30",
+        "end": "2027-07-10",
+        "note": "Header prints 'JUL 30 – 10, 2027' but the itinerary table runs 30/06/2027 – 10/07/2027."
+      },
+      "ship": {
+        "name": "Silver Endeavour",
+        "guest_capacity": 220,
+        "crew_capacity": 207,
+        "built": 2021,
+        "tonnage": 20649
+      },
+      "embark_port": "Longyearbyen (Svalbard), by charter flight from Copenhagen",
+      "disembark_port": "Tromsø, Norway (flight to Oslo)",
+      "itinerary": [
+        {
+          "date": "2027-06-30",
+          "port": "Copenhagen, Denmark",
+          "note": "Arrive; overnight at NH Hotel",
+          "arrival": null,
+          "departure": null
+        },
+        {
+          "date": "2027-07-01",
+          "port": "Copenhagen → Longyearbyen by flight; embarkation",
+          "arrival": null,
+          "departure": "18:00"
+        },
+        {
+          "date": "2027-07-02",
+          "port": "Svalbard Northern Region",
+          "arrival": null,
+          "departure": null
+        },
+        {
+          "date": "2027-07-03",
+          "port": "Svalbard Northern Region",
+          "arrival": null,
+          "departure": null
+        },
+        {
+          "date": "2027-07-04",
+          "port": "Svalbard Northern Region",
+          "arrival": null,
+          "departure": null
+        },
+        {
+          "date": "2027-07-05",
+          "port": "Svalbard Northern Region",
+          "arrival": null,
+          "departure": null
+        },
+        {
+          "date": "2027-07-06",
+          "port": "Svalbard Northern Region",
+          "arrival": null,
+          "departure": null
+        },
+        {
+          "date": "2027-07-07",
+          "port": "Svalbard Northern Region",
+          "arrival": null,
+          "departure": null
+        },
+        {
+          "date": "2027-07-08",
+          "port": "Cruise & Explore Bear Island (Svalbard)",
+          "arrival": "07:00",
+          "departure": "11:30"
+        },
+        {
+          "date": "2027-07-09",
+          "port": "Skarsvåg (Nordkapp)",
+          "arrival": "07:00",
+          "departure": "16:30"
+        },
+        {
+          "date": "2027-07-09",
+          "port": "Cruising along North Cape",
+          "arrival": "17:30",
+          "departure": "18:30"
+        },
+        {
+          "date": "2027-07-10",
+          "port": "Tromsø, Norway; flight to Oslo",
+          "arrival": "08:00",
+          "departure": null
+        }
+      ],
+      "pricing": {
+        "currency": "USD",
+        "basis": "all-inclusive, per person on twin",
+        "tiers": [
+          {
+            "name": "Classic Veranda",
+            "price": 16950
+          },
+          {
+            "name": "Superior Veranda",
+            "price": 17400
+          },
+          {
+            "name": "Deluxe Veranda",
+            "price": 18000
+          },
+          {
+            "name": "Premium Veranda",
+            "price": 18250
+          }
+        ],
+        "taxes_fees_included": true,
+        "taxes_fees_amount": 1712
+      },
+      "inclusions": [
+        "Daily shore excursions",
+        "Two in-country flights (Copenhagen–Longyearbyen; Tromsø–Oslo)",
+        "Taxes & fees (USD 1,712)",
+        "9 nights of full butler service in every suite",
+        "All types of alcoholic and non-alcoholic drinks at any time and anywhere",
+        "5 restaurants",
+        "Unlimited Wi-Fi",
+        "Onboard gratuities"
+      ],
+      "contact": {
+        "company": "Jebsen Travel & Tours Services Sdn Bhd",
+        "email": "cruise@jebsen.com.my",
+        "phone": "+603-21485583"
+      },
+      "data_quality_flags": [
+        "Heading date range conflicts with the itinerary table (see dates.note).",
+        "Pre-cruise NH Hotel night in Copenhagen is shown in the itinerary; confirm if included in the fare.",
+        "Brochure heading typos ('Artic', 'Trosmo' in file name)."
+      ]
+    },
+    {
+      "id": "SILV-SPIRIT-MAY2027",
+      "slug": "silversea-spirit-norwegian-fjords-north-cape-trondheim-2027",
+      "category": "ocean_cruise",
+      "brand": "Silversea",
+      "seller": "Jebsen Travel & Tours Services Sdn Bhd",
+      "source_file": "SILVER_SPIRIT_CPH.pdf (page 1)",
+      "title": {
+        "en": "Norwegian Fjords Featuring North Cape & Trondheim – Copenhagen to Copenhagen"
+      },
+      "duration": {
+        "days": 16,
+        "nights_on_ship": 15,
+        "label": "16 days"
+      },
+      "dates": {
+        "start": "2027-05-21",
+        "end": "2027-06-05"
+      },
+      "ship": {
+        "name": "Silver Spirit",
+        "guest_capacity": 608,
+        "crew": 411,
+        "refurbished": 2018,
+        "tonnage": 39519
+      },
+      "embark_port": "Copenhagen, Denmark",
+      "disembark_port": "Copenhagen, Denmark",
+      "itinerary": [
+        {
+          "date": "2027-05-21",
+          "port": "Copenhagen, Denmark",
+          "arrival": null,
+          "departure": null
+        },
+        {
+          "date": "2027-05-22",
+          "port": "Copenhagen, Denmark",
+          "arrival": null,
+          "departure": "18:00"
+        },
+        {
+          "date": "2027-05-23",
+          "port": "Day at sea",
+          "arrival": null,
+          "departure": null
+        },
+        {
+          "date": "2027-05-24",
+          "port": "Olden",
+          "country": "Norway",
+          "arrival": "12:00",
+          "departure": "20:00"
+        },
+        {
+          "date": "2027-05-25",
+          "port": "Day at sea",
+          "arrival": null,
+          "departure": null
+        },
+        {
+          "date": "2027-05-26",
+          "port": "Leknes (Vestvågøy)",
+          "country": "Norway",
+          "arrival": "08:00",
+          "departure": "21:00"
+        },
+        {
+          "date": "2027-05-27",
+          "port": "Day at sea",
+          "arrival": null,
+          "departure": null
+        },
+        {
+          "date": "2027-05-28",
+          "port": "Honningsvåg (North Cape)",
+          "country": "Norway",
+          "arrival": "08:00",
+          "departure": "18:00"
+        },
+        {
+          "date": "2027-05-28",
+          "port": "Cruising along North Cape",
+          "arrival": "18:30",
+          "departure": "19:00"
+        },
+        {
+          "date": "2027-05-29",
+          "port": "Alta",
+          "country": "Norway",
+          "arrival": "07:00",
+          "departure": "15:30"
+        },
+        {
+          "date": "2027-05-30",
+          "port": "Day at sea",
+          "arrival": null,
+          "departure": null
+        },
+        {
+          "date": "2027-05-31",
+          "port": "Trondheim (Trøndelag)",
+          "country": "Norway",
+          "arrival": "09:00",
+          "departure": "18:00"
+        },
+        {
+          "date": "2027-06-01",
+          "port": "Molde (Romsdal)",
+          "country": "Norway",
+          "arrival": "08:00",
+          "departure": "16:00"
+        },
+        {
+          "date": "2027-06-02",
+          "port": "Vik",
+          "country": "Norway",
+          "arrival": "08:00",
+          "departure": "17:00"
+        },
+        {
+          "date": "2027-06-03",
+          "port": "Day at sea",
+          "arrival": null,
+          "departure": null
+        },
+        {
+          "date": "2027-06-04",
+          "port": "Skagen",
+          "country": "Denmark",
+          "arrival": "08:00",
+          "departure": "17:00"
+        },
+        {
+          "date": "2027-06-05",
+          "port": "Copenhagen, Denmark",
+          "arrival": "07:00",
+          "departure": null
+        }
+      ],
+      "pricing": {
+        "currency": "USD",
+        "basis": "all-inclusive, per person on twin",
+        "tiers": [
+          {
+            "name": "Vista Oceanview",
+            "price": 8900
+          },
+          {
+            "name": "Panorama Seaview",
+            "price": 9800
+          },
+          {
+            "name": "Classic Veranda",
+            "price": 10500
+          },
+          {
+            "name": "Superior Veranda",
+            "price": 11200
+          },
+          {
+            "name": "Deluxe Veranda",
+            "price": 11900
+          }
+        ],
+        "taxes_fees_included": true,
+        "taxes_fees_amount": 1350
+      },
+      "inclusions": [
+        "15 nights of full butler service in every suite",
+        "All types of alcoholic and non-alcoholic drinks at any time and anywhere",
+        "9 restaurants",
+        "Unlimited Wi-Fi",
+        "Onboard gratuities",
+        "Taxes & fees (USD 1,350)"
+      ],
+      "exclusions": [
+        "No shore-excursion credit (U3 fare rule)"
+      ],
+      "contact": {
+        "company": "Jebsen Travel & Tours Services Sdn Bhd",
+        "email": "cruise@jebsen.com.my",
+        "phone": "+603-21485583"
+      }
+    },
+    {
+      "id": "SILV-SPIRIT-JUN2027",
+      "slug": "silversea-spirit-scandinavia-baltic-copenhagen-stockholm-2027",
+      "category": "ocean_cruise",
+      "brand": "Silversea",
+      "seller": "Jebsen Travel & Tours Services Sdn Bhd",
+      "source_file": "SILVER_SPIRIT_CPH.pdf (page 2)",
+      "title": {
+        "en": "Scandinavia & Baltic Sea – Copenhagen to Stockholm"
+      },
+      "duration": {
+        "days": 14,
+        "nights_on_ship": 13,
+        "label": "14 days"
+      },
+      "dates": {
+        "start": "2027-06-05",
+        "end": "2027-06-18"
+      },
+      "ship": {
+        "name": "Silver Spirit",
+        "guest_capacity": 608,
+        "crew": 411,
+        "refurbished": 2018,
+        "tonnage": 39519
+      },
+      "embark_port": "Copenhagen, Denmark",
+      "disembark_port": "Stockholm, Sweden",
+      "itinerary": [
+        {
+          "date": "2027-06-05",
+          "port": "Copenhagen",
+          "country": "Denmark",
+          "arrival": null,
+          "departure": "19:00"
+        },
+        {
+          "date": "2027-06-06",
+          "port": "Aarhus",
+          "country": "Denmark",
+          "arrival": "08:00",
+          "departure": "16:00"
+        },
+        {
+          "date": "2027-06-07",
+          "port": "Aalborg",
+          "country": "Denmark",
+          "arrival": "08:00",
+          "departure": "18:00"
+        },
+        {
+          "date": "2027-06-08",
+          "port": "Gothenburg",
+          "country": "Sweden",
+          "arrival": "08:00",
+          "departure": "18:00"
+        },
+        {
+          "date": "2027-06-09",
+          "port": "Day at sea",
+          "arrival": null,
+          "departure": null
+        },
+        {
+          "date": "2027-06-10",
+          "port": "Warnemünde (Rostock)",
+          "country": "Germany",
+          "arrival": "08:00",
+          "departure": "21:00"
+        },
+        {
+          "date": "2027-06-11",
+          "port": "Rønne, Bornholm",
+          "country": "Denmark",
+          "arrival": "08:00",
+          "departure": "17:00"
+        },
+        {
+          "date": "2027-06-12",
+          "port": "Gdańsk",
+          "country": "Poland",
+          "arrival": "08:00",
+          "departure": "18:00"
+        },
+        {
+          "date": "2027-06-13",
+          "port": "Klaipėda",
+          "country": "Lithuania",
+          "arrival": "08:00",
+          "departure": "16:00"
+        },
+        {
+          "date": "2027-06-14",
+          "port": "Riga",
+          "country": "Latvia",
+          "arrival": "09:00",
+          "departure": "21:00"
+        },
+        {
+          "date": "2027-06-15",
+          "port": "Day at sea",
+          "arrival": null,
+          "departure": null
+        },
+        {
+          "date": "2027-06-16",
+          "port": "Tallinn",
+          "country": "Estonia",
+          "arrival": "08:00",
+          "departure": "19:00"
+        },
+        {
+          "date": "2027-06-17",
+          "port": "Helsinki",
+          "country": "Finland",
+          "arrival": "08:00",
+          "departure": "15:00"
+        },
+        {
+          "date": "2027-06-18",
+          "port": "Stockholm",
+          "country": "Sweden",
+          "arrival": "08:00",
+          "departure": null
+        }
+      ],
+      "pricing": {
+        "currency": "USD",
+        "basis": "all-inclusive, per person on twin",
+        "tiers": [
+          {
+            "name": "Vista Oceanview",
+            "price": 8900
+          },
+          {
+            "name": "Panorama Seaview",
+            "price": 9400
+          },
+          {
+            "name": "Classic Veranda",
+            "price": 10200
+          },
+          {
+            "name": "Superior Veranda",
+            "price": 11000
+          },
+          {
+            "name": "Deluxe Veranda",
+            "price": 12700
+          }
+        ],
+        "taxes_fees_included": true,
+        "taxes_fees_amount": 1594
+      },
+      "inclusions": [
+        "13 nights of full butler service in every suite",
+        "All types of alcoholic and non-alcoholic drinks at any time and anywhere",
+        "9 restaurants",
+        "Unlimited Wi-Fi",
+        "Onboard gratuities",
+        "Taxes & fees (USD 1,594)"
+      ],
+      "exclusions": [
+        "No shore-excursion credit (U3 fare rule)"
+      ],
+      "contact": {
+        "company": "Jebsen Travel & Tours Services Sdn Bhd",
+        "email": "cruise@jebsen.com.my",
+        "phone": "+603-21485583"
+      }
+    },
+    {
+      "id": "STAR-VOYAGER-PKL-2026",
+      "slug": "star-voyager-4d3n-port-klang-penang-singapore-2026",
+      "category": "short_cruise",
+      "brand": "StarCruises (Star Voyager) via Cruise Planner",
+      "source_file": "SVO_EX_MAL_SEP_-_NOV_2026_MATTA_FAIR_PROMO_VALID_UNTIL_15SEP2026.pdf",
+      "title": {
+        "en": "Star Voyager 4D3N Port Klang / Melaka – Penang – Singapore (Monday sailings)"
+      },
+      "tagline": "Now cruising from Port Klang – Bundle cabins & save more",
+      "duration": {
+        "days": 4,
+        "nights": 3,
+        "label": "4D3N"
+      },
+      "embark_port": "Port Klang (or Melaka/MKZ on '^' sailings)",
+      "sailing_dates": {
+        "Port Klang": [
+          "2026-09-28",
+          "2026-10-05",
+          "2026-10-12",
+          "2026-10-26",
+          "2026-11-02",
+          "2026-11-09"
+        ],
+        "Melaka (^)": [
+          "2026-10-19",
+          "2026-11-16"
+        ]
+      },
+      "itinerary": [
+        {
+          "day": 1,
+          "port": "Port Klang / ^Melaka",
+          "arrival": null,
+          "departure": "18:00 (Melaka: 17:00)"
+        },
+        {
+          "day": 2,
+          "port": "Penang",
+          "arrival": "07:00 (Melaka: 08:00)",
+          "departure": "13:00 (Melaka: 16:00)"
+        },
+        {
+          "day": 3,
+          "port": "Singapore (Singapore Cruise Centre)",
+          "arrival": "14:00",
+          "departure": "22:00"
+        },
+        {
+          "day": 4,
+          "port": "Port Klang / ^Melaka",
+          "arrival": "12:00 (Melaka: 11:00)",
+          "departure": null
+        }
+      ],
+      "pricing": {
+        "currency": "MYR",
+        "basis": "per person",
+        "tiers": [
+          {
+            "code": "DPP",
+            "name": "Palace Penthouse",
+            "price_1st_2nd_pax": 4299,
+            "price_3rd_4th_pax": 2149
+          },
+          {
+            "code": "DDS",
+            "name": "Palace Deluxe Suite",
+            "price_1st_2nd_pax": 3799,
+            "price_3rd_4th_pax": 1899
+          },
+          {
+            "code": "DPS",
+            "name": "Palace Suite",
+            "price_1st_2nd_pax": 3199,
+            "price_3rd_4th_pax": 1599
+          },
+          {
+            "code": "BDS",
+            "name": "Balcony Deluxe Stateroom",
+            "price_1st_2nd_pax": 1699,
+            "price_3rd_4th_pax": 849
+          },
+          {
+            "code": "BSS",
+            "name": "Balcony Stateroom",
+            "price_1st_2nd_pax": 1599,
+            "price_3rd_4th_pax": 799
+          },
+          {
+            "code": "OSS",
+            "name": "Oceanview Stateroom",
+            "price_1st_2nd_pax": 1299,
+            "price_3rd_4th_pax": 649
+          },
+          {
+            "code": "ISS",
+            "name": "Inside Stateroom",
+            "price_1st_2nd_pax": 1099,
+            "price_3rd_4th_pax": 549
+          }
+        ],
+        "port_charge_myr_pp": 320,
+        "infant_rate": "25% of 1st pax rate",
+        "single_occupancy": "200% of the 1st pax promotional rate",
+        "onboard_gratuities": {
+          "currency": "SGD",
+          "per_person_per_night": {
+            "ISS/OSS": 27,
+            "BSS/BDS": 33
+          },
+          "pay_onboard": true,
+          "waived_for": "infants below 2 years old",
+          "note": "Palace-category gratuity not printed"
+        }
+      },
+      "payment_terms": [
+        "Full payment required if booking is made less than 75 days before departure.",
+        "50% payment required upon booking confirmation."
+      ],
+      "terms": [
+        "Promotion fare applies to the KL MATTA Fair (September) for Malaysian citizens and foreigners holding work permit or PR status in Malaysia only.",
+        "Subject to cabin availability and capacity control; refer to sales representative for real-time availability.",
+        "Cancellations and amendments incur additional charges after booking.",
+        "All other StarDream Cruise terms apply."
+      ],
+      "data_quality_flags": [
+        "File name states the Matta Fair promo was valid until 15 Sep 2026 – already past as of 20 Oct 2026; confirm whether fares are still bookable before publishing.",
+        "'^' marks Melaka (MKZ) sailings/times; Port Klang is the default."
+      ]
+    }
+  ],
+  "promotions": [
+    {
+      "id": "SILVERSEA-FLASH-OCT2026",
+      "source_file": "CM_PR_October_2026_Flash_Sale_Consumer_Flyer_4513232371_USD__EN__compressed.pdf",
+      "brand": "Silversea (a Royal Caribbean Group experience)",
+      "title": "Silversea Flash Sale – save up to $6,000 per suite",
+      "headline": "For two weeks only, extra savings of up to $6,000; voyages to all seven continents; reduced deposits from 15%.",
+      "expires": "2026-11-02",
+      "booking_deadline": "2026-11-02",
+      "deposit": "Reduced deposits from 15%",
+      "offers": [
+        {
+          "name": "Savings Offer",
+          "booking_window": "2026-09-09 to 2026-11-02",
+          "applies_to": "New individual All-Inclusive Plus and All-Inclusive fare double-occupancy bookings on select voyages (excludes full World Cruises, full Grand Voyages, special combination voyages)",
+          "savings_per_guest": {
+            "USD": 2500,
+            "CAD": 3500,
+            "GBP": 2000,
+            "EUR": 2000,
+            "AUD": 3500
+          },
+          "note": "Printed as 'BPS 2,000' – presumed GBP; savings up to these amounts"
+        },
+        {
+          "name": "Extra Savings Offer",
+          "booking_window": "2026-10-14 to 2026-11-02",
+          "applies_to": "New individual All-Inclusive Plus and All-Inclusive fare double-occupancy bookings on select voyages departing before 30 June 2029 (same exclusions)",
+          "savings_per_guest": {
+            "USD": 500,
+            "CAD": 700,
+            "GBP": 400,
+            "EUR": 400,
+            "AUD": 700
+          }
+        }
+      ],
+      "derived_note": "USD 2,500 + 500 = USD 3,000 per guest; ×2 guests = the 'up to $6,000 per suite' headline (our calculation).",
+      "fare_comparison": {
+        "columns": [
+          "All-Inclusive Plus Fare",
+          "All-Inclusive Fare"
+        ],
+        "pre_post_cruise": [
+          {
+            "item": "Seamless Air, Hotel & Transfers available for purchase via Silversea",
+            "plus": true,
+            "standard": true
+          }
+        ],
+        "booking_benefits": [
+          {
+            "item": "Shore Excursion Credit on Classic Voyages (varies by departure; usable on Highlight, Signature and Private Experiences)",
+            "plus": true,
+            "standard": false
+          },
+          {
+            "item": "Refundable deposit",
+            "plus": true,
+            "standard": false
+          },
+          {
+            "item": "Silversea Fare Guarantee Program",
+            "plus": true,
+            "standard": false
+          },
+          {
+            "item": "Flexible cancellation schedule",
+            "plus": true,
+            "standard": true
+          },
+          {
+            "item": "Land Experiences available for purchase via Silversea",
+            "plus": true,
+            "standard": true
+          }
+        ],
+        "onboard_inclusions_both_fares": [
+          "Spacious all-suite accommodations",
+          "Butler service for every suite",
+          "Personalized service – nearly one crew member per guest",
+          "In-suite bar stocked daily with preferred beverages and spirits",
+          "Up to 6 complimentary dining options (varies by ship)",
+          "24-hour in-suite dining",
+          "Unlimited Champagne, spirits and up to 50 wines from the Silversea Cellar",
+          "Specialty coffees, fine teas, sodas and sparkling waters",
+          "Enrichment lectures and onboard entertainment",
+          "Complimentary Wi-Fi",
+          "Unlimited access to fitness center, spa sauna, steam room and relaxation areas (per opening hours)",
+          "Self-service launderettes and supplies (per opening hours)",
+          "City center transportation for Classic Voyages (when required by destination)",
+          "Onboard gratuities, port taxes and fees"
+        ],
+        "expedition_exclusives_plus_only": [
+          "Charter flights and pre/post-cruise hotel(s) when required by the destination",
+          "Expert lectures and activities including guided Zodiac, land and sea tours",
+          "Expedition gear such as parka, backpack and water bottle (varies by region/departure)"
+        ],
+        "note": "Expedition voyages do not include the All-Inclusive Fare (only Plus)."
+      },
+      "add_ons": [
+        {
+          "name": "Seamless Air & Transfers",
+          "description": "Purchase air travel directly with Silversea with seamless roundtrip airport–ship transfers."
+        },
+        {
+          "name": "Hotel & Transfers",
+          "description": "Pre- and/or post-cruise stays at renowned hotels with transfers."
+        },
+        {
+          "name": "Land Experiences",
+          "description": "Land Programs and City Stays, or mid-cruise Overland Experiences to regional sites not accessible on the itinerary."
+        }
+      ],
+      "voyage_types": [
+        {
+          "name": "Classic Voyages",
+          "description": "Small harbors and awe-inspiring itineraries on all-suite ships."
+        },
+        {
+          "name": "Expedition Sailings",
+          "description": "Remote regions from the icy poles to the British Isles, travelling deeper in comfort."
+        }
+      ],
+      "terms": [
+        "Prices and offers are capacity-controlled, subject to availability, and can be removed at any time.",
+        "Silversea may correct errors and change fares, fees and surcharges without notice.",
+        "Single supplements apply and vary by voyage.",
+        "Ships' registry: Bahamas and Ecuador.",
+        "Cruise ticket contract limitations on passenger rights apply (governed by Primary Country of Residence); see Silversea.com/guest-terms and Silversea.com/exclusive-offers.html.",
+        "Flyer ref. FY4513232371; ©2026 Silversea Cruises LLC."
+      ],
+      "photo_caption": "Crete, Greece",
+      "data_quality_flags": [
+        "Flyer is a promotion, not a single itinerary; voyage list is behind a QR code/link and not in the PDF."
+      ]
+    }
+  ],
+  "ship_profiles": [
+    {
+      "id": "RCI-NAVIGATOR-OF-THE-SEAS",
+      "source_file": "CM_RCI_Navigator_Brochure_-_UPDATED_06AUG26__HR___1_.pdf",
+      "brand": "Royal Caribbean International",
+      "seller": "Cruise Master (powered by Asia Cathay Travel Sdn Bhd) 游轮专家",
+      "name": {
+        "en": "Navigator of the Seas",
+        "zh": "海洋领航者号"
+      },
+      "specs": {
+        "registry": "Bahamas",
+        "built_at": "Kvaerner Masa-Yards, Turku, Finland",
+        "maiden_voyage": "2002-12-14",
+        "godmother": "Stefanie Graf",
+        "onboard_currency": "USD",
+        "gross_tonnage_grt": 139999,
+        "length_ft": 1020,
+        "length_m": 310,
+        "width_ft": 161,
+        "width_m": 49,
+        "draft_ft": 29,
+        "draft_m": 8,
+        "cruising_speed_knots": 22,
+        "guests_double_occupancy": 3388,
+        "guests_total": 3968,
+        "international_crew": 1232,
+        "staterooms": 1694,
+        "guest_decks": 14,
+        "total_decks": 15,
+        "guest_elevators": 14,
+        "bow_thrusters": 4
+      },
+      "pitch": "An 'amped-up' short-getaway ship with the longest waterslide at sea, bigger pool days, upgraded entertainment and new dining.",
+      "highlights": [
+        "The Blaster",
+        "Riptide",
+        "To Dry For",
+        "Playmakers Sports Bar & Arcade",
+        "Royal Escape Room: The Observatorium"
+      ],
+      "dining": {
+        "complimentary": [
+          "Café Promenade",
+          "El Loco Fresh",
+          "Main Dining Room",
+          "Windjammer (Marketplace)",
+          "Room service (complimentary for Continental Breakfast menu items; US$7.95 convenience fee for All-Day Menu and American Breakfast Menu items; full menu complimentary for Grand Suites and above)"
+        ],
+        "specialty": [
+          "Chef's Table",
+          "Chops Grille",
+          "Hooked Seafood",
+          "Izumi",
+          "Jamie's Italian by Jamie Oliver",
+          "Johnny Rockets (Express)",
+          "Starbucks"
+        ]
+      },
+      "bars_lounges": [
+        "Boleros",
+        "Copper & Clover",
+        "Cosmopolitan Bar",
+        "The Lime & Coconut",
+        "The Bamboo Room",
+        "R Bar",
+        "Schooner Bar",
+        "Solarium Bar",
+        "Viking Crown Lounge",
+        "Playmakers"
+      ],
+      "amenities": [
+        "Art Gallery",
+        "Card Room",
+        "Casino Royale",
+        "Conference Center",
+        "FlowRider",
+        "Laser Tag: Battle for Planet Z",
+        "Medical Center",
+        "Mini Golf",
+        "Outdoor Movie Screen",
+        "Pool",
+        "Rock Climbing Wall",
+        "Royal Theater",
+        "Solarium",
+        "Sports Court",
+        "Star Lounge",
+        "Studio B",
+        "Tide and Trail",
+        "Vitality Spa & Fitness Center",
+        "VOOM",
+        "Whirlpools",
+        "Running Track",
+        "Library",
+        "Onboard Shopping"
+      ],
+      "kids_teens": [
+        "Adventure Ocean",
+        "Arcade",
+        "Splash Pad",
+        "The Back Deck",
+        "The Living Room"
+      ],
+      "activities_entertainment": [
+        "The Perfect Storm waterslides (The Blaster aqua coaster, Riptide headfirst mat racer)",
+        "Doubled pool surface area / amplified pool deck",
+        "Splash Pad for families",
+        "iSkate ice skating show and ice skating",
+        "Rock climbing",
+        "Mini golf",
+        "Laser Tag: Battle for Planet Z",
+        "FlowRider",
+        "Royal Escape Room: The Observatorium (paid)",
+        "Live bands",
+        "Arcade (paid)",
+        "Sports court",
+        "Royal Theater shows: ShowGirl, Ballroom Fever",
+        "Movie nights",
+        "Pickleball (paid)",
+        "The Silent Party"
+      ],
+      "stateroom_types": [
+        "Interior",
+        "Promenade View Interior",
+        "Oceanview",
+        "Balcony"
+      ],
+      "stateroom_features_all_categories": [
+        "In-room HD TV",
+        "Mini fridge",
+        "Ample closet and storage",
+        "Private bathroom & shower",
+        "Hair dryer",
+        "Premium toiletries (shampoo, conditioner, body wash)",
+        "In-room security safe",
+        "Exclusive bedding collection"
+      ],
+      "itineraries": [],
+      "pricing": null,
+      "data_quality_flags": [
+        "Brochure has no itinerary, dates or fares – ship profile only.",
+        "Cover contains a leftover Chinese label '海洋赞礼号' (Anthem of the Seas) – ignore.",
+        "Paid items marked with a '$' icon in the brochure: Royal Escape Room, Arcade, Pickleball."
+      ]
+    }
+  ]
+}

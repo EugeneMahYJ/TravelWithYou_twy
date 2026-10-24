@@ -1,0 +1,270 @@
+SHIP PHOTO ATTRIBUTIONS
+=======================
+
+Images are locally hosted JPEGs, resized to a maximum 1600 px and optimized. Source work, creator and license are listed for each image. CC BY-SA images are redistributed under the same license stated below.
+
+public/assets/ship-aurelia-voyager-01.jpg
+Work: Cruise ship in Mediterranean.jpg
+Creator: Mervat
+Source: https://commons.wikimedia.org/wiki/File:Cruise_ship_in_Mediterranean.jpg
+License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/ship-aurelia-voyager-02.jpg
+Work: Celestyal Discovery Stern Akandia Harbour Port of Rhodes 28 August 2024.jpg
+Creator: Pjotr Mahhonin
+Source: https://commons.wikimedia.org/wiki/File:Celestyal_Discovery_Stern_Akandia_Harbour_Port_of_Rhodes_28_August_2024.jpg
+License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/ship-aurelia-voyager-03.jpg
+Work: Le paquebot de croisière MSC Opera (3).JPG
+Creator: Jpbazard Jean-Pierre Bazard
+Source: https://commons.wikimedia.org/wiki/File:Le_paquebot_de_croisi%C3%A8re_MSC_Opera_(3).JPG
+License: CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/ship-aurelia-voyager-04.jpg
+Work: MSC Seaview Sideview.jpg
+Creator: mark sheridan
+Source: https://commons.wikimedia.org/wiki/File:MSC_Seaview_Sideview.jpg
+License: CC0 (http://creativecommons.org/publicdomain/zero/1.0/deed.en)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/ship-meridian-star-01.jpg
+Work: Cairns Green Island reef Cruises-2 (15827258830).jpg
+Creator: Sheba_Also 43,000 photos
+Source: https://commons.wikimedia.org/wiki/File:Cairns_Green_Island_reef_Cruises-2_(15827258830).jpg
+License: CC BY-SA 2.0 (https://creativecommons.org/licenses/by-sa/2.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/ship-meridian-star-02.jpg
+Work: Cairns Marina Green Island Cruises-1 (4952237075).jpg
+Creator: Sheba_Also 43,000 photos
+Source: https://commons.wikimedia.org/wiki/File:Cairns_Marina_Green_Island_Cruises-1_(4952237075).jpg
+License: CC BY-SA 2.0 (https://creativecommons.org/licenses/by-sa/2.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/ship-meridian-star-03.jpg
+Work: Returning from Great Barrier Reef to Cairns-07 (8258460837).jpg
+Creator: Sheba_Also 43,000 photos
+Source: https://commons.wikimedia.org/wiki/File:Returning_from_Great_Barrier_Reef_to_Cairns-07_(8258460837).jpg
+License: CC BY-SA 2.0 (https://creativecommons.org/licenses/by-sa/2.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/ship-meridian-star-04.jpg
+Work: CSIRO ScienceImage 741 RV Southern Surveyor docked at Fremantle Port.jpg
+Creator: Lucy Potts, CSIRO
+Source: https://commons.wikimedia.org/wiki/File:CSIRO_ScienceImage_741_RV_Southern_Surveyor_docked_at_Fremantle_Port.jpg
+License: CC BY 3.0 (https://creativecommons.org/licenses/by/3.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/ship-coral-horizon-01.jpg
+Work: Dodekanisos express Panormitis.jpg
+Creator: Jebulon
+Source: https://commons.wikimedia.org/wiki/File:Dodekanisos_express_Panormitis.jpg
+License: CC0 (http://creativecommons.org/publicdomain/zero/1.0/deed.en)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/ship-coral-horizon-02.jpg
+Work: Proteus panormitis symi.jpg
+Creator: Jebulon
+Source: https://commons.wikimedia.org/wiki/File:Proteus_panormitis_symi.jpg
+License: CC0 (http://creativecommons.org/publicdomain/zero/1.0/deed.en)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/ship-coral-horizon-03.jpg
+Work: Blue Star 1 in Heraklion.JPG
+Creator: C messier
+Source: https://commons.wikimedia.org/wiki/File:Blue_Star_1_in_Heraklion.JPG
+License: CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/ship-coral-horizon-04.jpg
+Work: Naxos Star and Panagia Myrtidiotissa, 11H2349.jpg
+Creator: Zde
+Source: https://commons.wikimedia.org/wiki/File:Naxos_Star_and_Panagia_Myrtidiotissa%2C_11H2349.jpg
+License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/ship-nordic-dawn-01.jpg
+Work: 2023-05-14 01 MS FREYA - IMO 7912020 - Svalbard.jpg
+Creator: Gordon Leggett
+Source: https://commons.wikimedia.org/wiki/File:2023-05-14_01_MS_FREYA_-_IMO_7912020_-_Svalbard.jpg
+License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/ship-nordic-dawn-02.jpg
+Work: 2023-05-14 02 MS FREYA - IMO 7912020 - Svalbard.jpg
+Creator: Gordon Leggett
+Source: https://commons.wikimedia.org/wiki/File:2023-05-14_02_MS_FREYA_-_IMO_7912020_-_Svalbard.jpg
+License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/ship-nordic-dawn-03.jpg
+Work: 2023-05-14 03 MS FREYA - IMO 7912020 - Svalbard.jpg
+Creator: Gordon Leggett
+Source: https://commons.wikimedia.org/wiki/File:2023-05-14_03_MS_FREYA_-_IMO_7912020_-_Svalbard.jpg
+License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/ship-nordic-dawn-04.jpg
+Work: 2023-05-14 MS VIRGO - IMO 7504213 - Svalbard, Norway.jpg
+Creator: Gordon Leggett
+Source: https://commons.wikimedia.org/wiki/File:2023-05-14_MS_VIRGO_-_IMO_7504213_-_Svalbard%2C_Norway.jpg
+License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/ship-navigator-of-the-seas-01.jpg
+Work: Navigator of the Seas (ship, 2002) Departs San Pedro (Port of Los Angeles), California (December 2025).jpg
+Creator: Jack Adamenko
+Source: https://commons.wikimedia.org/wiki/File:Navigator_of_the_Seas_(ship%2C_2002)_Departs_San_Pedro_(Port_of_Los_Angeles)%2C_California_(December_2025).jpg
+License: CC0 (http://creativecommons.org/publicdomain/zero/1.0/deed.en)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/ship-navigator-of-the-seas-02.jpg
+Work: Navigator of the Seas (ship, 2002) in Ensenada, Mexico (August 2024) 1.jpg
+Creator: Jack Adamenko
+Source: https://commons.wikimedia.org/wiki/File:Navigator_of_the_Seas_(ship%2C_2002)_in_Ensenada%2C_Mexico_(August_2024)_1.jpg
+License: CC BY 4.0 (https://creativecommons.org/licenses/by/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/ship-navigator-of-the-seas-03.jpg
+Work: Navigator of the Seas arrives in Messina.JPG
+Creator: RCIfans
+Source: https://commons.wikimedia.org/wiki/File:Navigator_of_the_Seas_arrives_in_Messina.JPG
+License: CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/ship-navigator-of-the-seas-04.jpg
+Work: Navigator of The Seas at Linnahall 10 June 2007.jpg
+Creator: Pjotr Mahhonin
+Source: https://commons.wikimedia.org/wiki/File:Navigator_of_The_Seas_at_Linnahall_10_June_2007.jpg
+License: CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/ship-amalea-01.jpg
+Work: Flusskreuzfahrtschiff Amalea, Belgrád Kai, 2021 Belváros-Lipótváros.jpg
+Creator: Globetrotter19
+Source: https://commons.wikimedia.org/wiki/File:Flusskreuzfahrtschiff_Amalea%2C_Belgr%C3%A1d_Kai%2C_2021_Belv%C3%A1ros-Lip%C3%B3tv%C3%A1ros.jpg
+License: CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/ship-oceania-riviera-01.jpg
+Work: Oceania Cruises Riviera 03 IMO 9438078 @chesi.JPG
+Creator: Piergiuliano Chesi
+Source: https://commons.wikimedia.org/wiki/File:Oceania_Cruises_Riviera_03_IMO_9438078_%40chesi.JPG
+License: CC BY 3.0 (https://creativecommons.org/licenses/by/3.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/ship-oceania-riviera-02.jpg
+Work: Oceania Cruises Riviera 05 IMO 9438078 @chesi.JPG
+Creator: Piergiuliano Chesi
+Source: https://commons.wikimedia.org/wiki/File:Oceania_Cruises_Riviera_05_IMO_9438078_%40chesi.JPG
+License: CC BY 3.0 (https://creativecommons.org/licenses/by/3.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/ship-oceania-riviera-03.jpg
+Work: Oceania Cruises Riviera 09 IMO 9438078 @chesi.JPG
+Creator: Piergiuliano Chesi
+Source: https://commons.wikimedia.org/wiki/File:Oceania_Cruises_Riviera_09_IMO_9438078_%40chesi.JPG
+License: CC BY 3.0 (https://creativecommons.org/licenses/by/3.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/ship-oceania-riviera-04.jpg
+Work: Oceania Cruises Riviera 14 IMO 9438078 @chesi.JPG
+Creator: Piergiuliano Chesi
+Source: https://commons.wikimedia.org/wiki/File:Oceania_Cruises_Riviera_14_IMO_9438078_%40chesi.JPG
+License: CC BY 3.0 (https://creativecommons.org/licenses/by/3.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/ship-oceania-sirena-01.jpg
+Work: Sirena Funnel Pier 27 Port of Tallinn 30 June 2025.jpg
+Creator: Pjotr Mahhonin
+Source: https://commons.wikimedia.org/wiki/File:Sirena_Funnel_Pier_27_Port_of_Tallinn_30_June_2025.jpg
+License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/ship-silver-endeavour-01.jpg
+Work: 2025 Silver Endeavour - IMO 9821873 - by 2eight - 9SC0463.jpg
+Creator: Stefan Brending ( 2eight )
+Source: https://commons.wikimedia.org/wiki/File:2025_Silver_Endeavour_-_IMO_9821873_-_by_2eight_-_9SC0463.jpg
+License: CC BY-SA 3.0 de (https://creativecommons.org/licenses/by-sa/3.0/de/deed.en)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/ship-silver-endeavour-02.jpg
+Work: Silver Endeavour - Gerlache Strait - Antarctica - V-P.jpg
+Creator: Virtual-Pano
+Source: https://commons.wikimedia.org/wiki/File:Silver_Endeavour_-_Gerlache_Strait_-_Antarctica_-_V-P.jpg
+License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/ship-silver-endeavour-03.jpg
+Work: Silver Endeavour at Leith - geograph.org.uk - 7755913.jpg
+Creator: Mary and Angus Hogg
+Source: https://commons.wikimedia.org/wiki/File:Silver_Endeavour_at_Leith_-_geograph.org.uk_-_7755913.jpg
+License: CC BY-SA 2.0 (https://creativecommons.org/licenses/by-sa/2.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/ship-silver-endeavour-04.jpg
+Work: Silver Endeavour in Loch Dunvegan - geograph.org.uk - 7759264.jpg
+Creator: Tiger
+Source: https://commons.wikimedia.org/wiki/File:Silver_Endeavour_in_Loch_Dunvegan_-_geograph.org.uk_-_7759264.jpg
+License: CC BY-SA 2.0 (https://creativecommons.org/licenses/by-sa/2.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/ship-silver-spirit-01.jpg
+Work: Silversea Silver Spirit 01.JPG
+Creator: Piergiuliano Chesi
+Source: https://commons.wikimedia.org/wiki/File:Silversea_Silver_Spirit_01.JPG
+License: CC BY 3.0 (https://creativecommons.org/licenses/by/3.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/ship-silver-spirit-02.jpg
+Work: Silversea Silver Spirit 02.JPG
+Creator: Piergiuliano Chesi
+Source: https://commons.wikimedia.org/wiki/File:Silversea_Silver_Spirit_02.JPG
+License: CC BY 3.0 (https://creativecommons.org/licenses/by/3.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/ship-silver-spirit-03.jpg
+Work: Silversea Silver Spirit 03.JPG
+Creator: Piergiuliano Chesi
+Source: https://commons.wikimedia.org/wiki/File:Silversea_Silver_Spirit_03.JPG
+License: CC BY 3.0 (https://creativecommons.org/licenses/by/3.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/ship-silver-spirit-04.jpg
+Work: Silver Spirit moored at Pier 26 Port of Tallinn 25 July 2025.jpg
+Creator: Pjotr Mahhonin
+Source: https://commons.wikimedia.org/wiki/File:Silver_Spirit_moored_at_Pier_26_Port_of_Tallinn_25_July_2025.jpg
+License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/ship-star-voyager-01.jpg
+Work: Dawn Princess, Hong Kong; March 2009.jpg
+Creator: Bernard Spragg. NZ
+Source: https://commons.wikimedia.org/wiki/File:Dawn_Princess%2C_Hong_Kong%3B_March_2009.jpg
+License: CC0 (http://creativecommons.org/publicdomain/zero/1.0/deed.en)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/ship-star-voyager-02.jpg
+Work: Pacific Explorer, Fremantle, 2023 (03).jpg
+Creator: Bahnfrend
+Source: https://commons.wikimedia.org/wiki/File:Pacific_Explorer%2C_Fremantle%2C_2023_(03).jpg
+License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/ship-star-voyager-03.jpg
+Work: Pacific Explorer, Fremantle, 2023 (07).jpg
+Creator: Bahnfrend
+Source: https://commons.wikimedia.org/wiki/File:Pacific_Explorer%2C_Fremantle%2C_2023_(07).jpg
+License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
+
+public/assets/ship-star-voyager-04.jpg
+Work: Pacific Explorer, Sydney Harbour, 2017 (05).jpg
+Creator: Bahnfrend
+Source: https://commons.wikimedia.org/wiki/File:Pacific_Explorer%2C_Sydney_Harbour%2C_2017_(05).jpg
+License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)
+Changes: Resized and JPEG-optimized; no other intentional changes.
