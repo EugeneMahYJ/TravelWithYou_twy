@@ -1,4 +1,28 @@
 document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll("[data-clear-filters-in-place]").forEach((link) => {
+        link.addEventListener("click", (event) => {
+            event.preventDefault();
+            const form = link.closest("form");
+
+            form?.querySelectorAll('input:not([type="hidden"]), select, textarea').forEach((field) => {
+                if (field instanceof HTMLInputElement && ["checkbox", "radio"].includes(field.type)) {
+                    field.checked = false;
+                } else if (field instanceof HTMLSelectElement) {
+                    field.selectedIndex = 0;
+                } else {
+                    field.value = "";
+                }
+            });
+            form?.querySelectorAll('input[type="hidden"]').forEach((field) => field.remove());
+
+            window.history.replaceState(
+                window.history.state,
+                "",
+                window.location.pathname + window.location.hash,
+            );
+        });
+    });
+
     const menuButton = document.querySelector(".menu-toggle");
     const navigation = document.querySelector("#mobile-nav");
 

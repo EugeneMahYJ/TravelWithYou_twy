@@ -18,7 +18,7 @@
                 <p class="eyebrow hero-kicker">{{ $slide['kicker'] }}</p>
                 <h1>{{ $slide['title'] }}</h1>
                 <p>{{ $slide['text'] }}</p>
-                <div class="hero-actions"><a class="button button-primary" href="{{ $slide['url'] }}">{{ $slide['label'] }} <span aria-hidden="true">→</span></a><a class="button button-outline-light" href="{{ route('deals') }}">All deals</a></div>
+                <div class="hero-actions"><a class="button button-primary" href="{{ $slide['url'] }}">{{ $slide['label'] }} <span aria-hidden="true">→</span></a><a class="button button-outline-light" href="{{ $slide['secondary_url'] ?? route('deals') }}">{{ $slide['secondary_label'] ?? 'All deals' }}</a></div>
             </div>
         </div>
     @endforeach
@@ -32,7 +32,7 @@
 </section>
 
 <div class="wrap search-wrap">
-    <x-search-bar :options="$searchOptions" />
+    <x-search-bar :options="$searchOptions" :clear-url="route('home')" :clear-in-place="true" />
 </div>
 
 <section class="wrap section-block">

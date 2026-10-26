@@ -258,6 +258,41 @@
       "region": "Africa",
       "image": "countries/kenya-package-thumbnail.jpg",
       "blurb": "Savannah safaris, Maasai culture and the Great Migration."
+    },
+    {
+      "id": "denmark",
+      "name": "Denmark",
+      "region": "Europe",
+      "image": "countries/denmark-package-thumbnail.jpg",
+      "blurb": "Colourful harbours, cosy cafés and fairytale castles."
+    },
+    {
+      "id": "norway",
+      "name": "Norway",
+      "region": "Europe",
+      "image": "countries/norway-package-thumbnail.jpg",
+      "blurb": "Majestic fjords, northern lights and Arctic adventures."
+    },
+    {
+      "id": "singapore",
+      "name": "Singapore",
+      "region": "Asia",
+      "image": "countries/singapore-package-thumbnail.jpg",
+      "blurb": "Futuristic skyline, Marina Bay Sands, Gardens by the Bay and legendary hawker food."
+    },
+    {
+      "id": "canada",
+      "name": "Canada",
+      "region": "North America",
+      "image": "countries/canada-package-thumbnail.jpg",
+      "blurb": "Rocky Mountain lakes, Niagara Falls, vibrant cities and vast wild landscapes."
+    },
+    {
+      "id": "hungary",
+      "name": "Hungary",
+      "region": "Europe",
+      "image": "countries/hungary-package-thumbnail.jpg",
+      "blurb": "Danube views, thermal baths and Budapest's grand architecture."
     }
   ],
   "packages": [],

@@ -122,12 +122,24 @@ class TravelWebsiteTest extends TestCase
             ->assertDontSee('Add to your trip');
     }
 
+    public function test_home_search_clear_link_stays_on_home_without_query_filters(): void
+    {
+        $this->get(route('home', ['q' => 'Japan', 'price' => 'lt2']))
+            ->assertOk()
+            ->assertSee('href="'.rtrim(route('home'), '/').'"', false)
+            ->assertSee('data-clear-filters-in-place', false)
+            ->assertSee('>Clear filters</a>', false);
+    }
+
     public function test_home_slideshow_includes_the_navigator_video_slide(): void
     {
         $response = $this->get(route('home'))
             ->assertOk()
             ->assertSee('Amped up at sea.')
             ->assertSee('Ship tour · Navigator of the Seas')
+            ->assertSee('href="'.route('ships.show', ['ship' => 'star-voyager']).'">View ship', false)
+            ->assertSee('href="'.route('ships.show', ['ship' => 'navigator-of-the-seas']).'">View ship', false)
+            ->assertSee('href="'.route('ships').'">Explore ships', false)
             ->assertSee('assets/star-voyager-1-xnakcrup.png', false)
             ->assertSee('assets/video/Ship_example.mp4', false)
             ->assertSee('<video', false)
