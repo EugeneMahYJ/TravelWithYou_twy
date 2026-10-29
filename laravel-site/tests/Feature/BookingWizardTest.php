@@ -51,7 +51,7 @@ class BookingWizardTest extends TestCase
         $package = TravelPackage::where('slug', 'med-grand')->firstOrFail();
         $ship = Ship::where('name', $package->ship)->firstOrFail();
         $ship->cabins()->delete();
-        $this->get(route('booking', ['id' => $package->slug, 'date' => '2027-06-05']))
+        $this->get(route('booking', ['id' => $package->slug, 'date' => '2027-06-03']))
             ->assertOk()
             ->assertSee('No room types on sale.')
             ->assertSee('Back to package');
@@ -113,14 +113,14 @@ class BookingWizardTest extends TestCase
             ->assertSessionHasErrors(['counts' => 'Online bookings are limited to 12 guests. Contact us for larger groups.']);
 
         $noAdultCruise = $this->cruisePayload(adults: 0, children: 1, rooms: 1);
-        $this->from(route('booking', ['id' => 'med-grand', 'date' => '2027-06-05']))
-            ->post(route('booking.submit', ['id' => 'med-grand', 'date' => '2027-06-05']), $noAdultCruise)
+        $this->from(route('booking', ['id' => 'med-grand', 'date' => '2027-06-03']))
+            ->post(route('booking.submit', ['id' => 'med-grand', 'date' => '2027-06-03']), $noAdultCruise)
             ->assertRedirect()
             ->assertSessionHasErrors(['adults' => 'At least 1 adult must travel on each booking.']);
 
         $cruise = $this->cruisePayload(adults: 1, children: 16, rooms: 5);
-        $this->from(route('booking', ['id' => 'med-grand', 'date' => '2027-06-05']))
-            ->post(route('booking.submit', ['id' => 'med-grand', 'date' => '2027-06-05']), $cruise)
+        $this->from(route('booking', ['id' => 'med-grand', 'date' => '2027-06-03']))
+            ->post(route('booking.submit', ['id' => 'med-grand', 'date' => '2027-06-03']), $cruise)
             ->assertRedirect()
             ->assertSessionHasErrors(['adults' => 'Online bookings are limited to 16 guests. Contact us for larger groups.']);
     }
@@ -128,10 +128,46 @@ class BookingWizardTest extends TestCase
     public function test_cruise_room_allocation_rules_are_revalidated(): void
     {
         $payload = $this->cruisePayload(adults: 1, children: 1, rooms: 2);
-        $this->from(route('booking', ['id' => 'med-grand', 'date' => '2027-06-05']))
-            ->post(route('booking.submit', ['id' => 'med-grand', 'date' => '2027-06-05']), $payload)
+        $this->from(route('booking', ['id' => 'med-grand', 'date' => '2027-06-03']))
+            ->post(route('booking.submit', ['id' => 'med-grand', 'date' => '2027-06-03']), $payload)
             ->assertRedirect()
             ->assertSessionHasErrors(['rooms' => 'Each room needs at least 1 adult. 1 adult can fill at most 1 room.']);
+    }
+
+    public function test_each_cruise_single_guest_requires_a_private_room(): void
+    {
+        $payload = $this->cruisePayload(adults: 2, children: 0, rooms: 1, singles: 2);
+        $this->from(route('booking', ['id' => 'med-grand', 'date' => '2027-06-03']))
+            ->post(route('booking.submit', ['id' => 'med-grand', 'date' => '2027-06-03']), $payload)
+            ->assertRedirect()
+            ->assertSessionHasErrors([
+                'rooms' => 'Maximum 4 guests per room. 4 guests need at least 3 rooms (including 2 private single rooms).',
+            ]);
+    }
+
+    public function test_cruise_single_guest_must_be_at_least_eighteen(): void
+    {
+        $payload = $this->cruisePayload(adults: 1, children: 0, rooms: 2, singles: 1);
+        $payload['guests'][1]['dob'] = '2010-01-01';
+
+        $this->from(route('booking', ['id' => 'med-grand', 'date' => '2027-06-03']))
+            ->post(route('booking.submit', ['id' => 'med-grand', 'date' => '2027-06-03']), $payload)
+            ->assertRedirect()
+            ->assertSessionHasErrors([
+                'guests.1.dob' => 'Single guests must be at least 18 years old.',
+            ]);
+    }
+
+    public function test_cruise_children_cannot_share_a_single_guest_private_room(): void
+    {
+        $payload = $this->cruisePayload(adults: 0, children: 1, rooms: 1, singles: 1);
+
+        $this->from(route('booking', ['id' => 'med-grand', 'date' => '2027-06-03']))
+            ->post(route('booking.submit', ['id' => 'med-grand', 'date' => '2027-06-03']), $payload)
+            ->assertRedirect()
+            ->assertSessionHasErrors([
+                'rooms' => 'Children must share a room with an Adult; Single guests stay in their own room.',
+            ]);
     }
 
     public function test_cruise_requires_a_room_type_for_each_room(): void
@@ -139,8 +175,8 @@ class BookingWizardTest extends TestCase
         $payload = $this->cruisePayload(adults: 2, children: 0, rooms: 1);
         unset($payload['room_types']);
 
-        $this->from(route('booking', ['id' => 'med-grand', 'date' => '2027-06-05']))
-            ->post(route('booking.submit', ['id' => 'med-grand', 'date' => '2027-06-05']), $payload)
+        $this->from(route('booking', ['id' => 'med-grand', 'date' => '2027-06-03']))
+            ->post(route('booking.submit', ['id' => 'med-grand', 'date' => '2027-06-03']), $payload)
             ->assertRedirect()
             ->assertSessionHasErrors(['room_types' => 'Choose a room type for every room.']);
     }
@@ -342,7 +378,7 @@ class BookingWizardTest extends TestCase
         $payload['action'] = 'proceed';
         $payload['addons'] = ['insurance'];
 
-        $this->post(route('booking.submit', ['id' => 'med-grand', 'date' => '2027-06-05']), $payload)
+        $this->post(route('booking.submit', ['id' => 'med-grand', 'date' => '2027-06-03']), $payload)
             ->assertRedirect(route('checkout'))
             ->assertSessionHas('cart.0.detail.kind', 'cruise');
 
@@ -398,12 +434,16 @@ class BookingWizardTest extends TestCase
         ];
     }
 
-    private function cruisePayload(int $adults, int $children, int $rooms): array
+    private function cruisePayload(int $adults, int $children, int $rooms, int $singles = 0): array
     {
         $package = TravelPackage::where('slug', 'med-grand')->firstOrFail();
         $ship = Ship::where('name', $package->ship)->with('cabins')->firstOrFail();
+        $guests = $this->guests($adults + $children + $singles);
+        for ($index = $adults + $singles; $index < count($guests); $index++) {
+            $guests[$index]['dob'] = '2018-01-01';
+        }
 
-        return [
+        $payload = [
             'action' => 'proceed',
             'kind' => 'cruise',
             'adults' => $adults,
@@ -411,8 +451,19 @@ class BookingWizardTest extends TestCase
             'rooms' => $rooms,
             'room_types' => array_fill(0, $rooms, $ship->cabins->first()->type),
             'addons' => [],
-            'guests' => $this->guests($adults + $children),
+            'guests' => $guests,
         ];
+        if ($singles > 0) {
+            $payload['counts'] = [
+                'adult' => $adults,
+                'single' => $singles,
+                'childBed' => 0,
+                'childTwin' => $children,
+                'childNoBed' => 0,
+            ];
+        }
+
+        return $payload;
     }
 
     private function guests(int $count): array

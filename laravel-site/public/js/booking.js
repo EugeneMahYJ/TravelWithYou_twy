@@ -64,6 +64,8 @@ if (root) {
     const plural = (number, singular, pluralForm = `${singular}s`) => `${number} ${number === 1 ? singular : pluralForm}`;
     const errorFor = (key) => state.errors[key]?.[0] || "";
     const adultCount = () => countRole(state.counts, "adult");
+    const singleCount = () => Number(state.counts.single || 0);
+    const sharingAdultCount = () => kinds.reduce((sum, kind) => sum + ((kind.role || "adult") === "adult" && kind.id !== "single" ? Number(state.counts[kind.id] || 0) : 0), 0);
     const childCount = () => countRole(state.counts, "child");
     const cruiseTotal = () => adultCount() + childCount();
     const landTotal = () => kinds.reduce((sum, kind) => sum + Number(state.counts[kind.id] || 0), 0);
@@ -80,14 +82,18 @@ if (root) {
         }
         return null;
     };
-    const minRooms = () => Math.max(1, Math.ceil((adultCount() + childCount()) / Number(config.maxPerRoom)));
-    const allocateRooms = (adults, children, rooms) => {
+    const minRooms = () => Math.max(1, singleCount() + Math.ceil((sharingAdultCount() + childCount()) / Number(config.maxPerRoom)));
+    const allocateRooms = (adults, children, rooms, singles = 0) => {
         const allocated = Array.from({ length: Math.max(0, rooms) }, () => ({ adults: 0, children: 0 }));
         if (rooms < 1) return allocated;
-        for (let index = 0; index < adults; index++) allocated[index % rooms].adults++;
+        const privateRooms = Math.min(singles, rooms);
+        for (let index = 0; index < privateRooms; index++) allocated[index].singles = 1;
+        const sharingRooms = rooms - privateRooms;
+        if (sharingRooms < 1) return allocated;
+        for (let index = 0; index < adults; index++) allocated[privateRooms + (index % sharingRooms)].adults++;
         for (let index = 0; index < children; index++) {
-            let least = 0;
-            for (let room = 1; room < allocated.length; room++) {
+            let least = privateRooms;
+            for (let room = privateRooms + 1; room < allocated.length; room++) {
                 if (allocated[room].adults + allocated[room].children < allocated[least].adults + allocated[least].children) least = room;
             }
             allocated[least].children++;
@@ -96,14 +102,22 @@ if (root) {
     };
     const roomError = () => {
         const need = minRooms();
-        if (state.rooms < need) return `Maximum ${config.maxPerRoom} guests per room. ${adultCount() + childCount()} guests need at least ${need} rooms.`;
-        if (state.rooms > adultCount()) return `Each room needs at least 1 adult. ${adultCount()} adult${adultCount() === 1 ? "" : "s"} can fill at most ${adultCount()} room${adultCount() === 1 ? "" : "s"}.`;
+        if (childCount() > 0 && sharingAdultCount() === 0) return "Children must share a room with an Adult; Single guests stay in their own room.";
+        if (state.rooms < need) {
+            const guests = adultCount() + childCount();
+            const singleNote = singleCount() > 0 ? ` (including ${singleCount()} private single room${singleCount() === 1 ? "" : "s"})` : "";
+            return `Maximum ${config.maxPerRoom} guests per room. ${guests} guests need at least ${need} rooms${singleNote}.`;
+        }
+        if (state.rooms > sharingAdultCount() + singleCount()) {
+            if (singleCount() > 0) return `Each room needs at least 1 Adult or Single guest. ${sharingAdultCount()} adults and ${singleCount()} single guests can fill at most ${sharingAdultCount() + singleCount()} rooms.`;
+            return `Each room needs at least 1 adult. ${adultCount()} adult${adultCount() === 1 ? "" : "s"} can fill at most ${adultCount()} room${adultCount() === 1 ? "" : "s"}.`;
+        }
         return "";
     };
     const currentPlan = () => {
         if (!config.cruise || adultCount() < 1) return [];
-        const roomCount = Math.min(Math.max(state.rooms, minRooms()), Math.max(adultCount(), 1));
-        return allocateRooms(adultCount(), childCount(), roomCount).map((room, index) => ({
+        const roomCount = Math.min(Math.max(state.rooms, minRooms()), Math.max(sharingAdultCount() + singleCount(), 1));
+        return allocateRooms(sharingAdultCount(), childCount(), roomCount, singleCount()).map((room, index) => ({
             ...room,
             type: state.roomTypes[index] || "",
         }));
@@ -151,6 +165,7 @@ if (root) {
         const total = totalGuests();
         if (config.cruise) {
             if (adultCount() < 1) return "At least 1 adult must travel on each booking.";
+            if (childCount() > 0 && sharingAdultCount() < 1) return "Children must share a room with an Adult; Single guests stay in their own room.";
             if (total > 16) return "Online bookings are limited to 16 guests. Contact us for larger groups.";
             return "";
         }
@@ -188,6 +203,7 @@ if (root) {
             const age = ageOnDate(guest.dob, config.date);
             const kind = guestKindAt(index);
             if (age === null) errors.dob = "Enter a valid date of birth";
+            else if (kind?.id === "single" && age < 18) errors.dob = "Single guests must be at least 18 years old.";
             else if ((kind?.role || "adult") === "adult" && age < 12) errors.dob = "Adult guests must be at least 12 years old.";
             else if (kind?.role === "child" && age > 11) errors.dob = "Children must be 11 years old or younger.";
         }
@@ -233,20 +249,29 @@ if (root) {
         };
         if (config.cruise) {
             const rooms = plan();
-            const roomOccupancy = rooms.map((room) => room.adults);
+            const roomOccupancy = rooms.map((room) => room.singles ? Number.POSITIVE_INFINITY : room.adults);
             let adultIndex = 0;
+            let singleIndex = 0;
             for (const kind of kinds) {
                 const count = Number(state.counts[kind.id] || 0);
                 for (let guestIndex = 0; guestIndex < count; guestIndex++) {
                     let roomIndex;
-                    if ((kind.role || "adult") === "adult") {
-                        roomIndex = adultIndex++ % rooms.length;
+                    if (kind.id === "single") {
+                        roomIndex = singleIndex++;
+                    } else if ((kind.role || "adult") === "adult") {
+                        const sharingRoomCount = rooms.length - singleCount();
+                        roomIndex = singleCount() + (adultIndex++ % sharingRoomCount);
                     } else {
-                        roomIndex = roomOccupancy.indexOf(Math.min(...roomOccupancy));
+                        const minOccupancy = Math.min(...roomOccupancy);
+                        roomIndex = roomOccupancy.indexOf(minOccupancy);
                         roomOccupancy[roomIndex]++;
                     }
                     const roomType = rooms[roomIndex]?.type || [...config.cabins].sort((a, b) => a.price - b.price)[0]?.type || "";
-                    addGuestPrice(kind, unitPrice(total, roomType));
+                    const basePrice = unitPrice(total, roomType);
+                    const price = kind.id === "single"
+                        ? basePrice * Number(kind.factor ?? 1.5)
+                        : (kind.role === "child" ? basePrice * 0.75 : basePrice);
+                    addGuestPrice(kind, price);
                 }
             }
         } else {
@@ -317,7 +342,7 @@ if (root) {
             ${error ? `<small>${esc(error)}</small>` : ""}
         </label>`;
     };
-    const summaryLines = (compact = false) => {
+    const summaryLines = (compact = false, totalLabel = "Total") => {
         const lines = priceLines();
         const groups = ["Rooms", "Guests", "Add-ons"];
         const grouped = compact ? "" : groups.map((group) => {
@@ -330,7 +355,7 @@ if (root) {
         return `${grouped}
             <div class="booking-total-line"><span>Subtotal</span><strong>${fmt(subtotal())}</strong></div>
             <div class="booking-total-line"><span>Taxes / fees (${Math.round(Number(config.taxRate) * 100)}%)</span><strong>${fmt(taxTotal())}</strong></div>
-            <div class="booking-total-grand"><span>Total</span><strong>${fmt(grandTotal())}</strong></div>`;
+            <div class="booking-total-grand"><span>${totalLabel}</span><strong>${fmt(grandTotal())}</strong></div>`;
     };
     const paxPriceTable = () => {
         const tiers = config.paxTiers.filter((tier) => tier.prices && Object.keys(tier.prices).length);
@@ -383,18 +408,18 @@ if (root) {
     };
     const roomsContent = () => {
         const validation = roomError();
-        const rooms = allocateRooms(adultCount(), childCount(), state.rooms);
-        return `${counter({ title: "Rooms", sub: `Maximum ${config.maxPerRoom} guests per room · at least 1 adult in each room`, value: state.rooms, min: 1, max: 8, key: "rooms" })}
+        const rooms = allocateRooms(sharingAdultCount(), childCount(), state.rooms, singleCount());
+        return `${counter({ title: "Rooms", sub: `Maximum ${config.maxPerRoom} guests per shared room · each shared room needs an Adult; Singles have private rooms`, value: state.rooms, min: 1, max: 8, key: "rooms" })}
             <p class="booking-room-need">${plural(totalGuests(), "guest")} need at least <strong>${plural(minRooms(), "room")}</strong>.</p>
             ${state.showErrors && validation ? errorBlock(validation) : ""}
-            ${!validation ? `<ul class="booking-room-preview">${rooms.map((room, index) => `<li><span>Room ${index + 1}</span>${plural(room.adults, "adult")}${room.children ? `, ${plural(room.children, "child", "children")}` : ""}</li>`).join("")}</ul>` : ""}
+            ${!validation ? `<ul class="booking-room-preview">${rooms.map((room, index) => `<li><span>Room ${index + 1}</span>${room.singles ? "1 single (private room)" : `${plural(room.adults, "adult")}${room.children ? `, ${plural(room.children, "child", "children")}` : ""}`}</li>`).join("")}</ul>` : ""}
             ${continueControl()}`;
     };
     const typesContent = () => {
         const current = plan();
         const validation = roomTypeError();
         return `${current.map((room, roomIndex) => `<fieldset class="booking-room-type-set">
-            <legend>Room ${roomIndex + 1}<span> · ${plural(room.adults, "adult")}${room.children ? `, ${plural(room.children, "child", "children")}` : ""}</span></legend>
+            <legend>Room ${roomIndex + 1}<span> · ${room.singles ? "1 single (private room)" : `${plural(room.adults, "adult")}${room.children ? `, ${plural(room.children, "child", "children")}` : ""}`}</span></legend>
             <div class="booking-cabin-grid">${config.cabins.map((cabin) => {
                 const selected = state.roomTypes[roomIndex] === cabin.type;
                 return `<label class="booking-cabin ${selected ? "is-selected" : ""}">
@@ -487,7 +512,7 @@ if (root) {
             <div class="booking-running-card">
                 <div class="booking-running-package"><img src="${esc(config.package.image)}" alt=""><span><strong>${esc(config.package.name)}</strong><small>${fmtDate(config.date)}</small></span></div>
                 <div class="booking-running-content"><h2>Running total</h2>
-                    ${priceLines().length ? `<p>${esc(countLabel)}</p>${summaryLines(true)}${config.cruise && plan().some((room) => !room.type) ? '<small class="booking-estimate-note">Estimated from the lowest room rate until you choose room types.</small>' : ""}` : `<p class="booking-estimate-empty">${esc(guestError() || "Choose your guests to see a price.")}</p>`}
+                    ${priceLines().length ? `<p>${esc(countLabel)}</p>${summaryLines(true, "Estimated Total")}${config.cruise && plan().some((room) => !room.type) ? '<small class="booking-estimate-note">Estimated from the lowest room rate until you choose room types.</small>' : ""}` : `<p class="booking-estimate-empty">${esc(guestError() || "Choose your guests to see a price.")}</p>`}
                 </div>
             </div>
             ${priceLines().length ? `<div class="booking-pax-desktop">${paxPriceTable()}</div>` : ""}

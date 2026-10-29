@@ -202,40 +202,70 @@ final class Pricing
             && in_array((string) ($item['date'] ?? $item['departure_date'] ?? ''), self::availableDepartureDates($package), true);
     }
 
-    public static function minRooms(int $adults, int $children): int
+    public static function minRooms(int $adults, int $children, int $singles = 0): int
     {
-        return max(1, (int) ceil(($adults + $children) / self::MAX_PER_ROOM));
+        $sharingGuests = $adults + $children;
+        $sharingRooms = $sharingGuests > 0
+            ? max(1, (int) ceil($sharingGuests / self::MAX_PER_ROOM))
+            : 0;
+
+        return max(1, $singles + $sharingRooms);
     }
 
-    public static function roomError(int $adults, int $children, int $rooms): string
+    public static function roomError(int $adults, int $children, int $rooms, int $singles = 0): string
     {
-        $need = self::minRooms($adults, $children);
-        if ($rooms < $need) {
-            return 'Maximum '.self::MAX_PER_ROOM.' guests per room. '.($adults + $children).' guests need at least '.$need.' rooms.';
+        if ($children > 0 && $adults === 0) {
+            return 'Children must share a room with an Adult; Single guests stay in their own room.';
         }
 
-        if ($rooms > $adults) {
+        $need = self::minRooms($adults, $children, $singles);
+        if ($rooms < $need) {
+            $guests = $adults + $children + $singles;
+            $singleNote = $singles > 0
+                ? ' (including '.$singles.' private single room'.($singles === 1 ? '' : 's').')'
+                : '';
+
+            return 'Maximum '.self::MAX_PER_ROOM.' guests per room. '.$guests.' guests need at least '.$need.' rooms'.$singleNote.'.';
+        }
+
+        if ($rooms > $adults + $singles) {
+            if ($singles > 0) {
+                $adultsCanFill = $adults + $singles;
+
+                return 'Each room needs at least 1 Adult or Single guest. '.$adults.' adult'.($adults === 1 ? '' : 's').' and '.$singles.' single guest'.($singles === 1 ? '' : 's').' can fill at most '.$adultsCanFill.' rooms.';
+            }
+
             return 'Each room needs at least 1 adult. '.$adults.' adult'.($adults === 1 ? '' : 's').' can fill at most '.$adults.' room'.($adults === 1 ? '' : 's').'.';
         }
 
         return '';
     }
 
-    public static function allocateRooms(int $adults, int $children, int $rooms): array
+    public static function allocateRooms(int $adults, int $children, int $rooms, int $singles = 0): array
     {
         $allocated = array_fill(0, max(0, $rooms), ['adults' => 0, 'children' => 0]);
         if ($rooms <= 0) {
             return $allocated;
         }
 
+        $singles = min($singles, $rooms);
+        for ($i = 0; $i < $singles; $i++) {
+            $allocated[$i]['singles'] = 1;
+        }
+
+        $sharingRoomCount = $rooms - $singles;
+        if ($sharingRoomCount <= 0) {
+            return $allocated;
+        }
+
         for ($i = 0; $i < $adults; $i++) {
-            $allocated[$i % $rooms]['adults']++;
+            $allocated[$singles + ($i % $sharingRoomCount)]['adults']++;
         }
 
         for ($i = 0; $i < $children; $i++) {
-            $room = 0;
-            foreach ($allocated as $index => $candidate) {
-                if ($allocated[$room]['adults'] + $allocated[$room]['children'] > $candidate['adults'] + $candidate['children']) {
+            $room = $singles;
+            for ($index = $singles + 1; $index < $rooms; $index++) {
+                if ($allocated[$room]['adults'] + $allocated[$room]['children'] > $allocated[$index]['adults'] + $allocated[$index]['children']) {
                     $room = $index;
                 }
             }
@@ -258,7 +288,9 @@ final class Pricing
             $prices = self::cabinPrices($package);
             $cheapest = collect($prices)->sort()->keys()->first();
             $rooms = $detail['rooms'] ?? [];
-            $pax = array_sum(array_map(fn (array $room) => (int) ($room['adults'] ?? 0) + (int) ($room['children'] ?? 0), $rooms));
+            $pax = array_sum(array_map(fn (array $room) => (int) ($room['adults'] ?? 0) + (int) ($room['children'] ?? 0) + (int) ($room['singles'] ?? 0), $rooms));
+            $singleKind = collect(self::guestKinds($package))->firstWhere('id', 'single');
+            $singleFactor = (float) ($singleKind['factor'] ?? 1.5);
 
             foreach ($rooms as $index => $room) {
                 $type = $room['type'] ?? '';
@@ -266,12 +298,21 @@ final class Pricing
                 $name = 'Room '.($index + 1).' · '.($type !== '' ? $type : 'Room type pending');
                 $adults = (int) ($room['adults'] ?? 0);
                 $children = (int) ($room['children'] ?? 0);
+                $singles = (int) ($room['singles'] ?? 0);
 
                 if ($adults > 0) {
                     $lines[] = [
                         'group' => 'Rooms',
                         'label' => $name.': '.$adults.' adult'.($adults > 1 ? 's' : '').' × '.fmt_rm($adultPrice),
                         'amount' => $adultPrice * $adults,
+                    ];
+                }
+                if ($singles > 0) {
+                    $singlePrice = $adultPrice * $singleFactor;
+                    $lines[] = [
+                        'group' => 'Rooms',
+                        'label' => $name.': '.$singles.' single'.($singles > 1 ? 's' : '').' (private room) × '.fmt_rm($singlePrice),
+                        'amount' => $singlePrice * $singles,
                     ];
                 }
                 if ($children > 0) {

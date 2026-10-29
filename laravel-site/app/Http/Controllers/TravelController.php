@@ -349,6 +349,8 @@ class TravelController extends Controller
             }
             $adults = collect($guestKinds)->filter(fn ($guestKind) => ($guestKind['role'] ?? 'adult') === 'adult')
                 ->sum(fn ($guestKind) => $counts[$guestKind['id']]);
+            $singles = (int) ($counts['single'] ?? 0);
+            $sharingAdults = $adults - $singles;
             $children = collect($guestKinds)->filter(fn ($guestKind) => ($guestKind['role'] ?? 'adult') === 'child')
                 ->sum(fn ($guestKind) => $counts[$guestKind['id']]);
             $total = $adults + $children;
@@ -358,14 +360,14 @@ class TravelController extends Controller
                 $errors = ['adults' => 'At least 1 adult must travel on each booking.'];
             } elseif ($total > 16) {
                 $errors = ['adults' => 'Online bookings are limited to 16 guests. Contact us for larger groups.'];
-            } elseif ($roomError = Pricing::roomError($adults, $children, $rooms)) {
+            } elseif ($roomError = Pricing::roomError($sharingAdults, $children, $rooms, $singles)) {
                 $errors = ['rooms' => $roomError];
             } elseif (count($roomTypes) !== $rooms || collect($roomTypes)->contains(fn ($type) => ! $ship->cabins->contains('type', $type))) {
                 $errors = ['room_types' => 'Choose a room type for every room.'];
             } else {
                 $errors = [];
             }
-            $roomPlan = collect(Pricing::allocateRooms($adults, $children, $rooms))
+            $roomPlan = collect(Pricing::allocateRooms($sharingAdults, $children, $rooms, $singles))
                 ->values()
                 ->map(fn ($room, $index) => [...$room, 'type' => $roomTypes[$index] ?? ''])
                 ->all();
@@ -432,7 +434,9 @@ class TravelController extends Controller
                     if ($bookingDate->format('md') < $birthDate->format('md')) {
                         $age--;
                     }
-                    if (($guestKind['role'] ?? 'adult') === 'adult' && $age < 12) {
+                    if (($guestKind['id'] ?? null) === 'single' && $age < 18) {
+                        $errors[$prefix.'dob'] = 'Single guests must be at least 18 years old.';
+                    } elseif (($guestKind['role'] ?? 'adult') === 'adult' && $age < 12) {
                         $errors[$prefix.'dob'] = 'Adult guests must be at least 12 years old.';
                     } elseif (($guestKind['role'] ?? 'adult') === 'child' && $age > 11) {
                         $errors[$prefix.'dob'] = 'Children must be 11 years old or younger.';

@@ -139,6 +139,28 @@ class PricingTest extends TestCase
         $this->assertEquals(6700, array_sum(array_column($lines, 'amount')));
     }
 
+    public function test_cruise_single_guests_get_private_rooms_and_the_single_supplement(): void
+    {
+        $package = TravelPackage::where('slug', 'med-grand')->firstOrFail();
+        $package->pricing = [
+            'cabin_prices' => ['Interior' => 1000],
+            'guest_types' => Pricing::GUEST_KINDS,
+        ];
+        $package->save();
+        TravelDeal::where('package_id', $package->id)->update(['active' => false]);
+        $lines = Pricing::bookingLines($package, '2027-06-05', [
+            'kind' => 'cruise',
+            'rooms' => [
+                ['type' => 'Interior', 'adults' => 0, 'children' => 0, 'singles' => 1],
+                ['type' => 'Interior', 'adults' => 0, 'children' => 0, 'singles' => 1],
+                ['type' => 'Interior', 'adults' => 2, 'children' => 0],
+            ],
+        ], []);
+
+        $this->assertEquals([1500, 1500, 2000], array_column($lines, 'amount'));
+        $this->assertEquals(5000, array_sum(array_column($lines, 'amount')));
+    }
+
     public function test_custom_guest_prices_and_addons_are_package_and_departure_specific(): void
     {
         $package = TravelPackage::create([
@@ -248,7 +270,16 @@ class PricingTest extends TestCase
     public function test_room_allocation_errors_and_item_availability_match_the_rules(): void
     {
         $this->assertSame(2, Pricing::minRooms(5, 2));
+        $this->assertSame(3, Pricing::minRooms(2, 0, 2));
         $this->assertSame('Maximum 4 guests per room. 7 guests need at least 2 rooms.', Pricing::roomError(5, 2, 1));
+        $this->assertSame(
+            'Maximum 4 guests per room. 4 guests need at least 3 rooms (including 2 private single rooms).',
+            Pricing::roomError(2, 0, 1, 2)
+        );
+        $this->assertSame(
+            'Children must share a room with an Adult; Single guests stay in their own room.',
+            Pricing::roomError(0, 1, 1, 1)
+        );
         $this->assertSame(
             'Each room needs at least 1 adult. 1 adult can fill at most 1 room.',
             Pricing::roomError(1, 1, 2)
@@ -257,6 +288,11 @@ class PricingTest extends TestCase
             ['adults' => 1, 'children' => 2],
             ['adults' => 1, 'children' => 1],
         ], Pricing::allocateRooms(2, 3, 2));
+        $this->assertSame([
+            ['adults' => 0, 'children' => 0, 'singles' => 1],
+            ['adults' => 0, 'children' => 0, 'singles' => 1],
+            ['adults' => 2, 'children' => 0],
+        ], Pricing::allocateRooms(2, 0, 3, 2));
         $this->assertTrue(Pricing::itemAvailable([
             'pkgId' => 'sakura-rail',
             'date' => '2027-03-27',
