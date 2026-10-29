@@ -51,11 +51,23 @@
 <section class="wrap section-block">
     <x-section-title number="02" title="Where to next"><a class="text-link" href="{{ route('destinations') }}">All destinations →</a></x-section-title>
     <div class="destination-grid destination-mosaic">
-        @foreach($destinations as $index => $destination)
-            <a class="destination-tile destination-tile-{{ $index + 1 }}" href="{{ route('destinations.country', ['country' => $destination->slug]) }}">
-                <img src="{{ asset_img($destination->image) }}" alt="{{ $destination->name }}" loading="lazy"><span>{{ $destination->region }}</span><strong>{{ $destination->name }}</strong>
+        @if($destinations->count() >= 4)
+            <a class="destination-tile destination-tile-1" href="{{ route('destinations.country', ['country' => $destinations[0]->slug]) }}">
+                <img src="{{ asset_img($destinations[0]->image) }}" alt="{{ $destinations[0]->name }}" loading="lazy"><span>{{ $destinations[0]->region }}</span><strong>{{ $destinations[0]->name }}</strong>
             </a>
-        @endforeach
+            <div class="destination-mosaic-right">
+                <div class="destination-mosaic-small-row">
+                    @foreach($destinations->slice(1, 2) as $destination)
+                        <a class="destination-tile" href="{{ route('destinations.country', ['country' => $destination->slug]) }}">
+                            <img src="{{ asset_img($destination->image) }}" alt="{{ $destination->name }}" loading="lazy"><span>{{ $destination->region }}</span><strong>{{ $destination->name }}</strong>
+                        </a>
+                    @endforeach
+                </div>
+                <a class="destination-tile destination-tile-medium" href="{{ route('destinations.country', ['country' => $destinations[3]->slug]) }}">
+                    <img src="{{ asset_img($destinations[3]->image) }}" alt="{{ $destinations[3]->name }}" loading="lazy"><span>{{ $destinations[3]->region }}</span><strong>{{ $destinations[3]->name }}</strong>
+                </a>
+            </div>
+        @endif
     </div>
 </section>
 
@@ -63,9 +75,9 @@
     <div class="wrap fleet-inner">
         <div class="fleet-intro">
             <p class="eyebrow">The fleet</p>
-            <h2>Different ships, Different characters.</h2>
+            <h2>Different cruises, Different characters.</h2>
             <p>From a 780-guest expedition vessel to a 2,400-guest Mediterranean flagship, there is a deck plan for every kind of traveller.</p>
-            <a class="button button-outline-light" href="{{ route('ships') }}">Explore Ships <span aria-hidden="true">→</span></a>
+            <a class="button button-outline-light" href="{{ route('ships') }}">Explore Cruise <span aria-hidden="true">→</span></a>
         </div>
         <div class="fleet-grid">
             @foreach($ships as $ship)

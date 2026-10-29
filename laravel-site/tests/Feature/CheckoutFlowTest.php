@@ -128,6 +128,37 @@ class CheckoutFlowTest extends TestCase
             ->assertSessionHas('error', 'That code is not valid.');
     }
 
+    public function test_package_restricted_promo_is_rejected_without_an_eligible_trip_and_applies_to_one_when_added(): void
+    {
+        $this->addPackage('kyoto-retreat', 1);
+        $eligiblePackage = TravelPackage::where('slug', 'sakura-rail')->firstOrFail();
+        $promo = PromoCode::create([
+            'code' => 'ASIA500',
+            'discount_percent' => 0,
+            'discount_type' => 'fixed',
+            'discount_amount' => 500,
+            'all_packages' => false,
+            'active' => true,
+        ]);
+        $promo->packages()->sync([$eligiblePackage->id]);
+
+        $this->from(route('cart'))->post(route('cart.promo'), ['code' => 'ASIA500'])
+            ->assertRedirect(route('cart'))
+            ->assertSessionHas('error', 'This promo code does not apply to the packages in your cart.')
+            ->assertSessionMissing('promo_code');
+
+        $this->addPackage($eligiblePackage->slug, 1);
+        $this->post(route('cart.promo'), ['code' => 'ASIA500'])
+            ->assertSessionHas('promo_code', 'ASIA500');
+        $this->get(route('cart'))
+            ->assertOk()
+            ->assertSee('ASIA500, RM 500')
+            ->assertSee('− RM 500');
+        $this->get(route('checkout'))
+            ->assertOk()
+            ->assertSee('ASIA500, RM 500');
+    }
+
     public function test_unavailable_departure_blocks_checkout_until_cart_date_is_updated(): void
     {
         $package = TravelPackage::where('slug', 'sakura-rail')->firstOrFail();

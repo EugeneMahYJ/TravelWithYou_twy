@@ -4,7 +4,9 @@
 @include('partials.page-head', ['kicker' => 'Checkout', 'heading' => 'Almost there.'])
 @php
     $taxLabel = rtrim(rtrim(number_format($taxRate * 100, 2, '.', ''), '0'), '.');
-    $promoPercent = $totals['promo'] ? rtrim(rtrim(number_format((float) $totals['promo']->discount_percent, 2, '.', ''), '0'), '.') : '';
+    $promoLabel = $totals['promo'] instanceof \App\Models\PromoCode && $totals['promo']->discount_type === 'fixed'
+        ? fmt_rm($totals['promo']->discount_amount)
+        : rtrim(rtrim(number_format((float) ($totals['promo']->discount_percent ?? 0), 2, '.', ''), '0'), '.').'%';
 @endphp
 <section class="wrap checkout-layout checkout-port">
     @if($unavailableItems->isNotEmpty())
@@ -113,7 +115,7 @@
             </div>
             <div class="summary-line"><span>Subtotal</span><strong>{{ fmt_rm($totals['subtotal']) }}</strong></div>
             <div class="summary-line"><span>Taxes / fees ({{ $taxLabel }}%)</span><strong>{{ fmt_rm($totals['taxes']) }}</strong></div>
-            <div class="summary-line"><span>Discount{{ $promoCode ? ' ('.$promoCode.', '.$promoPercent.'%)' : '' }}</span><strong>{{ $promoCode ? '− '.fmt_rm($totals['discount']) : 'RM 0' }}</strong></div>
+            <div class="summary-line"><span>Discount{{ $promoCode ? ' ('.$promoCode.', '.$promoLabel.')' : '' }}</span><strong>{{ $promoCode ? '− '.fmt_rm($totals['discount']) : 'RM 0' }}</strong></div>
             <div class="summary-line summary-total"><span>Total</span><strong>{{ fmt_rm($totals['total']) }}</strong></div>
             @if($unavailableItems->isNotEmpty())
                 <p class="notice notice-warn">Update your cart</p>

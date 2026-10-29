@@ -31,19 +31,18 @@
             ? $ship->cabins->map(fn ($cabin) => [
                 'type' => $cabin->type,
                 'size' => $cabin->size,
-                'price_from' => $cabin->price_from,
                 'note' => $cabin->note,
             ])->all()
             : [];
     }
     if (! is_array($cabins) || $cabins === []) {
-        $cabins = [['type' => '', 'size' => '', 'price_from' => '', 'note' => '']];
+        $cabins = [['type' => '', 'size' => '', 'note' => '']];
     }
 @endphp
 @section('content')
 <div class="admin-heading">
     <div><p class="eyebrow accent">Fleet</p><h1>{{ $ship->exists ? 'Edit ship' : 'New ship' }}</h1><p>Changes are published to the client website as soon as you save.</p></div>
-    <a class="text-link" href="{{ route('admin.ships') }}">← Ships</a>
+    <a class="text-link" href="{{ route('admin.ships') }}">← Cruise</a>
 </div>
 <form class="admin-editor-form" method="post" action="{{ $ship->exists ? route('admin.ships.update', $ship) : route('admin.ships.store') }}">
     @csrf @if($ship->exists) @method('put') @endif
@@ -119,13 +118,12 @@
                     <div class="form-grid">
                         <label><span>Cabin type</span><input name="cabins[{{ $cabinIndex }}][type]" value="{{ data_get($cabin, 'type', '') }}" placeholder="Balcony">@error('cabins.'.$cabinIndex.'.type')<small class="field-error">{{ $message }}</small>@enderror</label>
                         <label><span>Size</span><input name="cabins[{{ $cabinIndex }}][size]" value="{{ data_get($cabin, 'size', '') }}" placeholder="24 m²">@error('cabins.'.$cabinIndex.'.size')<small class="field-error">{{ $message }}</small>@enderror</label>
-                        <label><span>Price from (RM)</span><input type="number" name="cabins[{{ $cabinIndex }}][price_from]" min="1" value="{{ data_get($cabin, 'price_from', '') }}">@error('cabins.'.$cabinIndex.'.price_from')<small class="field-error">{{ $message }}</small>@enderror</label>
                         <label><span>Note</span><input name="cabins[{{ $cabinIndex }}][note]" value="{{ data_get($cabin, 'note', '') }}" placeholder="Private veranda, lounge area">@error('cabins.'.$cabinIndex.'.note')<small class="field-error">{{ $message }}</small>@enderror</label>
                     </div>
                 </article>
             @endforeach
         </div>
-        <template data-repeat-template="cabins"><article class="admin-day-row" data-repeat-item><div class="admin-day-row-heading"><strong>Cabin</strong><button type="button" class="text-button danger admin-remove-row">Remove cabin</button></div><div class="form-grid"><label><span>Cabin type</span><input name="cabins[__INDEX__][type]" placeholder="Balcony"></label><label><span>Size</span><input name="cabins[__INDEX__][size]" placeholder="24 m²"></label><label><span>Price from (RM)</span><input type="number" name="cabins[__INDEX__][price_from]" min="1"></label><label><span>Note</span><input name="cabins[__INDEX__][note]" placeholder="Private veranda, lounge area"></label></div></article></template>
+        <template data-repeat-template="cabins"><article class="admin-day-row" data-repeat-item><div class="admin-day-row-heading"><strong>Cabin</strong><button type="button" class="text-button danger admin-remove-row">Remove cabin</button></div><div class="form-grid"><label><span>Cabin type</span><input name="cabins[__INDEX__][type]" placeholder="Balcony"></label><label><span>Size</span><input name="cabins[__INDEX__][size]" placeholder="24 m²"></label><label><span>Note</span><input name="cabins[__INDEX__][note]" placeholder="Private veranda, lounge area"></label></div></article></template>
         @error('cabins')<small class="field-error">{{ $message }}</small>@enderror
     </section>
     <div class="form-actions"><button class="button button-primary" type="submit">Save ship</button><a class="text-link" href="{{ route('admin.ships') }}">Cancel</a></div>

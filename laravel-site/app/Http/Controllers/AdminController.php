@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\SaveAdminDealRequest;
 use App\Http\Requests\SaveAdminPackageRequest;
+use App\Http\Requests\SaveAdminPromoCodeRequest;
 use App\Mail\EnquiryReplyMail;
 use App\Models\AdminNotificationRead;
 use App\Models\Booking;
@@ -11,6 +12,7 @@ use App\Models\Country;
 use App\Models\Enquiry;
 use App\Models\EnquiryReply;
 use App\Models\Guide;
+use App\Models\PromoCode;
 use App\Models\SearchLog;
 use App\Models\Ship;
 use App\Models\TravelDeal;
@@ -18,6 +20,7 @@ use App\Models\TravelPackage;
 use App\Models\User;
 use App\Support\AdminNotifications;
 use App\Support\AssetLibrary;
+use App\Support\Pricing;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -173,13 +176,23 @@ class AdminController extends Controller
 
     public function createPackage(): View
     {
-        $package = new TravelPackage(['departures' => [], 'highlights' => [], 'trip_plan' => []]);
+        $package = new TravelPackage([
+            'departures' => [],
+            'highlights' => [],
+            'trip_plan' => [],
+            'pricing' => [
+                'guest_types' => Pricing::GUEST_KINDS,
+                'departure_prices' => [],
+                'cabin_prices' => [],
+                'addons' => Pricing::ADDONS,
+            ],
+        ]);
         $package->setAttribute('admin_status', 'Draft');
 
         return view('admin.packages.form', [
             'package' => $package,
             'countries' => Country::orderBy('name')->get(),
-            'ships' => Ship::orderBy('name')->get(),
+            'ships' => Ship::with('cabins')->orderBy('name')->get(),
             'mediaAssets' => AssetLibrary::all(),
         ]);
     }
@@ -191,7 +204,7 @@ class AdminController extends Controller
         return view('admin.packages.form', [
             'package' => $package,
             'countries' => Country::orderBy('name')->get(),
-            'ships' => Ship::orderBy('name')->get(),
+            'ships' => Ship::with('cabins')->orderBy('name')->get(),
             'mediaAssets' => AssetLibrary::all(),
         ]);
     }
@@ -214,6 +227,58 @@ class AdminController extends Controller
         $sourceData = isset($data['source_data_json']) && $data['source_data_json'] !== ''
             ? json_decode($data['source_data_json'], true, 512, JSON_THROW_ON_ERROR)
             : ($existing?->source_data ?? []);
+        $pricing = $existing?->pricing ?? [];
+        if ($builder) {
+            $guestTypes = collect($data['guest_types'] ?? [])->map(fn (array $guestType) => [
+                'id' => $guestType['id'],
+                'label' => trim($guestType['label']),
+                'age' => trim($guestType['age'] ?? ''),
+                'role' => $guestType['role'],
+            ])->values()->all();
+            $guestTypeIds = array_column($guestTypes, 'id');
+            $departurePrices = [];
+            foreach ($departures as $index => $date) {
+                $prices = collect($data['departure_prices'][$index] ?? [])
+                    ->filter(fn ($price) => $price !== null && $price !== '')
+                    ->map(fn ($price) => (int) $price)
+                    ->all();
+                if ($prices !== []) {
+                    $departurePrices[$date] = $prices;
+                }
+            }
+            $departurePaxTiers = [];
+            if (($data['type'] ?? null) === 'Flight + hotel') {
+                foreach ($departures as $index => $date) {
+                    $tiers = collect($data['departure_pax_tiers'][$index] ?? [])
+                        ->map(fn (array $tier) => [
+                            'from' => filled($tier['from'] ?? null) ? (int) $tier['from'] : null,
+                            'to' => filled($tier['to'] ?? null) ? (int) $tier['to'] : null,
+                            'prices' => collect($tier['prices'] ?? [])->only($guestTypeIds)
+                                ->filter(fn ($price) => filled($price))
+                                ->map(fn ($price) => (int) $price)
+                                ->all(),
+                        ])->values()->all();
+                    if ($tiers !== []) {
+                        $departurePaxTiers[$date] = $tiers;
+                    }
+                }
+            }
+            $cabinPrices = collect($data['cabin_prices'] ?? [])
+                ->mapWithKeys(fn (array $cabin) => [$cabin['type'] => (int) $cabin['price']])
+                ->all();
+            $addons = collect($data['addons'] ?? [])->map(fn (array $addon) => [
+                'id' => $addon['id'],
+                'label' => trim($addon['label']),
+                'price' => (int) $addon['price'],
+            ])->values()->all();
+            $pricing = array_merge($pricing, [
+                'guest_types' => $guestTypes,
+                'departure_prices' => $departurePrices,
+                'departure_pax_tiers' => $departurePaxTiers,
+                'cabin_prices' => $cabinPrices,
+                'addons' => $addons,
+            ]);
+        }
         $cleanList = static fn (string $key): array => collect($data[$key] ?? [])
             ->filter(fn ($item): bool => is_string($item))
             ->map(fn (string $item): string => trim($item))
@@ -255,6 +320,7 @@ class AdminController extends Controller
             'source_data' => isset($data['source_data_json']) && $data['source_data_json'] !== ''
                 ? $sourceData
                 : ($existing?->source_data ?? []),
+            'pricing' => $pricing,
             'itinerary' => array_key_exists('itinerary', $sourceData) ? $sourceData['itinerary'] : ($existing?->itinerary ?? []),
             'published' => $builder ? ! $draft : $request->boolean('published'),
         ];
@@ -279,7 +345,7 @@ class AdminController extends Controller
             return view('admin.resource', ['title' => 'Company profile', 'resource' => $resource, 'rows' => collect()]);
         }
         if ($resource === 'bookings') {
-            $query = Booking::with(['package', 'user'])->latest();
+            $query = Booking::with(['package', 'user', 'cancelledBy'])->latest();
             if ($request->filled('q')) {
                 $term = '%'.$request->string('q')->toString().'%';
                 $query->where(fn ($builder) => $builder->where('reference', 'like', $term)
@@ -295,13 +361,22 @@ class AdminController extends Controller
         }
         if ($resource === 'deals') {
             $query = TravelDeal::with('package')->orderByDesc('created_at');
+            $promoCodes = PromoCode::with('packages')->orderByDesc('created_at');
             if ($request->filled('q')) {
                 $term = '%'.$request->string('q')->toString().'%';
                 $query->where(fn ($builder) => $builder->where('name', 'like', $term)->orWhere('type', 'like', $term)
                     ->orWhereHas('package', fn ($pkg) => $pkg->where('name', 'like', $term)));
+                $promoCodes->where(fn ($builder) => $builder->where('code', 'like', $term)
+                    ->orWhere('terms', 'like', $term)
+                    ->orWhereHas('packages', fn ($package) => $package->where('name', 'like', $term)));
             }
 
-            return view('admin.resource', ['title' => 'Deals', 'resource' => $resource, 'rows' => $query->get()]);
+            return view('admin.resource', [
+                'title' => 'Deals',
+                'resource' => $resource,
+                'rows' => $query->get(),
+                'promoCodes' => $promoCodes->get(),
+            ]);
         }
         if ($resource === 'enquiries') {
             $query = Enquiry::with('latestReply.admin')->latest();
@@ -362,7 +437,7 @@ class AdminController extends Controller
 
     public function showBooking(Booking $booking): View
     {
-        return view('admin.bookings.show', ['booking' => $booking->load(['package', 'user'])]);
+        return view('admin.bookings.show', ['booking' => $booking->load(['package', 'user', 'cancelledBy'])]);
     }
 
     public function createDeal(): View
@@ -436,6 +511,75 @@ class AdminController extends Controller
         $deal->delete();
 
         return redirect()->route('admin.deals')->with('success', 'Deal deleted.');
+    }
+
+    public function createPromoCode(): View
+    {
+        return view('admin.promos.form', [
+            'promoCode' => new PromoCode(['all_packages' => true, 'active' => true, 'discount_type' => 'percent']),
+            'packages' => TravelPackage::query()->where('published', true)->orderBy('name')->get(),
+        ]);
+    }
+
+    public function editPromoCode(PromoCode $promoCode): View
+    {
+        return view('admin.promos.form', [
+            'promoCode' => $promoCode->load('packages'),
+            'packages' => TravelPackage::query()->where('published', true)->orderBy('name')->get(),
+        ]);
+    }
+
+    public function storePromoCode(SaveAdminPromoCodeRequest $request): RedirectResponse
+    {
+        $this->persistPromoCode($request);
+
+        return redirect()->route('admin.deals')->with('success', 'Promo code saved.');
+    }
+
+    public function updatePromoCode(SaveAdminPromoCodeRequest $request, PromoCode $promoCode): RedirectResponse
+    {
+        $this->persistPromoCode($request, $promoCode);
+
+        return redirect()->route('admin.deals')->with('success', 'Promo code saved.');
+    }
+
+    public function togglePromoCode(PromoCode $promoCode): RedirectResponse
+    {
+        $promoCode->update(['active' => ! $promoCode->active]);
+
+        return back()->with('success', $promoCode->active ? 'Promo code resumed.' : 'Promo code paused.');
+    }
+
+    public function deletePromoCode(PromoCode $promoCode): RedirectResponse
+    {
+        $promoCode->delete();
+
+        return redirect()->route('admin.deals')->with('success', 'Promo code deleted.');
+    }
+
+    private function persistPromoCode(SaveAdminPromoCodeRequest $request, ?PromoCode $promoCode = null): PromoCode
+    {
+        $data = $request->validated();
+        $allPackages = (bool) $data['all_packages'];
+
+        return DB::transaction(function () use ($data, $request, $promoCode, $allPackages): PromoCode {
+            $promoCode ??= new PromoCode;
+            $promoCode->fill([
+                'code' => mb_strtoupper(trim($data['code'])),
+                'discount_type' => $data['discount_type'],
+                'discount_percent' => $data['discount_type'] === 'percent' ? (float) $data['discount_value'] : 0,
+                'discount_amount' => $data['discount_type'] === 'fixed' ? (float) $data['discount_value'] : null,
+                'all_packages' => $allPackages,
+                'terms' => $data['terms'] ?? null,
+                'starts_at' => $data['starts_at'] ?? null,
+                'expires_at' => $data['expires_at'] ?? null,
+                'active' => $request->boolean('active'),
+            ]);
+            $promoCode->save();
+            $promoCode->packages()->sync($allPackages ? [] : $data['package_ids']);
+
+            return $promoCode;
+        });
     }
 
     public function showEnquiry(Enquiry $enquiry): View

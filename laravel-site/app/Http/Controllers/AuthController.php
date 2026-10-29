@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\TravelPackage;
 use App\Models\User;
+use App\Support\CredentialRules;
 use App\Support\Totp;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -12,7 +13,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rules\Password as PasswordRule;
 use Illuminate\View\View;
 
 class AuthController extends Controller
@@ -101,8 +101,8 @@ class AuthController extends Controller
             'name' => ['required', 'string', 'max:120'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'phone' => ['nullable', 'string', 'max:40'],
-            'password' => ['required', 'confirmed', PasswordRule::min(10)->letters()->numbers()],
-        ]);
+            'password' => ['required', 'confirmed', ...CredentialRules::password()],
+        ], CredentialRules::passwordMessages('password'));
 
         $data['email'] = Str::lower($data['email']);
         $user = User::create($data);
@@ -163,8 +163,8 @@ class AuthController extends Controller
         $data = $request->validate([
             'token' => ['required'],
             'email' => ['required', 'email'],
-            'password' => ['required', 'confirmed', PasswordRule::min(10)->letters()->numbers()],
-        ]);
+            'password' => ['required', 'confirmed', ...CredentialRules::password()],
+        ], CredentialRules::passwordMessages('password'));
         $status = Password::reset($data, function (User $user, string $password) {
             $user->forceFill([
                 'password' => Hash::make($password),

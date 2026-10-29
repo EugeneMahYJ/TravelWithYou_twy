@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Booking;
+use App\Support\CredentialRules;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -36,6 +39,32 @@ class AccountController extends Controller
         ]);
     }
 
+    public function cancelBooking(Request $request, Booking $booking): RedirectResponse
+    {
+        abort_unless($booking->user_id === $request->user()->id, 403);
+
+        $cancelled = DB::transaction(function () use ($booking, $request): bool {
+            $lockedBooking = $booking->newQuery()->lockForUpdate()->findOrFail($booking->id);
+            abort_unless($lockedBooking->user_id === $request->user()->id, 403);
+            if ($lockedBooking->status !== 'Pending payment') {
+                return false;
+            }
+
+            $lockedBooking->forceFill([
+                'status' => 'Cancelled',
+                'cancelled_at' => now(),
+                'cancelled_by' => $request->user()->id,
+            ])->save();
+
+            return true;
+        });
+
+        return back()->with(
+            $cancelled ? 'success' : 'error',
+            $cancelled ? 'Booking cancelled.' : 'Only payment pending bookings can be cancelled.',
+        );
+    }
+
     public function updateProfile(Request $request): RedirectResponse
     {
         $user = $request->user();
@@ -45,6 +74,7 @@ class AccountController extends Controller
                 'string',
                 'min:3',
                 'max:20',
+                'not_regex:/\s/',
                 'regex:/\A[a-zA-Z0-9._-]+\z/',
                 function (string $attribute, mixed $value, \Closure $fail) use ($user): void {
                     if ($user->newQuery()->whereRaw('LOWER(username) = ?', [Str::lower($value)])->whereKeyNot($user->id)->exists()) {
@@ -66,6 +96,7 @@ class AccountController extends Controller
         ], [
             'username.min' => 'Use 3-20 letters, numbers, dots, dashes or underscores.',
             'username.max' => 'Use 3-20 letters, numbers, dots, dashes or underscores.',
+            'username.not_regex' => 'Username cannot contain spaces.',
             'username.regex' => 'Use 3-20 letters, numbers, dots, dashes or underscores.',
         ]);
 
@@ -113,8 +144,8 @@ class AccountController extends Controller
     {
         $data = $request->validate([
             'current_password' => ['required', 'current_password'],
-            'new_password' => ['required', 'confirmed', 'min:10', 'regex:/[A-Za-z]/', 'regex:/[0-9]/'],
-        ]);
+            'new_password' => ['required', 'confirmed', ...CredentialRules::password()],
+        ], CredentialRules::passwordMessages('new_password'));
 
         $request->user()->forceFill(['password' => Hash::make($data['new_password'])])->save();
 

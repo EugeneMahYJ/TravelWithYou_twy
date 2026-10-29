@@ -57,6 +57,28 @@ class BookingWizardTest extends TestCase
             ->assertSee('Back to package');
     }
 
+    public function test_booking_form_receives_departure_specific_passenger_price_bands(): void
+    {
+        $package = TravelPackage::where('slug', 'sakura-rail')->firstOrFail();
+        $date = Pricing::availableDepartureDates($package)[0];
+        $package->pricing = [
+            'guest_types' => [
+                ['id' => 'adult', 'label' => 'Adult', 'role' => 'adult'],
+            ],
+            'departure_prices' => [$date => ['adult' => 1000]],
+            'departure_pax_tiers' => [$date => [
+                ['from' => 1, 'to' => 2, 'prices' => ['adult' => 4000]],
+                ['from' => 3, 'to' => 5, 'prices' => ['adult' => 5000]],
+            ]],
+        ];
+        $package->save();
+
+        $this->get(route('booking', ['id' => $package->slug, 'date' => $date]))
+            ->assertOk()
+            ->assertSee('"paxTiers":[{"from":1,"to":2,"prices":{"adult":4000}}', false)
+            ->assertSee('"from":3,"to":5,"prices":{"adult":5000}', false);
+    }
+
     public function test_land_and_cruise_guest_limits_are_enforced_with_prototype_messages(): void
     {
         $emptyLand = $this->landPayload([
@@ -163,6 +185,34 @@ class BookingWizardTest extends TestCase
             ]);
     }
 
+    public function test_guest_age_is_checked_in_completed_years_on_the_departure_date(): void
+    {
+        $adultTooYoung = $this->landPayload(['adult' => 1]);
+        $adultTooYoung['guests'][0]['dob'] = '2015-03-28';
+
+        $this->from(route('booking', ['id' => 'sakura-rail', 'date' => '2027-03-27']))
+            ->post(route('booking.submit', ['id' => 'sakura-rail', 'date' => '2027-03-27']), $adultTooYoung)
+            ->assertRedirect()
+            ->assertSessionHasErrors(['guests.0.dob' => 'Adult guests must be at least 12 years old.']);
+
+        $childTooOld = $this->landPayload(['adult' => 1, 'childBed' => 1]);
+        $childTooOld['guests'][1]['dob'] = '2015-03-26';
+
+        $this->from(route('booking', ['id' => 'sakura-rail', 'date' => '2027-03-27']))
+            ->post(route('booking.submit', ['id' => 'sakura-rail', 'date' => '2027-03-27']), $childTooOld)
+            ->assertRedirect()
+            ->assertSessionHasErrors(['guests.1.dob' => 'Children must be 11 years old or younger.']);
+
+        $atBoundary = $this->landPayload(['adult' => 1, 'childBed' => 1]);
+        $atBoundary['action'] = 'cart';
+        $atBoundary['guests'][0]['dob'] = '2015-03-27';
+        $atBoundary['guests'][1]['dob'] = '2016-03-27';
+
+        $this->post(route('booking.submit', ['id' => 'sakura-rail', 'date' => '2027-03-27']), $atBoundary)
+            ->assertRedirect(route('home'))
+            ->assertSessionHas('success', 'Added to cart');
+    }
+
     public function test_cart_action_recomputes_total_and_stores_the_detailed_item(): void
     {
         $payload = $this->landPayload(['adult' => 2], ['insurance']);
@@ -188,6 +238,101 @@ class BookingWizardTest extends TestCase
             0.01,
         );
         $this->assertNotSame('A12345678', $item['detail']['guests'][0]['passport']);
+    }
+
+    public function test_editing_a_cart_booking_updates_the_same_cart_item(): void
+    {
+        $payload = $this->landPayload(['adult' => 2]);
+        $payload['action'] = 'cart';
+        $this->post(route('booking.submit', ['id' => 'sakura-rail', 'date' => '2027-03-27']), $payload)
+            ->assertRedirect(route('home'));
+
+        $uid = session('cart.0.uid');
+        $this->assertNotEmpty($uid);
+        $this->get(route('cart'))
+            ->assertOk()
+            ->assertSee('Edit booking')
+            ->assertSee('cart_item='.$uid, false);
+
+        $this->get(route('booking', [
+            'id' => 'sakura-rail',
+            'date' => '2027-03-27',
+            'cart_item' => $uid,
+        ]))
+            ->assertOk()
+            ->assertSee('Taylor Traveller 0')
+            ->assertSee('"passport":"A12345678"', false)
+            ->assertSee('"editing":true', false)
+            ->assertSee('booking.js?v=', false);
+
+        $payload = $this->landPayload(['adult' => 1], ['insurance']);
+        $payload['action'] = 'cart';
+        $payload['guests'][0]['name'] = 'Updated Traveller';
+        $payload['guests'][0]['passport'] = 'B98765432';
+
+        $this->post(route('booking.submit', [
+            'id' => 'sakura-rail',
+            'date' => '2027-03-27',
+            'cart_item' => $uid,
+        ]), $payload)
+            ->assertRedirect(route('cart'))
+            ->assertSessionHas('success', 'Booking updated in your cart.');
+
+        $cart = session('cart');
+        $this->assertCount(1, $cart);
+        $this->assertSame($uid, $cart[0]['uid']);
+        $this->assertSame(1, $cart[0]['guests']);
+        $this->assertSame(['insurance'], $cart[0]['addons']);
+        $this->assertSame('Updated Traveller', $cart[0]['detail']['guests'][0]['name']);
+        $this->assertSame('B98765432', Crypt::decryptString($cart[0]['detail']['guests'][0]['passport']));
+    }
+
+    public function test_custom_guest_types_prices_and_addons_are_used_by_the_booking_flow(): void
+    {
+        $package = TravelPackage::create([
+            'slug' => 'custom-booking-test',
+            'name' => 'Custom Booking Test',
+            'country' => 'Japan',
+            'region' => 'Asia',
+            'type' => 'Rail',
+            'days' => 3,
+            'description' => 'A test journey.',
+            'details' => 'A test journey.',
+            'price_from' => 1000,
+            'price_to' => 1500,
+            'departures' => ['2027-03-27'],
+            'image' => 'custom-booking-test.jpg',
+            'published' => true,
+        ]);
+        $package->pricing = [
+            'guest_types' => [
+                ['id' => 'standard', 'label' => 'Standard adult', 'age' => '12+', 'role' => 'adult'],
+                ['id' => 'youth', 'label' => 'Youth', 'age' => '6–11', 'role' => 'child'],
+            ],
+            'departure_prices' => ['2027-03-27' => ['standard' => 1400, 'youth' => 900]],
+            'addons' => [['id' => 'guide', 'label' => 'Private guide', 'price' => 120]],
+        ];
+        $package->save();
+
+        $this->get(route('booking', ['id' => $package->slug, 'date' => '2027-03-27']))
+            ->assertOk()
+            ->assertSee('Standard adult')
+            ->assertSee('Youth');
+
+        $payload = [
+            'action' => 'cart',
+            'kind' => 'fh',
+            'counts' => ['standard' => 1, 'youth' => 1],
+            'addons' => ['guide'],
+            'guests' => $this->guests(2),
+        ];
+        $payload['guests'][1]['dob'] = '2016-03-27';
+        $this->post(route('booking.submit', ['id' => $package->slug, 'date' => '2027-03-27']), $payload)
+            ->assertRedirect(route('home'));
+
+        $item = session('cart.0');
+        $this->assertSame(['standard' => 1, 'youth' => 1], $item['detail']['counts']);
+        $this->assertEquals(2540, Pricing::itemTotal($item));
         $this->assertSame('A12345678', Crypt::decryptString($item['detail']['guests'][0]['passport']));
     }
 

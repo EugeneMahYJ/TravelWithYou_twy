@@ -29,7 +29,7 @@ class SaveAdminShipRequest extends FormRequest
             'gallery' => $this->cleanList('gallery'),
             'amenities' => $this->cleanList('amenities'),
             'decks' => $this->cleanRows('decks', ['n', 'label', 'items']),
-            'cabins' => $this->cleanRows('cabins', ['type', 'size', 'price_from', 'note']),
+            'cabins' => $this->cleanRows('cabins', ['type', 'size', 'note']),
         ]);
     }
 
@@ -56,7 +56,6 @@ class SaveAdminShipRequest extends FormRequest
             'cabins' => ['nullable', 'array', 'max:30'],
             'cabins.*.type' => ['required', 'string', 'max:80', 'distinct'],
             'cabins.*.size' => ['nullable', 'string', 'max:40'],
-            'cabins.*.price_from' => ['required', 'integer', 'min:1', 'max:1000000'],
             'cabins.*.note' => ['nullable', 'string', 'max:300'],
         ];
     }
@@ -70,7 +69,6 @@ class SaveAdminShipRequest extends FormRequest
             'decks.*.items' => 'Describe what is on each deck.',
             'cabins.*.type' => 'Every cabin needs a type.',
             'cabins.*.type.distinct' => 'Each cabin type can only be used once.',
-            'cabins.*.price_from' => 'Enter a starting price for every cabin.',
         ];
     }
 

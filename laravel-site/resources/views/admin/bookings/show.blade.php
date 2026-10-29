@@ -11,6 +11,10 @@
         <div><dt>Taxes / fees</dt><dd>{{ fmt_rm($booking->taxes) }}</dd></div>
         <div><dt>Total</dt><dd>{{ fmt_rm($booking->total) }}</dd></div>
         <div><dt>Payment method</dt><dd>{{ ucfirst($booking->payment_method ?? '—') }}</dd></div>
+        @if($booking->status === 'Cancelled')
+            <div><dt>Cancelled at</dt><dd>{{ $booking->cancelled_at?->format('j M Y, H:i') ?? '—' }}</dd></div>
+            <div><dt>Cancelled by</dt><dd>{{ $booking->cancelledBy?->name ?? '—' }}</dd></div>
+        @endif
         <div><dt>Room types</dt><dd>{{ collect(data_get($booking->guest_details, 'booking_detail.room_types', []))->pluck('type')->filter()->implode(', ') ?: '—' }}</dd></div>
         <div><dt>Add-ons</dt><dd>{{ collect(data_get($booking->guest_details, 'addons', []))->pluck('name')->filter()->implode(', ') ?: '—' }}</dd></div>
     </dl>

@@ -4,7 +4,9 @@
 @include('partials.page-head', ['kicker' => 'Cart', 'heading' => 'Your trips.'])
 @php
     $taxLabel = rtrim(rtrim(number_format($taxRate * 100, 2, '.', ''), '0'), '.');
-    $promoPercent = $totals['promo'] ? rtrim(rtrim(number_format((float) $totals['promo']->discount_percent, 2, '.', ''), '0'), '.') : '';
+    $promoLabel = $totals['promo'] instanceof \App\Models\PromoCode && $totals['promo']->discount_type === 'fixed'
+        ? fmt_rm($totals['promo']->discount_amount)
+        : rtrim(rtrim(number_format((float) ($totals['promo']->discount_percent ?? 0), 2, '.', ''), '0'), '.').'%';
 @endphp
 <section class="wrap section-block">
     @if($items->isEmpty())
@@ -42,7 +44,7 @@
                                     <p><strong>Lead booker:</strong> {{ data_get($detail, 'guests.0.name', 'Traveller') }}
                                         @if(!empty($item['addons'])) · <strong>Add-ons:</strong> {{ collect($item['addons'])->map(fn ($id) => $addons->get($id)['label'] ?? $id)->join(', ') }} @endif
                                     </p>
-                                    <a href="{{ route('booking', ['id' => $package->slug, 'date' => $item['departure_date']]) }}">Rebook with changes</a>
+                                    <a href="{{ route('booking', ['id' => $package->slug, 'date' => $item['departure_date'], 'cart_item' => $item['uid']]) }}">Edit booking</a>
                                 </div>
                                 @if(!\App\Support\Pricing::itemAvailable($item))
                                     <p class="cart-expired">The {{ fmt_date($item['departure_date']) }} departure is no longer available. Choose a new date to keep this package.</p>
@@ -102,7 +104,7 @@
                 </form>
                 <div class="summary-line"><span>Subtotal</span><strong>{{ fmt_rm($totals['subtotal']) }}</strong></div>
                 <div class="summary-line"><span>Taxes / fees ({{ $taxLabel }}%)</span><strong>{{ fmt_rm($totals['taxes']) }}</strong></div>
-                <div class="summary-line"><span>Discount{{ $promoCode ? ' ('.$promoCode.', '.$promoPercent.'%)' : '' }}</span><strong>{{ $promoCode ? '− '.fmt_rm($totals['discount']) : 'RM 0' }}</strong></div>
+                <div class="summary-line"><span>Discount{{ $promoCode ? ' ('.$promoCode.', '.$promoLabel.')' : '' }}</span><strong>{{ $promoCode ? '− '.fmt_rm($totals['discount']) : 'RM 0' }}</strong></div>
                 <div class="summary-line summary-total"><span>Total</span><strong>{{ fmt_rm($totals['total']) }}</strong></div>
                 @if($unavailableItems->isNotEmpty())
                     <p class="notice notice-warn">Update the unavailable dates to check out.</p>

@@ -16,22 +16,39 @@
     </label>
     <label>
         <span>Ship</span>
-        <select name="ship" data-other-ships-url="{{ route('ships') }}">
-            <option value="">Any ship</option>
-            @foreach($options['ships'] as $ship)
-                <option value="{{ $ship }}" @selected(request('ship') === $ship)>{{ $ship }}</option>
-            @endforeach
-            <option value="__other_ships__" class="other-ships-option">Other Ships</option>
-        </select>
+        <div class="filter-select" data-filter-select>
+            <select name="ship">
+                <option value="">Any ship</option>
+                @foreach($options['ships'] as $ship)
+                    <option value="{{ $ship }}" @selected(request('ship') === $ship)>{{ $ship }}</option>
+                @endforeach
+            </select>
+            <button class="filter-select-trigger" type="button" data-filter-select-trigger aria-label="Ship" aria-haspopup="listbox" aria-expanded="false" hidden>
+                <span data-filter-select-value>{{ request('ship') ?: 'Any ship' }}</span>
+                <svg aria-hidden="true" viewBox="0 0 20 20"><path d="m4 7 6 6 6-6"></path></svg>
+            </button>
+            <div class="filter-select-menu" data-filter-select-menu hidden>
+                <ul role="listbox" aria-label="Ship options" data-filter-select-options></ul>
+            </div>
+        </div>
     </label>
     <label>
         <span>Departure Port/City</span>
-        <select name="dep_port">
-            <option value="">Any port/city</option>
-            @foreach($options['ports'] as $port)
-                <option value="{{ $port }}" @selected(request('dep_port') === $port)>{{ $port }}</option>
-            @endforeach
-        </select>
+        <div class="filter-select" data-filter-select>
+            <select name="dep_port">
+                <option value="">Any port/city</option>
+                @foreach($options['ports'] as $port)
+                    <option value="{{ $port }}" @selected(request('dep_port') === $port)>{{ $port }}</option>
+                @endforeach
+            </select>
+            <button class="filter-select-trigger" type="button" data-filter-select-trigger aria-label="Departure Port/City" aria-haspopup="listbox" aria-expanded="false" hidden>
+                <span data-filter-select-value>{{ request('dep_port') ?: 'Any port/city' }}</span>
+                <svg aria-hidden="true" viewBox="0 0 20 20"><path d="m4 7 6 6 6-6"></path></svg>
+            </button>
+            <div class="filter-select-menu" data-filter-select-menu hidden>
+                <ul role="listbox" aria-label="Departure Port/City options" data-filter-select-options></ul>
+            </div>
+        </div>
     </label>
     <label>
         <span>Price Range</span>

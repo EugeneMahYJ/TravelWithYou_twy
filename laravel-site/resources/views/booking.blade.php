@@ -45,18 +45,20 @@
                 'fares' => $package->fares ?? [],
             ],
             'date' => $date,
+            'departurePrices' => $package->pricing['departure_prices'][$date] ?? [],
+            'paxTiers' => \App\Support\Pricing::paxPriceTiers($package, $date),
             'cruise' => $cruise,
             'ship' => $ship ? ['name' => $ship->name] : null,
             'cabins' => $cabins,
             'deal' => $deal,
             'taxRate' => $taxRate,
-            'childRate' => \App\Support\Pricing::CHILD_RATE,
             'maxPerRoom' => \App\Support\Pricing::MAX_PER_ROOM,
             'guestKinds' => $guestKinds,
             'addons' => $addons,
             'nations' => ['Malaysian', 'Singaporean', 'Indonesian', 'Thai', 'Chinese', 'Indian', 'Japanese', 'Korean', 'Australian', 'British', 'American', 'Canadian', 'German', 'French'],
             'packageUrl' => $packageUrl,
             'submitUrl' => $submitUrl,
+            'editing' => $editing,
             'today' => today()->toDateString(),
             'oldInput' => $oldInput,
             'errors' => $errors,
@@ -70,6 +72,6 @@
             <noscript><p class="notice">Enable JavaScript to complete your booking.</p></noscript>
         </form>
     </section>
-    <script type="module" src="{{ asset('js/booking.js') }}"></script>
+    <script type="module" src="{{ asset('js/booking.js') }}?v={{ filemtime(public_path('js/booking.js')) }}"></script>
 @endif
 @endsection

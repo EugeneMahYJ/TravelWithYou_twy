@@ -11,6 +11,7 @@
     @if(request()->routeIs('admin.packages.create', 'admin.packages.edit', 'admin.ships.create', 'admin.ships.edit', 'admin.guides.create', 'admin.guides.edit'))<script src="{{ asset('js/admin-asset-picker.js') }}" defer></script>@endif
     @if(request()->routeIs('admin.packages.create', 'admin.packages.edit'))<script src="{{ asset('js/admin-package-form.js') }}" defer></script>@endif
     @if(request()->routeIs('admin.ships.create', 'admin.ships.edit'))<script src="{{ asset('js/admin-ship-form.js') }}" defer></script>@endif
+    @if(request()->routeIs('admin.promos.create', 'admin.promos.edit'))<script src="{{ asset('js/admin-promo-form.js') }}" defer></script>@endif
 </head>
 <body class="admin-body" data-activity-url="{{ route('admin.activity') }}" data-login-url="{{ route('admin.login') }}" data-idle-login-url="{{ route('admin.login', ['reason' => 'idle']) }}">
     <a class="skip-link" href="#admin-main">Skip to content</a>
@@ -21,7 +22,7 @@
         <nav aria-label="Administration">
             <a class="{{ request()->routeIs('admin.dashboard') ? 'is-active' : '' }}" href="{{ route('admin.dashboard') }}"><span aria-hidden="true">▦</span>Dashboard</a>
             <a class="{{ request()->routeIs('admin.packages*') ? 'is-active' : '' }}" href="{{ route('admin.packages') }}"><span aria-hidden="true">◇</span>Package</a>
-            <a class="{{ request()->routeIs('admin.ships*') ? 'is-active' : '' }}" href="{{ route('admin.ships') }}"><span aria-hidden="true">⚓︎</span>Ships</a>
+            <a class="{{ request()->routeIs('admin.ships*') ? 'is-active' : '' }}" href="{{ route('admin.ships') }}"><span aria-hidden="true">⚓︎</span>Cruise</a>
             <a class="{{ request()->routeIs('admin.deals*') ? 'is-active' : '' }}" href="{{ route('admin.deals') }}"><span aria-hidden="true">％</span>Deals</a>
             <a class="{{ request()->routeIs('admin.media*') ? 'is-active' : '' }}" href="{{ route('admin.media') }}"><span aria-hidden="true">▧</span>Media</a>
             <a class="{{ request()->routeIs('admin.bookings*') ? 'is-active' : '' }}" href="{{ route('admin.bookings') }}"><span aria-hidden="true">▤</span>Bookings</a>

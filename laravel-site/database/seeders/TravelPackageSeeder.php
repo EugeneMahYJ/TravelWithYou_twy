@@ -5,20 +5,24 @@ namespace Database\Seeders;
 use App\Models\Country;
 use App\Models\TravelPackage;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class TravelPackageSeeder extends Seeder
 {
     public function run(): void
     {
         $this->call(CountrySeeder::class);
-        $countries = collect(Country::all())->keyBy('slug');
+        $countries = collect(Country::all())->keyBy(fn (Country $country) => Str::slug($country->name));
 
         foreach (PrototypeData::all()['packages'] as $package) {
+            $countryKey = Str::slug((string) ($package['country'] ?? ''));
+            $country = $countries[$countryKey] ?? Country::firstOrFail();
+
             TravelPackage::updateOrCreate(['slug' => $package['id']], [
-                'country_id' => $countries[$package['country']]->id,
+                'country_id' => $country->id,
                 'name' => $package['name'],
-                'country' => $countries[$package['country']]->name,
-                'region' => $countries[$package['country']]->region,
+                'country' => $country->name,
+                'region' => $country->region,
                 'type' => $package['type'],
                 'ship' => $package['ship'] ?? null,
                 'days' => $package['days'],

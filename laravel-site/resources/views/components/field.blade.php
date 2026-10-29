@@ -5,7 +5,7 @@
     @if($hint)
         <small class="account-field-hint">{{ $hint }}</small>
     @endif
-    @error($name)
+    @foreach($errors->get($name) as $message)
         <small class="field-error">{{ $message }}</small>
-    @enderror
+    @endforeach
 </div>

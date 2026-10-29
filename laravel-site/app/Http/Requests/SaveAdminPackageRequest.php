@@ -36,6 +36,28 @@ class SaveAdminPackageRequest extends FormRequest
         } else {
             $this->merge(['published' => true]);
         }
+
+        $guestTypes = $this->input('guest_types', []);
+        if (is_array($guestTypes)) {
+            foreach ($guestTypes as $index => &$guestType) {
+                if (is_array($guestType) && blank($guestType['id'] ?? null) && filled($guestType['label'] ?? null)) {
+                    $guestType['id'] = Str::slug($guestType['label']).'-'.($index + 1);
+                }
+            }
+            unset($guestType);
+            $this->merge(['guest_types' => $guestTypes]);
+        }
+
+        $addons = $this->input('addons', []);
+        if (is_array($addons)) {
+            foreach ($addons as $index => &$addon) {
+                if (is_array($addon) && blank($addon['id'] ?? null) && filled($addon['label'] ?? null)) {
+                    $addon['id'] = Str::slug($addon['label']).'-'.($index + 1);
+                }
+            }
+            unset($addon);
+            $this->merge(['addons' => $addons]);
+        }
     }
 
     public function rules(): array
@@ -67,6 +89,28 @@ class SaveAdminPackageRequest extends FormRequest
             'departures_text' => [$builder || ! $published ? 'nullable' : 'required', 'string', 'max:1000'],
             'departures' => [$builder && $published ? 'required' : 'nullable', 'array', 'min:1'],
             'departures.*' => ['required', 'date_format:Y-m-d', 'after_or_equal:today', 'distinct'],
+            'guest_types' => [$builder && $published ? 'required' : 'nullable', 'array', 'min:1', 'max:20'],
+            'guest_types.*.id' => ['required', 'alpha_dash', 'distinct', 'max:100'],
+            'guest_types.*.label' => ['required', 'string', 'max:80'],
+            'guest_types.*.age' => ['nullable', 'string', 'max:120'],
+            'guest_types.*.role' => ['required', Rule::in(['adult', 'child'])],
+            'departure_prices' => ['nullable', 'array', 'max:100'],
+            'departure_prices.*' => ['nullable', 'array', 'max:20'],
+            'departure_prices.*.*' => ['nullable', 'integer', 'min:1', 'max:1000000'],
+            'departure_pax_tiers' => ['nullable', 'array', 'max:100'],
+            'departure_pax_tiers.*' => ['nullable', 'array', 'max:12'],
+            'departure_pax_tiers.*.*' => ['array'],
+            'departure_pax_tiers.*.*.from' => ['nullable', 'integer', 'min:1', 'max:12'],
+            'departure_pax_tiers.*.*.to' => ['nullable', 'integer', 'gte:departure_pax_tiers.*.*.from', 'max:12'],
+            'departure_pax_tiers.*.*.prices' => ['nullable', 'array', 'max:20'],
+            'departure_pax_tiers.*.*.prices.*' => ['nullable', 'integer', 'min:1', 'max:1000000'],
+            'cabin_prices' => ['nullable', 'array', 'max:30'],
+            'cabin_prices.*.type' => ['required', 'string', 'max:80'],
+            'cabin_prices.*.price' => ['required', 'integer', 'min:1', 'max:1000000'],
+            'addons' => ['nullable', 'array', 'max:30'],
+            'addons.*.id' => ['required', 'alpha_dash', 'distinct', 'max:100'],
+            'addons.*.label' => ['required', 'string', 'max:120'],
+            'addons.*.price' => ['required', 'integer', 'min:0', 'max:1000000'],
             'destinations_text' => ['nullable', 'string', 'max:5000'],
             'highlights' => [$builder && $published ? 'required' : 'nullable', 'array', 'min:1'],
             'highlights.*' => ['required', 'string', 'max:240'],
@@ -116,6 +160,78 @@ class SaveAdminPackageRequest extends FormRequest
             }
             if (! collect($this->input('highlights', []))->contains(fn ($highlight) => filled($highlight))) {
                 $validator->errors()->add('highlights', 'Add at least one highlight.');
+            }
+            $guestTypes = $this->input('guest_types', []);
+            if (! collect($guestTypes)->contains(fn ($guestType) => is_array($guestType) && ($guestType['role'] ?? null) === 'adult')) {
+                $validator->errors()->add('guest_types', 'Add at least one Adult guest type.');
+            }
+            if ($this->input('type') !== 'Cruise') {
+                foreach ($this->input('departures', []) as $index => $date) {
+                    foreach ($guestTypes as $guestType) {
+                        if (! is_array($guestType) || blank($guestType['id'] ?? null)) {
+                            continue;
+                        }
+                        if (! filled($this->input("departure_prices.{$index}.{$guestType['id']}"))) {
+                            $validator->errors()->add("departure_prices.{$index}.{$guestType['id']}", "Enter a price for {$guestType['label']} on ".fmt_date($date).'.');
+                        }
+                    }
+                }
+                if ($this->input('type') === 'Flight + hotel') {
+                    foreach ($this->input('departure_pax_tiers', []) as $departureIndex => $tiers) {
+                        if (! is_array($tiers)) {
+                            continue;
+                        }
+                        $ranges = [];
+                        foreach ($tiers as $tierIndex => $tier) {
+                            if (! is_array($tier)) {
+                                continue;
+                            }
+                            $hasTierValue = filled($tier['from'] ?? null)
+                                || filled($tier['to'] ?? null)
+                                || collect($tier['prices'] ?? [])->contains(fn ($price) => filled($price));
+                            if (! $hasTierValue) {
+                                continue;
+                            }
+                            if (! filled($tier['from'] ?? null) || ! filled($tier['to'] ?? null)) {
+                                $validator->errors()->add(
+                                    "departure_pax_tiers.{$departureIndex}.{$tierIndex}.from",
+                                    'Enter both the first and last passenger number for this price band.'
+                                );
+                                continue;
+                            }
+                            $from = (int) $tier['from'];
+                            $to = (int) $tier['to'];
+                            $ranges[] = ['from' => $from, 'to' => $to];
+                            foreach ($guestTypes as $guestType) {
+                                if (is_array($guestType) && filled($guestType['id'] ?? null)
+                                    && ! filled($tier['prices'][$guestType['id']] ?? null)) {
+                                    $validator->errors()->add(
+                                        "departure_pax_tiers.{$departureIndex}.{$tierIndex}.prices.{$guestType['id']}",
+                                        "Enter a {$guestType['label']} price for pax {$from}–{$to}."
+                                    );
+                                }
+                            }
+                            if ($to < $from) {
+                                $validator->errors()->add(
+                                    "departure_pax_tiers.{$departureIndex}.{$tierIndex}.to",
+                                    'The last passenger number must be equal to or greater than the first.'
+                                );
+                            }
+                        }
+                        usort($ranges, fn (array $left, array $right) => $left['from'] <=> $right['from']);
+                        for ($index = 1; $index < count($ranges); $index++) {
+                            if ($ranges[$index]['from'] <= $ranges[$index - 1]['to']) {
+                                $validator->errors()->add(
+                                    "departure_pax_tiers.{$departureIndex}",
+                                    'Passenger price ranges for a departure must not overlap.'
+                                );
+                                break;
+                            }
+                        }
+                    }
+                }
+            } elseif (! collect($this->input('cabin_prices', []))->contains(fn ($cabin) => is_array($cabin) && filled($cabin['price'] ?? null))) {
+                $validator->errors()->add('cabin_prices', 'Enter a price for each cabin type on this cruise package.');
             }
             if ($this->input('type') === 'Cruise' && blank($this->input('ship'))) {
                 $validator->errors()->add('ship', 'Choose the ship for a cruise.');

@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Mail\EnquiryReplyMail;
 use App\Models\Enquiry;
+use App\Models\PromoCode;
 use App\Models\TravelDeal;
 use App\Models\TravelPackage;
 use App\Models\User;
@@ -100,12 +101,103 @@ class AdminDealsAndEnquiriesTest extends TestCase
         ])->assertRedirect(route('admin.deals'))->assertSessionHas('success', 'Deal saved');
     }
 
+    public function test_admin_can_create_universal_and_package_specific_promo_codes(): void
+    {
+        $admin = $this->admin();
+        $package = TravelPackage::where('slug', 'sakura-rail')->firstOrFail();
+        $this->actingAs($admin)->withSession($this->verifiedSession());
+
+        $this->get(route('admin.deals'))->assertOk()
+            ->assertSee('New Promo')
+            ->assertSee(route('admin.promos.create'));
+        $this->get(route('admin.promos.create'))
+            ->assertOk()
+            ->assertSee('All packages, including future packages')
+            ->assertSee('Select all packages')
+            ->assertSee('Fixed amount (RM)');
+
+        $this->post(route('admin.promos.store'), [
+            'code' => 'asia',
+            'discount_type' => 'fixed',
+            'discount_value' => '500',
+            'all_packages' => '0',
+            'package_ids' => [$package->id],
+            'terms' => 'Asia trips only.',
+            'starts_at' => null,
+            'expires_at' => now()->addMonth()->format('Y-m-d\TH:i'),
+            'active' => '1',
+        ])->assertRedirect(route('admin.deals'))->assertSessionHas('success', 'Promo code saved.');
+
+        $asia = PromoCode::where('code', 'ASIA')->firstOrFail();
+        $this->assertSame('fixed', $asia->discount_type);
+        $this->assertEquals(500, $asia->discount_amount);
+        $this->assertFalse($asia->all_packages);
+        $this->assertSame([$package->id], $asia->packages()->pluck('travel_packages.id')->all());
+        $this->get(route('admin.deals'))->assertOk()->assertSee('ASIA')->assertSee('RM 500');
+        $this->put(route('admin.promos.update', $asia), [
+            'code' => 'ASIA',
+            'discount_type' => 'percent',
+            'discount_value' => '25',
+            'all_packages' => '1',
+            'terms' => 'Updated universal terms.',
+            'active' => '1',
+        ])->assertRedirect(route('admin.deals'));
+        $this->assertTrue($asia->fresh()->all_packages);
+        $this->assertEquals(25, $asia->fresh()->discount_percent);
+        $this->patch(route('admin.promos.toggle', $asia))->assertRedirect();
+        $this->assertFalse($asia->fresh()->active);
+        $this->delete(route('admin.promos.delete', $asia))->assertRedirect(route('admin.deals'));
+        $this->assertDatabaseMissing('promo_codes', ['id' => $asia->id]);
+
+        $this->post(route('admin.promos.store'), [
+            'code' => 'welcometwy',
+            'discount_type' => 'percent',
+            'discount_value' => '20',
+            'all_packages' => '1',
+            'terms' => 'Welcome offer for every trip.',
+            'expires_at' => null,
+            'active' => '1',
+        ])->assertRedirect(route('admin.deals'));
+
+        $welcome = PromoCode::where('code', 'WELCOMETWY')->firstOrFail();
+        $this->assertTrue($welcome->all_packages);
+        $this->assertSame([], $welcome->packages()->pluck('travel_packages.id')->all());
+        $this->assertEquals(20, $welcome->discount_percent);
+    }
+
+    public function test_promo_code_requires_eligible_package_selection_and_unique_codes(): void
+    {
+        $admin = $this->admin();
+        $this->actingAs($admin)->withSession($this->verifiedSession());
+
+        $this->from(route('admin.promos.create'))->post(route('admin.promos.store'), [
+            'code' => TravelDeal::firstOrFail()->promo_code,
+            'discount_type' => 'percent',
+            'discount_value' => '20',
+            'all_packages' => '0',
+            'package_ids' => [],
+            'active' => '1',
+        ])->assertRedirect(route('admin.promos.create'))
+            ->assertSessionHasErrors(['code', 'package_ids']);
+
+        $this->post(route('admin.promos.store'), [
+            'code' => 'NEWUSER',
+            'discount_type' => 'percent',
+            'discount_value' => '91',
+            'all_packages' => '1',
+            'active' => '1',
+        ])->assertSessionHasErrors(['discount_value']);
+    }
+
     public function test_deal_editor_requires_an_admin(): void
     {
         $this->get(route('admin.deals.create'))->assertRedirect();
+        $this->get(route('admin.promos.create'))->assertRedirect();
         $user = User::create(['name' => 'Traveller', 'email' => 'traveller@example.test', 'password' => 'SafePass1234']);
         $this->actingAs($user)->withSession($this->verifiedSession())
             ->get(route('admin.deals.create'))->assertForbidden();
+        $this->actingAs($user)->withSession($this->verifiedSession())
+            ->get(route('admin.promos.create'))->assertForbidden();
     }
 
     public function test_admin_can_delete_a_deal_and_it_disappears_from_the_storefront(): void

@@ -49,6 +49,7 @@ Route::middleware('auth')->prefix('account')->name('account.')->group(function (
     Route::put('/notifications', [AccountController::class, 'updateNotifications'])->name('notifications.update');
     Route::put('/password', [AccountController::class, 'changePassword'])->name('password.update');
     Route::put('/two-factor', [AccountController::class, 'toggleTwoFactor'])->name('two-factor.update');
+    Route::post('/bookings/{booking}/cancel', [AccountController::class, 'cancelBooking'])->name('bookings.cancel');
     Route::post('/action', [AccountController::class, 'placeholderAction'])->name('action');
 });
 
@@ -102,6 +103,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::match(['put', 'patch'], '/deals/{deal}', [AdminController::class, 'updateDeal'])->name('deals.update');
         Route::patch('/deals/{deal}/toggle', [AdminController::class, 'toggleDeal'])->name('deals.toggle');
         Route::delete('/deals/{deal}', [AdminController::class, 'deleteDeal'])->name('deals.delete');
+        Route::get('/promos/create', [AdminController::class, 'createPromoCode'])->name('promos.create');
+        Route::post('/promos', [AdminController::class, 'storePromoCode'])->name('promos.store');
+        Route::get('/promos/{promoCode}/edit', [AdminController::class, 'editPromoCode'])->name('promos.edit');
+        Route::put('/promos/{promoCode}', [AdminController::class, 'updatePromoCode'])->name('promos.update');
+        Route::patch('/promos/{promoCode}/toggle', [AdminController::class, 'togglePromoCode'])->name('promos.toggle');
+        Route::delete('/promos/{promoCode}', [AdminController::class, 'deletePromoCode'])->name('promos.delete');
         Route::get('/enquiries/{enquiry}', [AdminController::class, 'showEnquiry'])->name('enquiries.show');
         Route::post('/enquiries/{enquiry}/reply', [AdminController::class, 'replyToEnquiry'])
             ->middleware('throttle:10,1')

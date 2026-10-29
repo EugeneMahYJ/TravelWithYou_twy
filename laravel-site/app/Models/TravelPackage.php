@@ -40,6 +40,7 @@ class TravelPackage extends Model
         'destinations',
         'itinerary',
         'source_data',
+        'pricing',
         'image',
         'published',
     ];
@@ -51,6 +52,7 @@ class TravelPackage extends Model
             'destinations' => 'array',
             'itinerary' => 'array',
             'source_data' => 'array',
+            'pricing' => 'array',
             'highlights' => 'array',
             'fares' => 'array',
             'gallery' => 'array',

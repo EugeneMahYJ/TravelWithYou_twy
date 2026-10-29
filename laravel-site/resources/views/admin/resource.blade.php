@@ -2,7 +2,7 @@
 @section('title', $title)
 @section('content')
 <div class="admin-heading {{ $resource === 'deals' ? 'admin-deals-heading' : '' }}"><div><p class="eyebrow accent">Workspace</p><h1>{{ $title }}</h1><p>@if($resource === 'deals')Manage offer terms and availability.@elseif($resource === 'bookings')Review traveller bookings.@elseif($resource === 'enquiries')Reply to traveller enquiries.@elseif($resource === 'guides')Manage published travel guides.@elseif($resource === 'media')Images and videos stored in public/assets.@elseif($resource === 'users')Traveller accounts and booking history.@elseManage company details and contact information.@endif</p></div>
-    @if($resource === 'deals')<a class="button button-primary admin-new-deal-button" href="{{ route('admin.deals.create') }}">New deal</a>@endif
+    @if($resource === 'deals')<div class="admin-deal-create-actions"><a class="button button-ghost admin-new-deal-button" href="{{ route('admin.deals.create') }}">New deal</a><a class="button button-primary admin-new-promo-button" href="{{ route('admin.promos.create') }}">New Promo</a></div>@endif
     @if($resource === 'guides')<a class="button button-primary" href="{{ route('admin.guides.create') }}">New guide</a>@endif
 </div>
 <section class="admin-panel">
@@ -11,6 +11,32 @@
 
     @elseif($resource === 'deals')
         <form class="admin-filter-form" method="get" action="{{ route('admin.deals') }}"><label><span class="visually-hidden">Search deals</span><input name="q" type="search" value="{{ request('q') }}" placeholder="Search deals…"></label><button class="button button-ghost" type="submit">Search</button></form>
+        @if($promoCodes->isNotEmpty())
+            <section class="admin-promo-section">
+                <h2>Promo codes</h2>
+                <div class="admin-deal-grid">@foreach($promoCodes as $promoCode)
+                    @php
+                        $promoValue = $promoCode->discount_type === 'fixed'
+                            ? fmt_rm($promoCode->discount_amount)
+                            : rtrim(rtrim(number_format((float) $promoCode->discount_percent, 2, '.', ''), '0'), '.').'%';
+                        $eligiblePackages = $promoCode->all_packages ? 'All packages' : $promoCode->packages->pluck('name')->join(', ');
+                    @endphp
+                    <article class="admin-deal-card">
+                        <div class="admin-deal-card-top"><span class="eyebrow accent">Promo code</span><span class="status-pill">{{ $promoCode->active ? 'Active' : 'Paused' }}</span></div>
+                        <strong class="admin-deal-percent">{{ $promoValue }}</strong>
+                        <h2>{{ $promoCode->code }}</h2>
+                        <p>{{ $eligiblePackages ?: 'No eligible packages selected' }}</p>
+                        @if($promoCode->terms)<p class="muted">{{ $promoCode->terms }}</p>@endif
+                        <p class="muted">@if($promoCode->starts_at)Starts {{ $promoCode->starts_at->format('j M Y, H:i') }} · @endif{{ $promoCode->expires_at ? 'Expires '.$promoCode->expires_at->format('j M Y, H:i') : 'No expiry date' }}</p>
+                        <div class="admin-deal-actions">
+                            <a class="button button-ghost" href="{{ route('admin.promos.edit', $promoCode) }}">Edit</a>
+                            <form method="post" action="{{ route('admin.promos.toggle', $promoCode) }}">@csrf @method('patch')<button class="button button-ghost" type="submit">{{ $promoCode->active ? 'Pause' : 'Resume' }}</button></form>
+                            <form method="post" action="{{ route('admin.promos.delete', $promoCode) }}" onsubmit="return confirm('Delete this promo code?')">@csrf @method('delete')<button class="button button-ghost danger" type="submit">Delete</button></form>
+                        </div>
+                    </article>
+                @endforeach</div>
+            </section>
+        @endif
         <div class="admin-deal-grid">@forelse($rows as $deal)
             <article class="admin-deal-card"><div class="admin-deal-card-top"><span class="eyebrow accent">{{ $deal->type ?: 'Promo code' }}</span><span class="status-pill">{{ $deal->active ? 'Active' : 'Paused' }}</span></div><strong class="admin-deal-percent">{{ $deal->discount_percent }}%</strong><h2>{{ $deal->name }}</h2><p>{{ $deal->package?->name ?? 'All packages' }}</p><p class="muted">Ends {{ $deal->expires_at?->format('j M Y, H:i') ?? $deal->ends_at?->format('j M Y') ?? 'without end date' }}</p><div class="admin-deal-actions"><a class="button button-ghost" href="{{ route('admin.deals.edit', $deal) }}">Edit</a><form method="post" action="{{ route('admin.deals.toggle', $deal) }}">@csrf @method('patch')<button class="button button-ghost" type="submit">{{ $deal->active ? 'Pause' : 'Resume' }}</button></form><form method="post" action="{{ route('admin.deals.delete', $deal) }}" onsubmit="return confirm('Delete this deal?')">@csrf @method('delete')<button class="button button-ghost danger" type="submit">Delete</button></form></div></article>
         @empty<p class="muted">No deals found.</p>@endforelse</div>
@@ -19,7 +45,7 @@
         <form class="admin-filter-form" method="get" action="{{ route('admin.bookings') }}"><label><span class="visually-hidden">Search bookings</span><input type="search" name="q" value="{{ request('q') }}" placeholder="Search ref, name, email, package…"></label><button class="button button-ghost" type="submit">Search</button></form>
         <nav class="admin-tabs" aria-label="Booking status">@foreach(['All', 'Confirmed', 'Pending payment', 'Cancelled'] as $tab)<a class="{{ (request('status', 'All') === $tab) ? 'is-active' : '' }}" href="{{ route('admin.bookings', array_filter(['status' => $tab === 'All' ? null : $tab, 'q' => request('q')])) }}">{{ $tab }}</a>@endforeach</nav>
         <div class="table-scroll"><table><thead><tr><th>Ref</th><th>Customer + email</th><th>Package</th><th>Departure</th><th>Guests</th><th>Total</th><th>Status</th><th></th></tr></thead><tbody>
-            @forelse($rows as $row)<tr><td>@if($row->created_at?->isToday())<span class="admin-new-dot" aria-label="New"></span>@endif{{ $row->reference }}</td><td>{{ $row->user?->name ?? data_get($row->guest_details, 'name', 'Guest') }}<small>{{ $row->user?->email ?? data_get($row->guest_details, 'email', '—') }}</small></td><td>{{ $row->package?->name ?? '—' }}</td><td>{{ $row->departure_date->format('j M Y') }}</td><td>{{ $row->guests }}</td><td>{{ fmt_rm($row->total) }}</td><td><span class="status-pill">{{ $row->status }}</span></td><td><a class="table-link" href="{{ route('admin.bookings.show', $row) }}">View</a></td></tr>@empty<tr><td colspan="8">No bookings found.</td></tr>@endforelse
+            @forelse($rows as $row)<tr><td>@if($row->created_at?->isToday())<span class="admin-new-dot" aria-label="New"></span>@endif{{ $row->reference }}</td><td>{{ $row->user?->name ?? data_get($row->guest_details, 'name', 'Guest') }}<small>{{ $row->user?->email ?? data_get($row->guest_details, 'email', '—') }}</small></td><td>{{ $row->package?->name ?? '—' }}</td><td>{{ $row->departure_date->format('j M Y') }}</td><td>{{ $row->guests }}</td><td>{{ fmt_rm($row->total) }}</td><td><span class="status-pill">{{ $row->status }}</span>@if($row->status === 'Cancelled' && $row->cancelled_at)<small>Cancelled {{ $row->cancelled_at->format('j M Y, H:i') }}@if($row->cancelledBy) by {{ $row->cancelledBy->name }}@endif</small>@endif</td><td><a class="table-link" href="{{ route('admin.bookings.show', $row) }}">View</a></td></tr>@empty<tr><td colspan="8">No bookings found.</td></tr>@endforelse
         </tbody></table></div>
 
     @elseif($resource === 'enquiries')

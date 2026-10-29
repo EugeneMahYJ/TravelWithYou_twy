@@ -41,18 +41,6 @@
         <p class="package-long-description">{{ $longDescription }}</p>
 
         <section class="package-detail-section">
-            <h2 class="detail-subhead">Highlights</h2>
-            <ul class="detail-check-grid">
-                @foreach($highlights as $highlight)
-                    <li>
-                        <svg class="check-icon check-vermilion" aria-hidden="true" viewBox="0 0 20 20"><path d="m4 10 4 4 8-9"></path></svg>
-                        <span>{{ is_array($highlight) ? ($highlight['name'] ?? $highlight['title'] ?? implode(' · ', array_filter($highlight, 'is_scalar'))) : $highlight }}</span>
-                    </li>
-                @endforeach
-            </ul>
-        </section>
-
-        <section class="package-detail-section">
             <h2 class="detail-subhead">Daily trip plan</h2>
             <ol class="daily-plan">
                 @foreach($dailyPlan as $day)
@@ -75,25 +63,6 @@
             </ol>
         </section>
 
-        <div class="detail-inclusions">
-            <section>
-                <h2 class="detail-subhead">Included</h2>
-                <ul class="inclusion-list">
-                    @foreach($package->included() as $inclusion)
-                        <li><svg class="check-icon check-sea" aria-hidden="true" viewBox="0 0 20 20"><path d="m4 10 4 4 8-9"></path></svg><span>{{ $inclusion }}</span></li>
-                    @endforeach
-                </ul>
-            </section>
-            <section>
-                <h2 class="detail-subhead">Not included</h2>
-                <ul class="inclusion-list excluded-list">
-                    @foreach($package->excluded() as $exclusion)
-                        <li><span class="exclude-icon" aria-hidden="true">×</span><span>{{ $exclusion }}</span></li>
-                    @endforeach
-                </ul>
-            </section>
-        </div>
-
         @if($ship)
             <section class="package-detail-section">
                 <h2 class="detail-subhead">Ship room types · {{ $ship->name }}</h2>
@@ -103,29 +72,12 @@
                             <p class="cabin-size">{{ $cabin->size }}</p>
                             <h3>{{ $cabin->type }}</h3>
                             <p class="cabin-note">{{ $cabin->note }}</p>
-                            <p class="cabin-price"><span>From</span> {{ fmt_rm($cabin->price_from) }}</p>
+                            <p class="cabin-price"><span>From</span> {{ fmt_rm(\App\Support\Pricing::cabinPrices($package)[$cabin->type] ?? $cabin->price_from) }}</p>
                         </article>
                     @endforeach
                 </div>
             </section>
         @endif
-
-        <section class="package-pdf-card">
-            <div class="package-pdf-heading">
-                <svg aria-hidden="true" viewBox="0 0 32 32"><path d="M8 3h11l7 7v19H8zM19 3v8h7M12 18h10M12 22h10"></path></svg>
-                <div><h2>Package PDF</h2><p>{{ $filename }}</p></div>
-            </div>
-            <div class="package-pdf-actions">
-                <button class="button button-ghost" type="button" data-pdf-open aria-haspopup="dialog">
-                    <svg aria-hidden="true" viewBox="0 0 20 20"><circle cx="8.5" cy="8.5" r="5.5"></circle><path d="m13 13 4 4"></path></svg>
-                    Preview
-                </button>
-                <a class="button button-primary" href="{{ route('packages.pdf', ['package' => $package->slug, 'download' => 1]) }}">
-                    <svg aria-hidden="true" viewBox="0 0 20 20"><path d="M10 2v11m-4-4 4 4 4-4M3 15v3h14v-3"></path></svg>
-                    Download
-                </a>
-            </div>
-        </section>
 
         @if($ship)
             <a class="sailing-link" href="{{ route('ships.show', ['ship' => $ship->slug]) }}">
@@ -185,6 +137,82 @@
             </div>
             <a class="ask-us-link" href="{{ route('contact') }}">Ask us</a>
         </div>
+        <section class="package-glance" aria-labelledby="package-glance-title">
+            <h2 id="package-glance-title">Trip at a glance</h2>
+            <dl>
+                @if($package->days)
+                    <div>
+                        <dt>Duration</dt>
+                        <dd>{{ $package->days }} days</dd>
+                    </div>
+                @endif
+                @if($package->type)
+                    <div>
+                        <dt>Travel style</dt>
+                        <dd>{{ $package->type }}</dd>
+                    </div>
+                @endif
+                @if($package->departure_port || $package->destination_port)
+                    <div>
+                        <dt>Route</dt>
+                        <dd>{{ $package->departure_port ?: $package->country }} → {{ $package->destination_port ?: $package->country }}</dd>
+                    </div>
+                @endif
+                @if(count($availableDates) > 0)
+                    <div>
+                        <dt>Departures</dt>
+                        <dd>{{ count($availableDates) }} available {{ count($availableDates) === 1 ? 'date' : 'dates' }}</dd>
+                    </div>
+                @endif
+            </dl>
+        </section>
+        @if(!empty($highlights))
+            <section class="package-glance package-highlights" aria-labelledby="package-highlights-title">
+                <h2 id="package-highlights-title">Highlights</h2>
+                <ul class="detail-check-grid">
+                    @foreach($highlights as $highlight)
+                        <li>
+                            <svg class="check-icon check-vermilion" aria-hidden="true" viewBox="0 0 20 20"><path d="m4 10 4 4 8-9"></path></svg>
+                            <span>{{ is_array($highlight) ? ($highlight['name'] ?? $highlight['title'] ?? implode(' · ', array_filter($highlight, 'is_scalar'))) : $highlight }}</span>
+                        </li>
+                    @endforeach
+                </ul>
+            </section>
+        @endif
+        <div class="detail-inclusions">
+            <section>
+                <h2 class="detail-subhead">Included</h2>
+                <ul class="inclusion-list">
+                    @foreach($package->included() as $inclusion)
+                        <li><svg class="check-icon check-sea" aria-hidden="true" viewBox="0 0 20 20"><path d="m4 10 4 4 8-9"></path></svg><span>{{ $inclusion }}</span></li>
+                    @endforeach
+                </ul>
+            </section>
+            <section>
+                <h2 class="detail-subhead">Not included</h2>
+                <ul class="inclusion-list excluded-list">
+                    @foreach($package->excluded() as $exclusion)
+                        <li><span class="exclude-icon" aria-hidden="true">×</span><span>{{ $exclusion }}</span></li>
+                    @endforeach
+                </ul>
+            </section>
+        </div>
+        <section class="package-pdf-card">
+            <div class="package-pdf-heading">
+                <svg aria-hidden="true" viewBox="0 0 32 32"><path d="M8 3h11l7 7v19H8zM19 3v8h7M12 18h10M12 22h10"></path></svg>
+                <div><h2>Package PDF</h2><p>{{ $filename }}</p></div>
+            </div>
+            <div class="package-pdf-actions">
+                <button class="button button-ghost" type="button" data-pdf-open aria-haspopup="dialog">
+                    <svg aria-hidden="true" viewBox="0 0 20 20"><circle cx="8.5" cy="8.5" r="5.5"></circle><path d="m13 13 4 4"></path></svg>
+                    Preview
+                </button>
+                <a class="button button-primary" href="{{ route('packages.pdf', ['package' => $package->slug, 'download' => 1]) }}">
+                    <svg aria-hidden="true" viewBox="0 0 20 20"><path d="M10 2v11m-4-4 4 4 4-4M3 15v3h14v-3"></path></svg>
+                    Download
+                </a>
+            </div>
+        </section>
     </aside>
 </div>
 

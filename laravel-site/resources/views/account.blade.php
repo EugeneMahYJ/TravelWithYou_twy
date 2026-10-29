@@ -33,7 +33,7 @@
             <div class="account-panel-heading"><p class="eyebrow">Your details</p><h2>Profile</h2><p>Keep your account information up to date.</p></div>
             <form class="account-form account-profile-form" method="post" action="{{ route('account.profile.update') }}">@csrf @method('put')
                 <x-field name="username" label="Username" hint="Your username is unique and is used to log in.">
-                    <x-text-input name="username" :value="$user->username" autocomplete="username" required />
+                    <x-text-input name="username" :value="$user->username" autocomplete="username" required data-credential-username />
                 </x-field>
                 <x-field name="email" label="Email">
                     <x-text-input name="email" type="email" :value="$user->email" autocomplete="email" required />
@@ -138,7 +138,7 @@
             <form class="account-form account-security-form" method="post" action="{{ route('account.password.update') }}">@csrf @method('put')
                 <h3>Change password</h3>
                 <x-field name="current_password" label="Current password"><x-text-input name="current_password" type="password" autocomplete="current-password" required /></x-field>
-                <x-field name="new_password" label="New password"><x-text-input name="new_password" type="password" autocomplete="new-password" required /></x-field>
+                <x-field name="new_password" label="New password"><x-text-input name="new_password" type="password" autocomplete="new-password" required data-credential-password /></x-field>
                 <x-field name="new_password_confirmation" label="Confirm new password"><x-text-input name="new_password_confirmation" type="password" autocomplete="new-password" required /></x-field>
                 <div class="account-form-actions"><button class="button button-primary" type="submit">Update password</button></div>
             </form>

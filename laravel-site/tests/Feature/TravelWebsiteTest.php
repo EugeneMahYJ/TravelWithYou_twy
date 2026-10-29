@@ -101,6 +101,7 @@ class TravelWebsiteTest extends TestCase
             ->assertSee('Tour packages and cruises to forty countries, planned by people who have been there.')
             ->assertSee('© 2026 TravelWithYou Ltd. All rights reserved.')
             ->assertSee('href="'.route('search').'">Trip</a>', false)
+            ->assertSee('href="'.route('ships').'">Cruise</a>', false)
             ->assertDontSee('>Journal</a>', false);
         $nav = substr($allTrips->getContent(), strpos($allTrips->getContent(), '<nav class="main-nav"'));
         $this->assertLessThan(strpos($nav, '>Trip</a>'), strpos($nav, '>Destinations</a>'));
@@ -111,7 +112,7 @@ class TravelWebsiteTest extends TestCase
         $this->get(route('search', ['type' => 'Cruise']))
             ->assertOk()
             ->assertSee('name="ship"', false)
-            ->assertSee('Ships');
+            ->assertSee('Cruise');
         $this->get(route('packages.show', ['package' => 'sakura-rail']))
             ->assertOk()
             ->assertSee('Daily trip plan')
@@ -131,6 +132,31 @@ class TravelWebsiteTest extends TestCase
             ->assertSee('>Clear filters</a>', false);
     }
 
+    public function test_home_destinations_are_four_random_distinct_source_countries_and_uncached(): void
+    {
+        $response = $this->get(route('home'))
+            ->assertOk()
+            ->assertHeader('Cache-Control', 'no-store, private');
+        $content = $response->getContent();
+        preg_match('/<div class="destination-grid destination-mosaic">(.*?)<\/div>\s*<\/section>/s', $content, $sectionMatch);
+        $this->assertNotEmpty($sectionMatch[1] ?? null);
+        preg_match_all('/href="[^"]*\/destinations\/([^"]+)"/', $sectionMatch[1], $countryMatches);
+        $slugs = $countryMatches[1] ?? [];
+        $this->assertCount(4, $slugs);
+        $this->assertCount(4, array_unique($slugs));
+
+        $countries = \App\Models\Country::query()->whereIn('slug', $slugs)->get()->keyBy('slug');
+        foreach ($slugs as $slug) {
+            $country = $countries->get($slug);
+            $this->assertNotNull($country);
+            $this->assertStringContainsString('src="'.asset_img($country->image).'"', $sectionMatch[1]);
+            $this->assertStringContainsString($country->region, $sectionMatch[1]);
+            $this->assertStringContainsString($country->name, $sectionMatch[1]);
+        }
+        $this->assertStringContainsString('destination-mosaic-small-row', $sectionMatch[1]);
+        $this->assertStringContainsString('destination-tile-medium', $sectionMatch[1]);
+    }
+
     public function test_home_slideshow_includes_the_navigator_video_slide(): void
     {
         $response = $this->get(route('home'))
@@ -139,7 +165,7 @@ class TravelWebsiteTest extends TestCase
             ->assertSee('Ship tour · Navigator of the Seas')
             ->assertSee('href="'.route('ships.show', ['ship' => 'star-voyager']).'">View ship', false)
             ->assertSee('href="'.route('ships.show', ['ship' => 'navigator-of-the-seas']).'">View ship', false)
-            ->assertSee('href="'.route('ships').'">Explore ships', false)
+            ->assertSee('href="'.route('ships').'">Explore Cruise', false)
             ->assertSee('assets/star-voyager-1-xnakcrup.png', false)
             ->assertSee('assets/video/Ship_example.mp4', false)
             ->assertSee('<video', false)
@@ -158,22 +184,35 @@ class TravelWebsiteTest extends TestCase
         $this->assertCount(14, $packages);
 
         foreach ($packages as $package) {
-            $this->get(route('packages.show', ['package' => $package->slug]))
+            $response = $this->get(route('packages.show', ['package' => $package->slug]))
                 ->assertOk()
+                ->assertSee('Trip at a glance')
+                ->assertSeeInOrder(['Ask us', 'Trip at a glance', 'Highlights'])
                 ->assertSee('Highlights')
                 ->assertSee('Daily trip plan')
                 ->assertSee('Included')
                 ->assertSee('Not included')
                 ->assertSee($package->slug.'-TravelWithYou.pdf')
                 ->assertSee('Ask us');
+            $content = $response->getContent();
+            $asideStart = strpos($content, '<aside class="package-booking-aside">');
+            $includedPosition = strpos($content, 'class="detail-inclusions"', $asideStart);
+            $pdfPosition = strpos($content, 'class="package-pdf-card"', $asideStart);
+            $this->assertNotFalse($asideStart);
+            $this->assertNotFalse($includedPosition);
+            $this->assertNotFalse($pdfPosition);
+            $this->assertGreaterThan($includedPosition, $pdfPosition);
+            $this->assertStringNotContainsString('Price table', $content);
+            $this->assertStringNotContainsString('package-pax-price-table', $content);
         }
 
         $this->get(route('packages.show', ['package' => 'med-grand']))
             ->assertSee('Ship room types · Aurelia Voyager')
+            ->assertSeeInOrder(['Ship room types · Aurelia Voyager', 'Included', 'Not included'])
             ->assertSee('Sailing aboard');
     }
 
-    public function test_detail_aside_uses_deal_prices_and_full_price_without_a_deal(): void
+    public function test_package_detail_does_not_render_the_price_table_with_or_without_a_deal(): void
     {
         $package = TravelPackage::where('slug', 'amalfi-escape')->firstOrFail();
         $deal = TravelDeal::where('package_id', $package->id)->firstOrFail();
@@ -181,15 +220,14 @@ class TravelWebsiteTest extends TestCase
 
         $this->get(route('packages.show', ['package' => $package->slug]))
             ->assertOk()
-            ->assertSee('Limited-time: 20% off')
-            ->assertSee(fmt_rm(2384))
-            ->assertSee(fmt_rm(2980));
+            ->assertDontSee('package-pax-price-table')
+            ->assertDontSee('Limited-time: 20% off');
 
         $deal->update(['active' => false]);
         $this->get(route('packages.show', ['package' => $package->slug]))
             ->assertOk()
-            ->assertSee(fmt_rm(2980))
-            ->assertDontSee('Limited-time: 20% off');
+            ->assertDontSee('package-pax-price-table')
+            ->assertDontSee('Price table');
     }
 
     public function test_bogo_fare_is_halved_and_its_date_can_be_booked(): void
@@ -361,13 +399,14 @@ class TravelWebsiteTest extends TestCase
         }
     }
 
-    public function test_search_bar_shows_rolling_departure_months_and_other_ships_link(): void
+    public function test_search_bar_shows_all_scrollable_ship_and_port_filters(): void
     {
         $response = $this->get(route('home'))
             ->assertOk()
             ->assertSee('<span>Departure Port/City</span>', false)
-            ->assertSee('<option value="__other_ships__" class="other-ships-option">Other Ships</option>', false)
-            ->assertSee('data-other-ships-url="'.route('ships').'"', false)
+            ->assertSee('data-filter-select', false)
+            ->assertDontSee('__other_ships__')
+            ->assertDontSee('data-other-ships-url')
             ->assertSee('href="mailto:enquiry@travelwithyou.my"', false);
 
         preg_match('/<select name="month">(.*?)<\/select>/s', $response->getContent(), $monthSelect);
@@ -382,10 +421,32 @@ class TravelWebsiteTest extends TestCase
         preg_match('/<select name="ship"[^>]*>(.*?)<\/select>/s', $response->getContent(), $shipSelect);
         $this->assertNotEmpty($shipSelect);
         preg_match_all('/<option value="([^"]*)"/', $shipSelect[1], $shipValues);
-        $shipOptions = array_filter($shipValues[1], fn ($value) => $value !== '' && $value !== '__other_ships__');
+        $shipOptions = array_values(array_filter($shipValues[1], fn ($value) => $value !== ''));
+        $expectedShips = TravelPackage::query()
+            ->where('published', true)
+            ->pluck('ship')
+            ->filter()
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
 
-        $this->assertLessThanOrEqual(5, count($shipOptions));
-        $this->assertSame('__other_ships__', end($shipValues[1]));
+        $this->assertSame($expectedShips, $shipOptions);
+
+        preg_match('/<select name="dep_port"[^>]*>(.*?)<\/select>/s', $response->getContent(), $portSelect);
+        $this->assertNotEmpty($portSelect);
+        preg_match_all('/<option value="([^"]*)"/', $portSelect[1], $portValues);
+        $portOptions = array_values(array_filter($portValues[1], fn ($value) => $value !== ''));
+        $expectedPorts = TravelPackage::query()
+            ->where('published', true)
+            ->pluck('departure_port')
+            ->filter()
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
+
+        $this->assertSame($expectedPorts, $portOptions);
     }
 
     public function test_trending_searches_return_their_expected_packages(): void
@@ -624,13 +685,13 @@ class TravelWebsiteTest extends TestCase
             ->assertSee('We will email you a reset link.');
     }
 
-    public function test_registration_does_not_require_username_and_enforces_ten_character_password(): void
+    public function test_registration_does_not_require_username_and_enforces_password_rules(): void
     {
         $this->from(route('register'))->post(route('register.submit'), [
             'name' => 'Morgan Traveller',
             'email' => 'morgan@example.test',
-            'password' => 'Short123',
-            'password_confirmation' => 'Short123',
+            'password' => 'Ab1',
+            'password_confirmation' => 'Ab1',
         ])->assertRedirect(route('register'))
             ->assertSessionHasErrors('password');
 
@@ -645,8 +706,8 @@ class TravelWebsiteTest extends TestCase
         $this->post(route('register.submit'), [
             'name' => 'Morgan Traveller',
             'email' => 'morgan@example.test',
-            'password' => 'LongEnough123',
-            'password_confirmation' => 'LongEnough123',
+            'password' => 'LongPass123',
+            'password_confirmation' => 'LongPass123',
         ])->assertRedirect(route('account'));
 
         $user = User::where('email', 'morgan@example.test')->firstOrFail();
@@ -959,8 +1020,34 @@ class TravelWebsiteTest extends TestCase
         foreach (['packages', 'deals', 'bookings', 'enquiries', 'guides', 'media', 'users', 'company'] as $section) {
             $this->get(route('admin.'.$section))->assertOk()->assertDontSee('@if');
         }
-        $this->get(route('admin.packages.create'))->assertOk();
-        $this->get(route('admin.packages.edit', TravelPackage::firstOrFail()))->assertOk();
+        $this->get(route('admin.packages.create'))
+            ->assertOk()
+            ->assertDontSee('Advanced · brochure data')
+            ->assertDontSee('name="source_data_json"', false)
+            ->assertSee('data-guest-types', false)
+            ->assertSee('data-departure-prices', false)
+            ->assertSee('data-package-addons', false);
+        $package = TravelPackage::create([
+            'slug' => 'package-form-test',
+            'name' => 'Package Form Test',
+            'country' => 'Malaysia',
+            'region' => 'Asia',
+            'type' => 'Adventure',
+            'days' => 1,
+            'description' => 'Test package summary.',
+            'details' => 'Test package details.',
+            'price_from' => 100,
+            'price_to' => 200,
+            'departures' => ['2027-01-01'],
+            'image' => 'package-form-test.jpg',
+        ]);
+        $this->get(route('admin.packages.edit', $package))
+            ->assertOk()
+            ->assertDontSee('Advanced · brochure data')
+            ->assertDontSee('name="source_data_json"', false)
+            ->assertSee('data-guest-types', false)
+            ->assertSee('data-departure-prices', false)
+            ->assertSee('data-package-addons', false);
     }
 
     public function test_admin_can_add_a_database_package(): void

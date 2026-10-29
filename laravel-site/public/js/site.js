@@ -1,10 +1,120 @@
 document.addEventListener("DOMContentLoaded", () => {
-    document.querySelectorAll("select[data-other-ships-url]").forEach((select) => {
-        select.addEventListener("change", () => {
-            if (select.value === "__other_ships__") {
-                window.location.assign(select.dataset.otherShipsUrl);
+    document.querySelectorAll("[data-filter-select]").forEach((wrapper, index) => {
+        const select = wrapper.querySelector("select");
+        const trigger = wrapper.querySelector("[data-filter-select-trigger]");
+        const valueLabel = wrapper.querySelector("[data-filter-select-value]");
+        const menu = wrapper.querySelector("[data-filter-select-menu]");
+        const listbox = wrapper.querySelector("[data-filter-select-options]");
+        if (!(select instanceof HTMLSelectElement) || !(trigger instanceof HTMLButtonElement)
+            || !(valueLabel instanceof HTMLElement) || !(menu instanceof HTMLElement)
+            || !(listbox instanceof HTMLUListElement)) return;
+
+        listbox.id = `filter-select-options-${index}`;
+        trigger.setAttribute("aria-controls", listbox.id);
+        const options = [...select.options].map((option, optionIndex) => {
+            const item = document.createElement("li");
+            item.setAttribute("role", "option");
+            item.tabIndex = -1;
+            item.textContent = option.textContent;
+            item.dataset.value = option.value;
+            item.setAttribute("aria-selected", String(option.selected));
+            item.addEventListener("click", () => {
+                select.selectedIndex = optionIndex;
+                select.dispatchEvent(new Event("change", { bubbles: true }));
+                closeMenu(true);
+            });
+            listbox.append(item);
+            return item;
+        });
+
+        const syncSelection = () => {
+            valueLabel.textContent = select.selectedOptions[0]?.textContent ?? "";
+            options.forEach((option, optionIndex) => {
+                option.setAttribute("aria-selected", String(optionIndex === select.selectedIndex));
+            });
+        };
+        const closeMenu = (restoreFocus = false) => {
+            menu.hidden = true;
+            wrapper.classList.remove("is-open");
+            trigger.setAttribute("aria-expanded", "false");
+            if (restoreFocus) trigger.focus();
+        };
+        const openMenu = () => {
+            menu.hidden = false;
+            wrapper.classList.add("is-open");
+            trigger.setAttribute("aria-expanded", "true");
+            (options[select.selectedIndex] ?? options[0])?.focus();
+        };
+        const moveFocus = (currentIndex, direction) => {
+            const nextIndex = (currentIndex + direction + options.length) % options.length;
+            options[nextIndex]?.focus();
+        };
+        let typeAheadBuffer = "";
+        let typeAheadTimer;
+
+        trigger.addEventListener("click", () => {
+            if (menu.hidden) openMenu();
+            else closeMenu();
+        });
+        trigger.addEventListener("keydown", (event) => {
+            if (!["ArrowDown", "ArrowUp", "Enter", " "].includes(event.key)) return;
+            event.preventDefault();
+            if (menu.hidden) openMenu();
+        });
+        listbox.addEventListener("keydown", (event) => {
+            const currentIndex = options.indexOf(document.activeElement);
+            if (event.key === "Escape") {
+                event.preventDefault();
+                closeMenu(true);
+            } else if (event.key === "ArrowDown") {
+                event.preventDefault();
+                moveFocus(currentIndex, 1);
+            } else if (event.key === "ArrowUp") {
+                event.preventDefault();
+                moveFocus(currentIndex, -1);
+            } else if (event.key === "Home" || event.key === "End") {
+                event.preventDefault();
+                options[event.key === "Home" ? 0 : options.length - 1]?.focus();
+            } else if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                const optionIndex = options.indexOf(document.activeElement);
+                if (optionIndex >= 0) {
+                    select.selectedIndex = optionIndex;
+                    select.dispatchEvent(new Event("change", { bubbles: true }));
+                    closeMenu(true);
+                }
+            } else if (event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey) {
+                event.preventDefault();
+                const typedCharacter = event.key.toLocaleLowerCase();
+                typeAheadBuffer = typeAheadBuffer !== ""
+                    && typedCharacter === typeAheadBuffer[0]
+                    && [...typeAheadBuffer].every((character) => character === typeAheadBuffer[0])
+                    ? typedCharacter
+                    : typeAheadBuffer + typedCharacter;
+                window.clearTimeout(typeAheadTimer);
+                typeAheadTimer = window.setTimeout(() => {
+                    typeAheadBuffer = "";
+                }, 700);
+                const startIndex = Math.max(currentIndex, select.selectedIndex);
+                for (let offset = 1; offset <= options.length; offset += 1) {
+                    const optionIndex = (startIndex + offset) % options.length;
+                    if (options[optionIndex].textContent.trim().toLocaleLowerCase().startsWith(typeAheadBuffer)) {
+                        options[optionIndex].focus();
+                        break;
+                    }
+                }
             }
         });
+        select.addEventListener("change", syncSelection);
+        select.form?.addEventListener("reset", () => window.setTimeout(syncSelection));
+        document.addEventListener("click", (event) => {
+            if (!wrapper.contains(event.target)) closeMenu();
+        });
+
+        syncSelection();
+        select.tabIndex = -1;
+        wrapper.classList.add("is-enhanced");
+        trigger.hidden = false;
     });
 
     document.querySelectorAll("[data-clear-filters-in-place]").forEach((link) => {
@@ -17,6 +127,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     field.checked = false;
                 } else if (field instanceof HTMLSelectElement) {
                     field.selectedIndex = 0;
+                    if (field.closest("[data-filter-select]")) {
+                        field.dispatchEvent(new Event("change", { bubbles: true }));
+                    }
                 } else {
                     field.value = "";
                 }
@@ -293,7 +406,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const slides = [...document.querySelectorAll(".hero-slide")];
     const dots = [...document.querySelectorAll("[data-slide-to]")];
-    if (!slides.length) return;
 
     let active = Math.max(0, slides.findIndex((slide) => slide.classList.contains("is-active")));
     let timer;
@@ -351,6 +463,68 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
         restart();
+    });
+
+    const feedbackFor = (input) => {
+        let feedback = input.parentElement.querySelector("[data-credential-feedback]");
+        if (!feedback) {
+            feedback = document.createElement("ul");
+            feedback.className = "credential-validation-messages";
+            feedback.dataset.credentialFeedback = "";
+            feedback.id = `credential-errors-${input.name}`;
+            feedback.setAttribute("role", "alert");
+            input.insertAdjacentElement("afterend", feedback);
+        }
+        return feedback;
+    };
+    const messagesFor = (input) => {
+        const value = input.value;
+        if (input.hasAttribute("data-credential-username")) {
+            const messages = [];
+            if (/\s/.test(value)) messages.push("Username cannot contain spaces.");
+            if (value.length < 3 || value.length > 20) messages.push("Username must be 3-20 characters.");
+            if (!/^[A-Za-z0-9._-]*$/.test(value)) messages.push("Use only letters, numbers, dots, dashes, or underscores.");
+            return messages;
+        }
+
+        const messages = [];
+        if (value.length < 6) messages.push("Password must be at least 6 characters.");
+        if (!/[A-Za-z]/.test(value)) messages.push("Password must contain at least one letter.");
+        if (!/\d/.test(value)) messages.push("Password must contain at least one number.");
+        if (!/^[A-Za-z0-9~!@#$%^&*()]*$/.test(value)) {
+            messages.push("Use only letters, numbers, or ~!@#$%^&*(); spaces and other symbols are not allowed.");
+        }
+        return messages;
+    };
+    const validate = (input) => {
+        const messages = messagesFor(input);
+        const feedback = feedbackFor(input);
+        feedback.replaceChildren(...messages.map((message) => {
+            const item = document.createElement("li");
+            item.textContent = message;
+            return item;
+        }));
+        feedback.hidden = messages.length === 0;
+        input.setAttribute("aria-invalid", String(messages.length > 0));
+        if (messages.length) input.setAttribute("aria-describedby", feedback.id);
+        else input.removeAttribute("aria-describedby");
+        return messages.length === 0;
+    };
+
+    document.querySelectorAll("form").forEach((form) => {
+        const inputs = [...form.querySelectorAll("[data-credential-password], [data-credential-username]")];
+        if (!inputs.length) return;
+        inputs.forEach((input) => {
+            input.addEventListener("input", () => validate(input));
+            input.addEventListener("blur", () => validate(input));
+            input.addEventListener("invalid", () => validate(input));
+        });
+        form.addEventListener("submit", (event) => {
+            const invalidInputs = inputs.filter((input) => !validate(input));
+            if (!invalidInputs.length) return;
+            event.preventDefault();
+            invalidInputs[0].focus();
+        });
     });
     const carousel = document.querySelector("[data-carousel]");
     carousel?.addEventListener("mouseenter", () => { hovered = true; restart(); });

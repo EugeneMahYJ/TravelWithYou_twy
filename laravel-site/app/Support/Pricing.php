@@ -22,12 +22,40 @@ final class Pricing
     ];
 
     public const GUEST_KINDS = [
-        ['id' => 'adult', 'label' => 'Adult', 'age' => '12 years and over', 'bed' => 'Shares a twin or double room with another adult', 'factor' => 1],
-        ['id' => 'single', 'label' => 'Single', 'age' => '18 years and over, travelling solo', 'bed' => 'Own room, includes a 50% single supplement', 'factor' => 1.5],
-        ['id' => 'childBed', 'label' => 'Child with bed', 'age' => '2 to 10 years', 'bed' => "Own extra foldable bed in the parents' room", 'factor' => 0.9],
-        ['id' => 'childTwin', 'label' => 'Child twin', 'age' => '2 to 11 years', 'bed' => 'Shares a twin-bed room with one adult', 'factor' => 0.8],
-        ['id' => 'childNoBed', 'label' => 'Child no bed', 'age' => '2 to 5 years', 'bed' => 'Shares a bed with a parent, no extra bed', 'factor' => 0.6],
+        ['id' => 'adult', 'label' => 'Adult', 'age' => '12 years and over', 'bed' => 'Shares a twin or double room with another adult', 'factor' => 1, 'role' => 'adult'],
+        ['id' => 'single', 'label' => 'Single', 'age' => '18 years and over, travelling solo', 'bed' => 'Own room, includes a 50% single supplement', 'factor' => 1.5, 'role' => 'adult'],
+        ['id' => 'childBed', 'label' => 'Child with bed', 'age' => '2 to 10 years', 'bed' => "Own extra foldable bed in the parents' room", 'factor' => 0.9, 'role' => 'child'],
+        ['id' => 'childTwin', 'label' => 'Child twin', 'age' => '2 to 11 years', 'bed' => 'Shares a twin-bed room with one adult', 'factor' => 0.8, 'role' => 'child'],
+        ['id' => 'childNoBed', 'label' => 'Child no bed', 'age' => '2 to 5 years', 'bed' => 'Shares a bed with a parent, no extra bed', 'factor' => 0.6, 'role' => 'child'],
     ];
+
+    public static function guestKinds(TravelPackage|array $package): array
+    {
+        $configured = self::value($package, 'pricing', [])['guest_types'] ?? [];
+
+        return $configured !== [] ? $configured : self::GUEST_KINDS;
+    }
+
+    public static function addons(TravelPackage|array $package): array
+    {
+        $configured = self::value($package, 'pricing', [])['addons'] ?? [];
+
+        return $configured !== [] ? $configured : self::ADDONS;
+    }
+
+    public static function cabinPrices(TravelPackage|array $package): array
+    {
+        $prices = self::value($package, 'pricing', [])['cabin_prices'] ?? [];
+        if ($prices !== []) {
+            return $prices;
+        }
+
+        $shipName = self::value($package, 'ship');
+
+        return $shipName
+            ? Ship::query()->where('name', $shipName)->first()?->cabins()->pluck('price_from', 'type')->map(fn ($price) => (int) $price)->all() ?? []
+            : [];
+    }
 
     public static function dealFor(TravelPackage|string|int $package): ?TravelDeal
     {
@@ -95,13 +123,7 @@ final class Pricing
         $base = (float) self::value($package, 'price_from', 0);
 
         if ($cabin !== null && $cabin !== '') {
-            $shipName = self::value($package, 'ship');
-            $cabinPrice = $shipName
-                ? Ship::query()->where('name', $shipName)->first()?->cabins()->where('type', $cabin)->value('price_from')
-                : null;
-            if ($cabinPrice !== null) {
-                $base = (float) $cabinPrice;
-            }
+            $base = (float) (self::cabinPrices($package)[$cabin] ?? $base);
         } elseif ($date !== null) {
             $fare = self::fareFor($package, $date);
             if ($fare !== null) {
@@ -115,6 +137,60 @@ final class Pricing
         }
 
         return $base * (1 - (float) $deal->discount_percent / 100);
+    }
+
+    public static function guestUnitPrice(
+        TravelPackage|array $package,
+        string $date,
+        array $guestKind,
+        int $pax = 1,
+        ?int $paxNumber = null
+    ): float
+    {
+        $pricing = self::value($package, 'pricing', []);
+        $configuredPrice = $paxNumber === null
+            ? null
+            : self::paxTierPrice($package, $date, $guestKind['id'], $paxNumber);
+        $configuredPrice ??= $pricing['departure_prices'][$date][$guestKind['id']] ?? null;
+        if ($configuredPrice !== null) {
+            $base = (float) $configuredPrice;
+        } else {
+            $fare = self::fareFor($package, $date);
+            $baseFare = $fare === null ? (float) self::value($package, 'price_from', 0) : self::fareUnitPrice($package, $fare);
+            $base = $baseFare * (float) ($guestKind['factor'] ?? 1);
+        }
+
+        $deal = self::dealFor($package instanceof TravelPackage ? $package : (string) ($package['id'] ?? $package['slug'] ?? ''));
+        if ($deal && ! ($deal->type === 'Group discount' && $pax < 6)) {
+            $base *= 1 - (float) $deal->discount_percent / 100;
+        }
+
+        return $base;
+    }
+
+    public static function paxPriceTiers(TravelPackage|array $package, string $date): array
+    {
+        return collect(self::value($package, 'pricing', [])['departure_pax_tiers'][$date] ?? [])
+            ->filter(fn ($tier) => is_array($tier)
+                && (int) ($tier['from'] ?? 0) > 0
+                && (int) ($tier['to'] ?? 0) >= (int) ($tier['from'] ?? 1)
+                && ! empty($tier['prices']))
+            ->sortBy(fn ($tier) => (int) $tier['from'])
+            ->values()
+            ->all();
+    }
+
+    private static function paxTierPrice(TravelPackage|array $package, string $date, string $guestType, int $paxNumber): mixed
+    {
+        foreach (self::paxPriceTiers($package, $date) as $tier) {
+            $from = (int) $tier['from'];
+            $to = isset($tier['to']) && $tier['to'] !== '' ? (int) $tier['to'] : PHP_INT_MAX;
+            if ($paxNumber >= $from && $paxNumber <= $to && isset($tier['prices'][$guestType])) {
+                return $tier['prices'][$guestType];
+            }
+        }
+
+        return null;
     }
 
     public static function itemAvailable(array $item): bool
@@ -179,9 +255,8 @@ final class Pricing
         $pax = 0;
 
         if (($detail['kind'] ?? null) === 'cruise') {
-            $shipName = self::value($package, 'ship');
-            $ship = $shipName ? Ship::query()->with('cabins')->where('name', $shipName)->first() : null;
-            $cheapest = $ship?->cabins->sortBy('price_from')->first()?->type;
+            $prices = self::cabinPrices($package);
+            $cheapest = collect($prices)->sort()->keys()->first();
             $rooms = $detail['rooms'] ?? [];
             $pax = array_sum(array_map(fn (array $room) => (int) ($room['adults'] ?? 0) + (int) ($room['children'] ?? 0), $rooms));
 
@@ -210,25 +285,42 @@ final class Pricing
             }
         } else {
             $counts = $detail['counts'] ?? [];
-            foreach (self::GUEST_KINDS as $kind) {
+            $guestKinds = self::guestKinds($package);
+            $paxTiers = self::paxPriceTiers($package, $date);
+            foreach ($guestKinds as $kind) {
                 $pax += (int) ($counts[$kind['id']] ?? 0);
             }
-            $base = self::unitPrice($package, $pax, $date);
-            foreach (self::GUEST_KINDS as $kind) {
+            $paxNumber = 0;
+            foreach ($guestKinds as $kind) {
                 $count = (int) ($counts[$kind['id']] ?? 0);
-                if ($count > 0) {
-                    $price = $base * $kind['factor'];
+                $kindLines = [];
+                for ($index = 0; $index < $count; $index++) {
+                    $paxNumber++;
+                    $price = self::guestUnitPrice($package, $date, $kind, $pax, $paxNumber);
+                    $tier = collect($paxTiers)->first(fn ($tier) =>
+                        $paxNumber >= (int) $tier['from']
+                        && $paxNumber <= (isset($tier['to']) && $tier['to'] !== '' ? (int) $tier['to'] : PHP_INT_MAX)
+                        && isset($tier['prices'][$kind['id']])
+                    );
+                    $tierLabel = $tier
+                        ? ' (Pax '.$tier['from'].'–'.($tier['to'] ?? '12+').')'
+                        : '';
+                    $key = $tierLabel.'|'.$price;
+                    $kindLines[$key] ??= ['label' => $kind['label'].$tierLabel, 'price' => $price, 'count' => 0];
+                    $kindLines[$key]['count']++;
+                }
+                foreach ($kindLines as $line) {
                     $lines[] = [
                         'group' => 'Guests',
-                        'label' => $kind['label'].' × '.$count.' @ '.fmt_rm($price),
-                        'amount' => $price * $count,
+                        'label' => $line['label'].' × '.$line['count'].' @ '.fmt_rm($line['price']),
+                        'amount' => $line['price'] * $line['count'],
                     ];
                 }
             }
         }
 
         foreach ($addons as $addonId) {
-            $addon = collect(self::ADDONS)->firstWhere('id', $addonId);
+            $addon = collect(self::addons($package))->firstWhere('id', $addonId);
             if ($addon && $pax > 0) {
                 $lines[] = [
                     'group' => 'Add-ons',
@@ -257,7 +349,7 @@ final class Pricing
         $pax = (int) ($item['pax'] ?? $item['guests'] ?? 1);
         $addonTotal = 0;
         foreach ($addons as $addonId) {
-            $addon = collect(self::ADDONS)->firstWhere('id', $addonId);
+            $addon = collect(self::addons($package))->firstWhere('id', $addonId);
             $addonTotal += (int) ($addon['price'] ?? 0);
         }
 
@@ -268,16 +360,48 @@ final class Pricing
     {
         $subtotal = 0.0;
         $promoEligibleSubtotal = 0.0;
+        $eligibleLineTotals = [];
+        $eligiblePackageIds = $promo instanceof PromoCode && ! $promo->all_packages
+            ? $promo->packages()->pluck('travel_packages.id')->map(fn ($id) => (int) $id)->all()
+            : null;
         foreach ($items as $item) {
+            $package = self::packageFor($item);
             $itemTotal = self::itemTotal($item);
             $subtotal += $itemTotal;
-            if (config('travel.stack_promo_on_deals', true) || self::dealFor(self::packageFor($item) ?? '') === null) {
+            $eligibleForDeals = config('travel.stack_promo_on_deals', true)
+                || self::dealFor($package ?? '') === null;
+            $eligibleForCode = ! $promo instanceof PromoCode || $promo->all_packages
+                || in_array((int) self::value($package ?? [], 'id', 0), $eligiblePackageIds ?? [], true);
+            if ($eligibleForDeals && $eligibleForCode) {
                 $promoEligibleSubtotal += $itemTotal;
+                $eligibleLineTotals[] = $itemTotal;
+            } else {
+                $eligibleLineTotals[] = 0.0;
             }
         }
 
-        $promoPct = $promo ? (float) $promo->discount_percent / 100 : 0.0;
-        $discount = round($promoEligibleSubtotal * $promoPct, 2);
+        $discount = 0.0;
+        if ($promo instanceof PromoCode && $promo->discount_type === 'fixed') {
+            $discount = min((float) $promo->discount_amount, $promoEligibleSubtotal);
+        } elseif ($promo) {
+            $promoPct = (float) $promo->discount_percent / 100;
+            $discount = round($promoEligibleSubtotal * $promoPct, 2);
+        }
+
+        $discountAllocations = array_fill(0, count($eligibleLineTotals), 0.0);
+        $eligibleIndexes = array_keys(array_filter($eligibleLineTotals, fn (float $lineTotal) => $lineTotal > 0));
+        if ($eligibleIndexes !== [] && $promoEligibleSubtotal > 0) {
+            $allocated = 0.0;
+            foreach ($eligibleIndexes as $index) {
+                if ($index === end($eligibleIndexes)) {
+                    $discountAllocations[$index] = round($discount - $allocated, 2);
+                } else {
+                    $discountAllocations[$index] = round($discount * ($eligibleLineTotals[$index] / $promoEligibleSubtotal), 2);
+                    $allocated += $discountAllocations[$index];
+                }
+            }
+        }
+
         $taxes = round(($subtotal - $discount) * (float) config('travel.tax_rate'), 2);
         $total = round($subtotal - $discount + $taxes, 2);
 
@@ -287,6 +411,7 @@ final class Pricing
             'taxes' => $taxes,
             'total' => $total,
             'promo' => $promo,
+            'discount_allocations' => $discountAllocations,
         ];
     }
 

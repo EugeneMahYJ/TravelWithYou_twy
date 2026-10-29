@@ -21,7 +21,7 @@
                     ['label' => 'Destinations', 'url' => route('destinations'), 'active' => request()->is('destinations*')],
                     ['label' => 'Trip', 'url' => route('search'), 'active' => request()->is('search*') || request()->is('packages*') || request()->is('package/*')],
                     ['label' => 'Deals', 'url' => route('deals'), 'active' => request()->is('deals*')],
-                    ['label' => 'Ships', 'url' => route('ships'), 'active' => request()->is('ships*')],
+                    ['label' => 'Cruise', 'url' => route('ships'), 'active' => request()->is('ships*')],
                     ['label' => 'About', 'url' => route('about'), 'active' => request()->is('about*')],
                     ['label' => 'Contact Us', 'url' => route('contact'), 'active' => request()->is('contact*')],
                 ];

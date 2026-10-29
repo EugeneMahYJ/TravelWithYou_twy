@@ -39,7 +39,21 @@ class PricingTest extends TestCase
 
     public function test_sakura_deal_addon_and_welcome_promo_totals_match_the_prototype_vector(): void
     {
-        $package = TravelPackage::where('slug', 'sakura-rail')->firstOrFail();
+        $package = TravelPackage::create([
+            'slug' => 'custom-pricing-test',
+            'name' => 'Custom Pricing Test',
+            'country' => 'Japan',
+            'region' => 'Asia',
+            'type' => 'Rail',
+            'days' => 3,
+            'description' => 'A test journey.',
+            'details' => 'A test journey.',
+            'price_from' => 1000,
+            'price_to' => 1500,
+            'departures' => ['2027-03-27'],
+            'image' => 'custom-pricing-test.jpg',
+            'published' => true,
+        ]);
         $item = [
             'package' => $package,
             'departure_date' => '2027-04-03',
@@ -61,6 +75,47 @@ class PricingTest extends TestCase
         $this->assertSame('RM 7,683', fmt_rm($withoutPromo['total']));
     }
 
+    public function test_fixed_promo_discount_only_applies_to_selected_packages_and_is_capped_at_their_subtotal(): void
+    {
+        $eligiblePackage = TravelPackage::where('slug', 'sakura-rail')->firstOrFail();
+        $ineligiblePackage = TravelPackage::where('slug', 'kyoto-retreat')->firstOrFail();
+        $promo = PromoCode::create([
+            'code' => 'ASIA500',
+            'discount_percent' => 0,
+            'discount_type' => 'fixed',
+            'discount_amount' => 500,
+            'all_packages' => false,
+            'active' => true,
+        ]);
+        $promo->packages()->sync([$eligiblePackage->id]);
+        $items = [
+            ['package' => $eligiblePackage, 'departure_date' => $eligiblePackage->departures[0], 'guests' => 1, 'addons' => []],
+            ['package' => $ineligiblePackage, 'departure_date' => $ineligiblePackage->departures[0], 'guests' => 1, 'addons' => []],
+        ];
+
+        $totals = Pricing::cartTotals($items, $promo);
+        $this->assertEquals(500, $totals['discount']);
+        $this->assertEquals([500, 0], $totals['discount_allocations']);
+
+        $promo->update(['discount_amount' => 100000]);
+        $cappedTotals = Pricing::cartTotals($items, $promo);
+        $eligibleSubtotal = Pricing::itemTotal($items[0]);
+        $this->assertEquals($eligibleSubtotal, $cappedTotals['discount']);
+        $this->assertEquals([$eligibleSubtotal, 0], $cappedTotals['discount_allocations']);
+
+        $universalPromo = PromoCode::create([
+            'code' => 'TRIP20',
+            'discount_percent' => 20,
+            'discount_type' => 'percent',
+            'all_packages' => true,
+            'active' => true,
+        ]);
+        $universalTotals = Pricing::cartTotals($items, $universalPromo);
+        $cartSubtotal = array_sum(array_map(fn (array $item) => Pricing::itemTotal($item), $items));
+        $this->assertEquals(round($cartSubtotal * 0.2, 2), $universalTotals['discount']);
+        $this->assertEquals($universalTotals['discount'], array_sum($universalTotals['discount_allocations']));
+    }
+
     public function test_group_discount_applies_only_at_six_guests(): void
     {
         $package = TravelPackage::where('slug', 'mara-migration')->firstOrFail();
@@ -69,17 +124,99 @@ class PricingTest extends TestCase
         $this->assertEquals(3735, Pricing::unitPrice($package, 6));
     }
 
-    public function test_cruise_children_are_priced_at_seventy_five_percent(): void
+    public function test_cruise_passengers_use_the_package_cabin_price(): void
     {
         $package = TravelPackage::where('slug', 'med-grand')->firstOrFail();
+        $package->pricing = ['cabin_prices' => ['Interior' => 3350]];
+        $package->save();
         $lines = Pricing::bookingLines($package, '2027-06-05', [
             'kind' => 'cruise',
             'rooms' => [['type' => 'Interior', 'adults' => 1, 'children' => 1]],
         ], []);
 
         $this->assertEquals(3350, $lines[0]['amount']);
-        $this->assertEquals(2512.5, $lines[1]['amount']);
-        $this->assertEquals(5862.5, array_sum(array_column($lines, 'amount')));
+        $this->assertEquals(3350, $lines[1]['amount']);
+        $this->assertEquals(6700, array_sum(array_column($lines, 'amount')));
+    }
+
+    public function test_custom_guest_prices_and_addons_are_package_and_departure_specific(): void
+    {
+        $package = TravelPackage::create([
+            'slug' => 'custom-pricing-test',
+            'name' => 'Custom Pricing Test',
+            'country' => 'Japan',
+            'region' => 'Asia',
+            'type' => 'Rail',
+            'days' => 3,
+            'description' => 'A test journey.',
+            'details' => 'A test journey.',
+            'price_from' => 1000,
+            'price_to' => 1500,
+            'departures' => ['2027-03-27'],
+            'image' => 'custom-pricing-test.jpg',
+            'published' => true,
+        ]);
+        $package->pricing = [
+            'guest_types' => [
+                ['id' => 'adult', 'label' => 'Adult', 'role' => 'adult'],
+                ['id' => 'child', 'label' => 'Child', 'role' => 'child'],
+            ],
+            'departure_prices' => ['2027-03-27' => ['adult' => 1200, 'child' => 800]],
+            'addons' => [['id' => 'guide', 'label' => 'Private guide', 'price' => 100]],
+        ];
+        $package->save();
+
+        $lines = Pricing::bookingLines($package, '2027-03-27', [
+            'kind' => 'fh',
+            'counts' => ['adult' => 1, 'child' => 1],
+        ], ['guide']);
+
+        $this->assertEquals(1200, $lines[0]['amount']);
+        $this->assertEquals(800, $lines[1]['amount']);
+        $this->assertEquals(200, $lines[2]['amount']);
+    }
+
+    public function test_flight_price_bands_are_applied_to_the_correct_passenger_numbers(): void
+    {
+        $date = now()->addMonth()->toDateString();
+        $package = TravelPackage::create([
+            'slug' => 'pax-tier-pricing-test',
+            'name' => 'Pax Tier Pricing Test',
+            'country' => 'Japan',
+            'region' => 'Asia',
+            'type' => 'Flight + hotel',
+            'days' => 3,
+            'description' => 'A test journey.',
+            'details' => 'A test journey.',
+            'price_from' => 1000,
+            'price_to' => 5000,
+            'departures' => [$date],
+            'image' => 'pax-tier-pricing-test.jpg',
+            'published' => true,
+        ]);
+        $package->pricing = [
+            'guest_types' => [
+                ['id' => 'adult', 'label' => 'Adult', 'role' => 'adult'],
+                ['id' => 'child', 'label' => 'Child', 'role' => 'child'],
+            ],
+            'departure_prices' => [$date => ['adult' => 1000, 'child' => 800]],
+            'departure_pax_tiers' => [$date => [
+                ['from' => 1, 'to' => 2, 'prices' => ['adult' => 4000, 'child' => 3500]],
+                ['from' => 3, 'to' => 5, 'prices' => ['adult' => 5000, 'child' => 4500]],
+            ]],
+        ];
+        $package->save();
+
+        $lines = Pricing::bookingLines($package, $date, [
+            'kind' => 'fh',
+            'counts' => ['adult' => 3, 'child' => 1],
+        ], []);
+
+        $this->assertSame([
+            ['group' => 'Guests', 'label' => 'Adult (Pax 1–2) × 2 @ RM 4,000', 'amount' => 8000.0],
+            ['group' => 'Guests', 'label' => 'Adult (Pax 3–5) × 1 @ RM 5,000', 'amount' => 5000.0],
+            ['group' => 'Guests', 'label' => 'Child (Pax 3–5) × 1 @ RM 4,500', 'amount' => 4500.0],
+        ], $lines);
     }
 
     public function test_bogo_fare_is_half_the_pair_price(): void

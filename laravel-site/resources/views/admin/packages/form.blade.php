@@ -10,6 +10,34 @@
     if (!is_array($included) || $included === []) $included = [''];
     $excluded = old('excluded', $package->excluded());
     if (!is_array($excluded) || $excluded === []) $excluded = [''];
+    $pricing = $package->pricing ?? [];
+    $guestTypes = old('guest_types', $pricing['guest_types'] ?? \App\Support\Pricing::GUEST_KINDS);
+    $departurePrices = old('departure_prices');
+    if ($departurePrices === null) {
+        $departurePrices = array_map(function ($date) use ($pricing, $package, $guestTypes) {
+            $saved = $pricing['departure_prices'][$date] ?? [];
+            $fare = \App\Support\Pricing::fareFor($package, $date);
+            $base = $fare ? \App\Support\Pricing::fareUnitPrice($package, $fare) : (float) $package->price_from;
+            foreach ($guestTypes as $guestType) {
+                $saved[$guestType['id']] ??= (int) round($base * (float) ($guestType['factor'] ?? 1));
+            }
+            return $saved;
+        }, $departures);
+    }
+    $departurePaxTiers = old('departure_pax_tiers');
+    if ($departurePaxTiers === null) {
+        $departurePaxTiers = array_map(fn ($date) => $pricing['departure_pax_tiers'][$date] ?? [], $departures);
+    }
+    $addons = old('addons', $pricing['addons'] ?? \App\Support\Pricing::ADDONS);
+    $selectedShipName = old('ship', $package->ship);
+    $selectedShip = $ships->firstWhere('name', $selectedShipName);
+    $cabinPrices = old('cabin_prices');
+    if ($cabinPrices === null) {
+        $cabinPrices = collect($selectedShip?->cabins ?? [])->map(fn ($cabin) => [
+            'type' => $cabin->type,
+            'price' => $pricing['cabin_prices'][$cabin->type] ?? ($cabin->price_from > 1 ? $cabin->price_from : ''),
+        ])->all();
+    }
 @endphp
 <div class="admin-heading"><div><p class="eyebrow accent">Package editor</p><h1>{{ $package->exists ? 'Edit package' : 'New package' }}</h1><p>Build the package shown to travellers.</p></div><a class="text-link" href="{{ route('admin.packages') }}">← Packages</a></div>
 <form class="admin-editor-form" method="post" action="{{ $package->exists ? route('admin.packages.update', $package) : route('admin.packages.store') }}">
@@ -23,8 +51,8 @@
             <label><span>Package name</span><input name="name" value="{{ old('name', $package->name) }}" required>@error('name')<small class="field-error">{{ $message }}</small>@enderror</label>
             <label><span>URL slug</span><input name="slug" value="{{ old('slug', $package->slug) }}" placeholder="Generated from name if blank">@error('slug')<small class="field-error">{{ $message }}</small>@enderror</label>
             <label><span>Country</span><select name="country"><option value="">Choose a country</option>@foreach($countries as $country)<option value="{{ $country->slug }}" @selected(old('country', $package->countryRecord?->slug ?: \Illuminate\Support\Str::slug($package->country)) === $country->slug)>{{ $country->name }}</option>@endforeach</select>@error('country')<small class="field-error">{{ $message }}</small>@enderror</label>
-            <label><span>Trip type</span><select name="type"><option value="">Choose a type</option>@foreach(['Flight + hotel', 'Cruise', 'Rail', 'Wildlife', 'Adventure', 'Culture'] as $type)<option value="{{ $type }}" @selected(old('type', $package->type) === $type)>{{ $type }}</option>@endforeach</select>@error('type')<small class="field-error">{{ $message }}</small>@enderror</label>
-            <label><span>Ship (cruises)</span><select name="ship"><option value="">Choose a ship</option>@foreach($ships as $ship)<option value="{{ $ship->name }}" @selected(old('ship', $package->ship) === $ship->name)>{{ $ship->name }}</option>@endforeach</select>@error('ship')<small class="field-error">{{ $message }}</small>@enderror</label>
+            <label><span>Trip type</span><select name="type" data-package-type><option value="">Choose a type</option>@foreach(['Flight + hotel', 'Cruise', 'Rail', 'Wildlife', 'Adventure', 'Culture'] as $type)<option value="{{ $type }}" @selected(old('type', $package->type) === $type)>{{ $type }}</option>@endforeach</select>@error('type')<small class="field-error">{{ $message }}</small>@enderror</label>
+            <label><span>Ship (cruises)</span><select name="ship" data-package-ship><option value="">Choose a ship</option>@foreach($ships as $ship)<option value="{{ $ship->name }}" data-cabins="{{ $ship->cabins->map(fn ($cabin) => ['type' => $cabin->type, 'size' => $cabin->size, 'note' => $cabin->note, 'legacyPrice' => $cabin->price_from])->values()->toJson() }}" @selected($selectedShipName === $ship->name)>{{ $ship->name }}</option>@endforeach</select>@error('ship')<small class="field-error">{{ $message }}</small>@enderror</label>
             <label><span>Duration (days)</span><input type="number" min="1" max="365" name="days" value="{{ old('days', $package->days) }}">@error('days')<small class="field-error">{{ $message }}</small>@enderror</label>
             <label><span>Nights</span><input type="number" min="0" max="365" name="nights" value="{{ old('nights', $package->nights) }}"></label>
             <label><span>Departure port or city</span><input name="departure_port" value="{{ old('departure_port', $package->departure_port) }}">@error('departure_port')<small class="field-error">{{ $message }}</small>@enderror</label>
@@ -40,11 +68,77 @@
         @error('highlights')<small class="field-error">{{ $message }}</small>@enderror
     </section>
     <section class="admin-editor-section">
-        <div class="admin-panel-heading"><h2>Departure dates</h2><button class="text-button admin-add-row" type="button" data-repeat-add="departures">+ Add date</button></div>
-        <div class="admin-repeat-list" data-repeat-rows="departures">@foreach($departures as $departure)<div class="admin-repeat-row"><input type="date" name="departures[]" value="{{ $departure }}"><button type="button" class="text-button danger admin-remove-row" aria-label="Remove departure">Remove</button></div>@endforeach</div>
-        <template data-repeat-template="departures"><div class="admin-repeat-row"><input type="date" name="departures[]" value=""><button type="button" class="text-button danger admin-remove-row" aria-label="Remove departure">Remove</button></div></template>
+        <div class="admin-panel-heading"><h2>Guest types &amp; prices</h2><button class="text-button admin-add-row" type="button" data-add-guest-type>+ Add guest type</button></div>
+        <p class="muted">Set guest categories and roles. Adult or Child roles determine cruise room allocation. Non-cruise prices are set separately for each departure date.</p>
+        <div class="admin-repeat-list" data-guest-types>
+            @foreach($guestTypes as $index => $guestType)
+                <article class="admin-day-row" data-guest-type-row>
+                    <div class="admin-day-row-heading"><strong>Guest type {{ $index + 1 }}</strong><button type="button" class="text-button danger admin-remove-row">Remove type</button></div>
+                    <input type="hidden" data-guest-id name="guest_types[{{ $index }}][id]" value="{{ $guestType['id'] }}">
+                    <div class="form-grid"><label><span>Guest type name</span><input name="guest_types[{{ $index }}][label]" value="{{ $guestType['label'] }}" required></label>
+                        <label><span>Age / description</span><input name="guest_types[{{ $index }}][age]" value="{{ $guestType['age'] ?? '' }}"></label>
+                        <label><span>Room role</span><select name="guest_types[{{ $index }}][role]"><option value="adult" @selected(($guestType['role'] ?? 'adult') === 'adult')>Adult</option><option value="child" @selected(($guestType['role'] ?? 'adult') === 'child')>Child</option></select></label>
+                    </div>
+                </article>
+            @endforeach
+        </div>
+        <template data-guest-type-template><article class="admin-day-row" data-guest-type-row><div class="admin-day-row-heading"><strong>Guest type</strong><button type="button" class="text-button danger admin-remove-row">Remove type</button></div><input type="hidden" data-guest-id name="guest_types[__INDEX__][id]" value=""><div class="form-grid"><label><span>Guest type name</span><input name="guest_types[__INDEX__][label]" required></label><label><span>Age / description</span><input name="guest_types[__INDEX__][age]"></label><label><span>Room role</span><select name="guest_types[__INDEX__][role]"><option value="adult">Adult</option><option value="child">Child</option></select></label></div></article></template>
+        @error('guest_types')<small class="field-error">{{ $message }}</small>@enderror
+    </section>
+    <section class="admin-editor-section" data-cruise-only>
+        <div class="admin-panel-heading"><h2>Cruise cabin prices (RM per person)</h2></div>
+        <p class="muted">Cabin details come from the ship. Set the price for this package; ship records no longer manage cabin prices.</p>
+        <div class="admin-repeat-list" data-package-cabins>
+            @foreach($cabinPrices as $index => $cabin)
+                @php($shipCabin = $selectedShip?->cabins->firstWhere('type', $cabin['type']))
+                <article class="admin-day-row" data-package-cabin><input type="hidden" name="cabin_prices[{{ $index }}][type]" value="{{ $cabin['type'] }}">
+                    <div class="form-grid"><div><strong>{{ $cabin['type'] }}</strong><small class="muted">{{ $shipCabin?->size }}</small><p>{{ $shipCabin?->note }}</p></div>
+                        <label><span>Package price (RM per person)</span><input type="number" min="1" name="cabin_prices[{{ $index }}][price]" value="{{ $cabin['price'] }}" required></label></div>
+                </article>
+            @endforeach
+        </div>
+        @error('cabin_prices')<small class="field-error">{{ $message }}</small>@enderror
+    </section>
+    <section class="admin-editor-section">
+        <div class="admin-panel-heading"><h2>Departure dates &amp; prices</h2><button class="text-button admin-add-row" type="button" data-add-departure>+ Add date</button></div>
+        <p class="muted">Set an exact price for every guest type on every departure date. Flight + hotel packages can also use passenger-number price bands. Cruise packages use cabin prices instead.</p>
+        <div class="admin-repeat-list" data-departure-prices>
+            @foreach($departures as $index => $departure)
+                <article class="admin-day-row" data-departure-row>
+                    <div class="admin-day-row-heading"><strong>Departure {{ $index + 1 }}</strong><button type="button" class="text-button danger admin-remove-row">Remove date</button></div>
+                    <label><span>Departure date</span><input type="date" name="departures[{{ $index }}]" value="{{ $departure }}" required></label>
+                    <div class="form-grid" data-departure-price-fields>
+                        @foreach($guestTypes as $guestType)
+                            <label data-price-type="{{ $guestType['id'] }}"><span>{{ $guestType['label'] }} price (RM)</span><input type="number" min="1" name="departure_prices[{{ $index }}][{{ $guestType['id'] }}]" value="{{ $departurePrices[$index][$guestType['id']] ?? '' }}" @if(old('status', $package->admin_status) !== 'Draft' && old('type', $package->type) !== 'Cruise') required @endif></label>
+                        @endforeach
+                    </div>
+                    <div class="admin-pax-tier-editor" data-flight-pax-pricing @if(old('type', $package->type) !== 'Flight + hotel') hidden @endif>
+                        <div class="admin-panel-heading"><strong>Passenger price bands</strong><button class="text-button admin-add-row" type="button" data-add-pax-tier>Add band</button></div>
+                        <p class="muted">Optional. A band overrides the regular departure price for those passenger numbers. Uncovered numbers use the regular price.</p>
+                        <div class="admin-repeat-list" data-pax-tier-rows>
+                            @foreach($departurePaxTiers[$index] ?? [] as $tierIndex => $tier)
+                                <article class="admin-day-row" data-pax-tier-row>
+                                    <div class="admin-day-row-heading"><strong>Band {{ $tierIndex + 1 }}</strong><button type="button" class="text-button danger admin-remove-row">Remove band</button></div>
+                                    <div class="form-grid">
+                                        <label><span>First pax number</span><input type="number" min="1" max="12" name="departure_pax_tiers[{{ $index }}][{{ $tierIndex }}][from]" value="{{ $tier['from'] ?? '' }}" @if(old('status', $package->admin_status) !== 'Draft') required @endif>@error('departure_pax_tiers.'.$index.'.'.$tierIndex.'.from')<small class="field-error">{{ $message }}</small>@enderror</label>
+                                        <label><span>Last pax number</span><input type="number" min="1" max="12" name="departure_pax_tiers[{{ $index }}][{{ $tierIndex }}][to]" value="{{ $tier['to'] ?? '' }}" @if(old('status', $package->admin_status) !== 'Draft') required @endif>@error('departure_pax_tiers.'.$index.'.'.$tierIndex.'.to')<small class="field-error">{{ $message }}</small>@enderror</label>
+                                        @foreach($guestTypes as $guestType)
+                                            <label data-pax-price-type="{{ $guestType['id'] }}"><span>{{ $guestType['label'] }} price (RM)</span><input type="number" min="1" name="departure_pax_tiers[{{ $index }}][{{ $tierIndex }}][prices][{{ $guestType['id'] }}]" value="{{ $tier['prices'][$guestType['id']] ?? '' }}" @if(old('status', $package->admin_status) !== 'Draft') required @endif>@error('departure_pax_tiers.'.$index.'.'.$tierIndex.'.prices.'.$guestType['id'])<small class="field-error">{{ $message }}</small>@enderror</label>
+                                        @endforeach
+                                    </div>
+                                </article>
+                            @endforeach
+                        </div>
+                        @error('departure_pax_tiers.'.$index)<small class="field-error">{{ $message }}</small>@enderror
+                    </div>
+                </article>
+            @endforeach
+        </div>
+        <template data-pax-tier-template><article class="admin-day-row" data-pax-tier-row><div class="admin-day-row-heading"><strong>Band</strong><button type="button" class="text-button danger admin-remove-row">Remove band</button></div><div class="form-grid"><label><span>First pax number</span><input type="number" min="1" max="12" name="departure_pax_tiers[__DEPARTURE__][__TIER__][from]" required></label><label><span>Last pax number</span><input type="number" min="1" max="12" name="departure_pax_tiers[__DEPARTURE__][__TIER__][to]" required></label></div></article></template>
+        <template data-departure-template><article class="admin-day-row" data-departure-row><div class="admin-day-row-heading"><strong>Departure</strong><button type="button" class="text-button danger admin-remove-row">Remove date</button></div><label><span>Departure date</span><input type="date" name="departures[__INDEX__]" required></label><div class="form-grid" data-departure-price-fields></div><div class="admin-pax-tier-editor" data-flight-pax-pricing hidden><div class="admin-panel-heading"><strong>Passenger price bands</strong><button class="text-button admin-add-row" type="button" data-add-pax-tier>Add band</button></div><p class="muted">Optional. A band overrides the regular departure price for those passenger numbers. Uncovered numbers use the regular price.</p><div class="admin-repeat-list" data-pax-tier-rows></div></div></article></template>
         @error('departures')<small class="field-error">{{ $message }}</small>@enderror
         @error('departures.*')<small class="field-error">{{ $message }}</small>@enderror
+        @error('departure_prices.*.*')<small class="field-error">{{ $message }}</small>@enderror
     </section>
     <section class="admin-editor-section">
         <div class="admin-panel-heading"><h2>Daily trip plan</h2><button class="text-button admin-add-row" type="button" data-repeat-add="trip_plan">+ Add day</button></div>
@@ -94,8 +188,20 @@
         <label><span>Price to (RM)</span><input type="number" min="1" name="price_to" value="{{ old('price_to', $package->price_to) }}">@error('price_to')<small class="field-error">{{ $message }}</small>@enderror</label>
         <label><span>Brand</span><input name="brand" value="{{ old('brand', $package->brand) }}"></label><label><span>Tour operator</span><input name="operator" value="{{ old('operator', $package->operator) }}"></label>
     </div></section>
+    <section class="admin-editor-section">
+        <div class="admin-panel-heading"><h2>Optional add-ons</h2><button class="text-button admin-add-row" type="button" data-add-package-addon>+ Add add-on</button></div>
+        <p class="muted">Each add-on is charged per guest when selected at booking.</p>
+        <div class="admin-repeat-list" data-package-addons>
+            @foreach($addons as $index => $addon)
+                <article class="admin-day-row" data-package-addon><div class="admin-day-row-heading"><strong>Add-on {{ $index + 1 }}</strong><button type="button" class="text-button danger admin-remove-row">Remove add-on</button></div>
+                    <input type="hidden" data-addon-id name="addons[{{ $index }}][id]" value="{{ $addon['id'] }}">
+                    <div class="form-grid"><label><span>Name</span><input data-addon-label name="addons[{{ $index }}][label]" value="{{ $addon['label'] }}" required></label><label><span>Price per guest (RM)</span><input type="number" min="0" name="addons[{{ $index }}][price]" value="{{ $addon['price'] }}" required></label></div>
+                </article>
+            @endforeach
+        </div>
+        <template data-package-addon-template><article class="admin-day-row" data-package-addon><div class="admin-day-row-heading"><strong>Add-on</strong><button type="button" class="text-button danger admin-remove-row">Remove add-on</button></div><input type="hidden" data-addon-id name="addons[__INDEX__][id]" value=""><div class="form-grid"><label><span>Name</span><input data-addon-label name="addons[__INDEX__][label]" required></label><label><span>Price per guest (RM)</span><input type="number" min="0" name="addons[__INDEX__][price]" required></label></div></article></template>
+    </section>
     <label class="form-wide"><span>Destinations (one per line)</span><textarea name="destinations_text" rows="3">{{ old('destinations_text', implode("\n", $package->destinations ?? [])) }}</textarea></label>
-    <details class="admin-advanced"><summary>Advanced · brochure data</summary><label><span>Brochure data (JSON)</span><textarea name="source_data_json" rows="12" spellcheck="false">{{ old('source_data_json', $package->source_data ? json_encode($package->source_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : '') }}</textarea><small class="muted">Keep the existing source structure intact. Valid JSON is required.</small>@error('source_data_json')<small class="field-error">{{ $message }}</small>@enderror</label></details>
     <div class="form-actions"><button class="button button-primary" type="submit">Save package</button><a class="text-link" href="{{ route('admin.packages') }}">Cancel</a></div>
 </form>
 @include('admin.partials.asset-picker', ['mediaAssets' => $mediaAssets])

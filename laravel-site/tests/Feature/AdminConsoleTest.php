@@ -220,6 +220,70 @@ class AdminConsoleTest extends TestCase
         $this->assertSame(['Tokyo', 'Visit the old town', 'Train'], $package->trip_plan[0]);
     }
 
+    public function test_flight_package_builder_saves_and_displays_passenger_price_bands(): void
+    {
+        $admin = $this->admin();
+        $country = Country::firstOrFail();
+        $date = Carbon::now()->addMonth()->toDateString();
+        $payload = [
+            'builder_form' => '1',
+            'name' => 'Tiered Fare Journey',
+            'country' => $country->slug,
+            'type' => 'Flight + hotel',
+            'days' => '1',
+            'description' => 'A tiered fare test.',
+            'long_description' => 'A test of passenger price bands.',
+            'price_from' => '1000',
+            'price_to' => '5000',
+            'image' => '1624253321171-1be53e12f5f4',
+            'departure_port' => 'Kuala Lumpur',
+            'destination_port' => 'Tokyo',
+            'departures' => [$date],
+            'guest_types' => [['id' => 'adult', 'label' => 'Adult', 'age' => '', 'role' => 'adult']],
+            'departure_prices' => [['adult' => '1000']],
+            'departure_pax_tiers' => [[
+                ['from' => '1', 'to' => '2', 'prices' => ['adult' => '4000']],
+                ['from' => '3', 'to' => '5', 'prices' => ['adult' => '5000']],
+            ]],
+            'highlights' => ['A memorable day'],
+            'trip_plan' => [['place' => 'Tokyo', 'activities' => 'Explore the city.', 'transport' => 'Train']],
+            'status' => 'Published',
+        ];
+
+        $this->actingAs($admin)->withSession($this->verifiedSession())
+            ->from(route('admin.packages.create'))
+            ->post(route('admin.packages.store'), array_replace($payload, [
+                'departure_pax_tiers' => [[
+                    ['from' => '1', 'to' => '3', 'prices' => ['adult' => '4000']],
+                    ['from' => '3', 'to' => '5', 'prices' => ['adult' => '5000']],
+                ]],
+            ]))
+            ->assertRedirect(route('admin.packages.create'))
+            ->assertSessionHasErrors(['departure_pax_tiers.0']);
+
+        $this->post(route('admin.packages.store'), $payload)
+            ->assertRedirect(route('admin.packages'))
+            ->assertSessionHas('success', 'Package saved.');
+
+        $package = TravelPackage::where('slug', 'tiered-fare-journey')->firstOrFail();
+        $this->assertSame([
+            ['from' => 1, 'to' => 2, 'prices' => ['adult' => 4000]],
+            ['from' => 3, 'to' => 5, 'prices' => ['adult' => 5000]],
+        ], $package->pricing['departure_pax_tiers'][$date]);
+        $this->get(route('admin.packages.edit', $package))
+            ->assertOk()
+            ->assertSee('Passenger price bands')
+            ->assertSee('departure_pax_tiers[0][0][from]', false)
+            ->assertSee('departure_pax_tiers[0][1][prices][adult]', false);
+        $this->get(route('packages.show', $package))
+            ->assertOk()
+            ->assertSee('Price table')
+            ->assertSee('Pax 1–2')
+            ->assertSee('Pax 3–5')
+            ->assertSee('RM 4,000')
+            ->assertSee('RM 5,000');
+    }
+
     public function test_admin_can_edit_included_and_excluded_package_items(): void
     {
         $admin = $this->admin();

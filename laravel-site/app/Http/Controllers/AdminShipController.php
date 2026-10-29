@@ -101,6 +101,7 @@ class AdminShipController extends Controller
 
     private function persist(Ship $ship, array $data): void
     {
+        $existingCabinPrices = $ship->cabins()->pluck('price_from', 'type');
         $ship->fill([
             'name' => $data['name'],
             'slug' => $data['slug'],
@@ -125,7 +126,7 @@ class AdminShipController extends Controller
             $ship->cabins()->create([
                 'type' => $cabin['type'],
                 'size' => $cabin['size'] ?? '',
-                'price_from' => (int) $cabin['price_from'],
+                'price_from' => (int) ($existingCabinPrices[$cabin['type']] ?? 1),
                 'note' => $cabin['note'] ?? '',
             ]);
         }

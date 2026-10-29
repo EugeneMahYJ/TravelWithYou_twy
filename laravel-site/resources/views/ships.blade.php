@@ -5,7 +5,7 @@
     <section class="ship-detail-hero" style="--hero-image:url('{{ asset_img($selectedShip->image) }}')">
         <div class="detail-hero-shade"></div>
         <div class="wrap ship-detail-hero-copy">
-            <p class="eyebrow"><a href="{{ route('ships') }}">Ships</a> / {{ $selectedShip->class_name }}</p>
+            <p class="eyebrow"><a href="{{ route('ships') }}">Cruise</a> / {{ $selectedShip->class_name }}</p>
             <h1>{{ $selectedShip->name }}</h1>
             <div class="ship-detail-meta">
                 <x-stars :value="$selectedShip->rating" />
@@ -83,7 +83,6 @@
                             <span class="ship-cabin-size">{{ $cabin->size }}</span>
                             <h2>{{ $cabin->type }}</h2>
                             <p>{{ $cabin->note }}</p>
-                            <div><small>From</small><strong>{{ fmt_rm($cabin->price_from) }}</strong></div>
                         </article>
                     @endforeach
                 </div>
@@ -95,7 +94,6 @@
                             <div><h2>{{ $package->name }}</h2><span>{{ $package->country }}</span></div>
                             <div><small>Route</small>{{ $package->departure_port }} → {{ $package->destination_port }}</div>
                             <div><small>Departs</small>{{ $package->departures ? \Illuminate\Support\Carbon::parse($package->departures[0])->format('M Y') : 'Dates to be announced' }}</div>
-                            <div><small>Price</small>{{ fmt_rm($package->price_from) }}–{{ fmt_rm($package->price_to) }}</div>
                             <a class="button button-primary" href="{{ route('packages.show', ['package' => $package->slug]) }}">Book now</a>
                         </article>
                     @empty
@@ -107,7 +105,7 @@
     </section>
     <script src="{{ asset('js/ship-tabs.js') }}" defer></script>
 @else
-    @include('partials.page-head', ['kicker' => 'Ships', 'heading' => 'Choose the ship, then the sea.', 'intro' => 'From boutique island-hoppers to ice-strengthened expedition vessels.'])
+    @include('partials.page-head', ['kicker' => 'Ships', 'heading' => 'Choose the cruise, then the sea.', 'intro' => 'From boutique island-hoppers to ice-strengthened expedition vessels.'])
     <section class="wrap ship-list">
         <div class="ship-list-grid">
             @foreach($ships as $ship)

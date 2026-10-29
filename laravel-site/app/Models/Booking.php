@@ -23,12 +23,15 @@ class Booking extends Model
         'passport_number',
         'status',
         'payment_method',
+        'cancelled_at',
+        'cancelled_by',
     ];
 
     protected function casts(): array
     {
         return [
             'departure_date' => 'date',
+            'cancelled_at' => 'datetime',
             'guest_details' => 'array',
             'traveller_passports' => 'encrypted:array',
             'subtotal' => 'float',
@@ -47,5 +50,10 @@ class Booking extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function cancelledBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'cancelled_by');
     }
 }

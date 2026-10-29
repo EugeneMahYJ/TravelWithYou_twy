@@ -8,6 +8,14 @@ if (root) {
     const emptyGuest = () => ({ name: "", dob: "", nation: "", passport: "", passportExpiry: "", email: "", phone: "" });
     const zeroCounts = () => Object.fromEntries(kinds.map((kind) => [kind.id, 0]));
     const old = config.oldInput || {};
+    const initialCounts = { ...zeroCounts(), ...(old.counts || {}) };
+    if (!old.counts) {
+        const adultKind = kinds.find((kind) => (kind.role || "adult") === "adult");
+        const childKind = kinds.find((kind) => kind.role === "child");
+        if (adultKind) initialCounts[adultKind.id] = Number(old.adults ?? 2);
+        if (childKind) initialCounts[childKind.id] = Number(old.children ?? 0);
+    }
+    const countRole = (counts, role) => kinds.reduce((sum, kind) => sum + ((kind.role || "adult") === role ? Number(counts[kind.id] || 0) : 0), 0);
     const state = {
         step: 0,
         showErrors: Object.keys(config.errors || {}).length > 0,
@@ -15,8 +23,8 @@ if (root) {
         children: Number(old.children ?? 0),
         rooms: Number(old.rooms ?? 1),
         roomTypes: Array.isArray(old.room_types) ? old.room_types : [],
-        counts: { ...zeroCounts(), adult: 2, ...(old.counts || {}) },
-        guests: Array.isArray(old.guests) ? old.guests.map((guest) => ({ ...emptyGuest(), ...guest, passport: "" })) : [],
+        counts: initialCounts,
+        guests: Array.isArray(old.guests) ? old.guests.map((guest) => ({ ...emptyGuest(), ...guest, passport: config.editing ? guest.passport || "" : "" })) : [],
         sameAsLead: {},
         openGuests: { 0: true },
         selectedAddons: Array.isArray(old.addons) ? old.addons : [],
@@ -25,6 +33,8 @@ if (root) {
         submitAction: "",
         tooltips: {},
         errors: config.errors || {},
+        dobTouched: {},
+        dobAlerts: {},
     };
     const steps = config.cruise
         ? [
@@ -53,18 +63,24 @@ if (root) {
     };
     const plural = (number, singular, pluralForm = `${singular}s`) => `${number} ${number === 1 ? singular : pluralForm}`;
     const errorFor = (key) => state.errors[key]?.[0] || "";
-    const cruiseTotal = () => state.adults + state.children;
+    const adultCount = () => countRole(state.counts, "adult");
+    const childCount = () => countRole(state.counts, "child");
+    const cruiseTotal = () => adultCount() + childCount();
     const landTotal = () => kinds.reduce((sum, kind) => sum + Number(state.counts[kind.id] || 0), 0);
     const totalGuests = () => config.cruise ? cruiseTotal() : landTotal();
-    const totalAdults = () => config.cruise ? state.adults : Number(state.counts.adult || 0) + Number(state.counts.single || 0);
-    const guestLabels = () => config.cruise
-        ? [
-            ...Array.from({ length: state.adults }, (_, index) => `Adult ${index + 1}`),
-            ...Array.from({ length: state.children }, (_, index) => `Child ${index + 1}`),
-        ]
-        : kinds.flatMap((kind) => Array.from({ length: Number(state.counts[kind.id] || 0) }, (_, index) => `${kind.label} ${index + 1}`));
+    const totalAdults = () => adultCount();
+    const guestLabels = () => kinds.flatMap((kind) => Array.from({ length: Number(state.counts[kind.id] || 0) }, (_, index) => `${kind.label} ${index + 1}`));
     const guestAt = (index) => state.guests[index] || emptyGuest();
-    const minRooms = () => Math.max(1, Math.ceil((state.adults + state.children) / Number(config.maxPerRoom)));
+    const guestKindAt = (index) => {
+        let offset = 0;
+        for (const kind of kinds) {
+            const count = Number(state.counts[kind.id] || 0);
+            if (index < offset + count) return kind;
+            offset += count;
+        }
+        return null;
+    };
+    const minRooms = () => Math.max(1, Math.ceil((adultCount() + childCount()) / Number(config.maxPerRoom)));
     const allocateRooms = (adults, children, rooms) => {
         const allocated = Array.from({ length: Math.max(0, rooms) }, () => ({ adults: 0, children: 0 }));
         if (rooms < 1) return allocated;
@@ -80,14 +96,14 @@ if (root) {
     };
     const roomError = () => {
         const need = minRooms();
-        if (state.rooms < need) return `Maximum ${config.maxPerRoom} guests per room. ${state.adults + state.children} guests need at least ${need} rooms.`;
-        if (state.rooms > state.adults) return `Each room needs at least 1 adult. ${state.adults} adult${state.adults === 1 ? "" : "s"} can fill at most ${state.adults} room${state.adults === 1 ? "" : "s"}.`;
+        if (state.rooms < need) return `Maximum ${config.maxPerRoom} guests per room. ${adultCount() + childCount()} guests need at least ${need} rooms.`;
+        if (state.rooms > adultCount()) return `Each room needs at least 1 adult. ${adultCount()} adult${adultCount() === 1 ? "" : "s"} can fill at most ${adultCount()} room${adultCount() === 1 ? "" : "s"}.`;
         return "";
     };
     const currentPlan = () => {
-        if (!config.cruise || state.adults < 1) return [];
-        const roomCount = Math.min(Math.max(state.rooms, minRooms()), Math.max(state.adults, 1));
-        return allocateRooms(state.adults, state.children, roomCount).map((room, index) => ({
+        if (!config.cruise || adultCount() < 1) return [];
+        const roomCount = Math.min(Math.max(state.rooms, minRooms()), Math.max(adultCount(), 1));
+        return allocateRooms(adultCount(), childCount(), roomCount).map((room, index) => ({
             ...room,
             type: state.roomTypes[index] || "",
         }));
@@ -106,10 +122,35 @@ if (root) {
         }
         return price;
     };
+    const paxTierFor = (kindId, paxNumber) => config.paxTiers.find((tier) =>
+        paxNumber >= Number(tier.from)
+        && paxNumber <= (tier.to === undefined || tier.to === null || tier.to === "" ? Number.MAX_SAFE_INTEGER : Number(tier.to))
+        && tier.prices?.[kindId] !== undefined
+    );
+    const paxRangeLabel = (tier) => tier.to === undefined || tier.to === null || tier.to === ""
+        ? `${tier.from}+`
+        : `${tier.from}–${tier.to}`;
+    const paxOrdinal = (number) => {
+        const remainder = number % 100;
+        const suffix = remainder >= 11 && remainder <= 13
+            ? "th"
+            : ({ 1: "st", 2: "nd", 3: "rd" }[number % 10] || "th");
+        return `${number}${suffix}`;
+    };
+    const guestUnitPrice = (kind, pax, paxNumber = null) => {
+        const tier = paxNumber === null ? null : paxTierFor(kind.id, paxNumber);
+        const configured = tier?.prices?.[kind.id] ?? config.departurePrices[kind.id];
+        if (configured === undefined) return unitPrice(pax) * Number(kind.factor ?? 1);
+        let price = Number(configured);
+        if (config.deal && !(config.deal.type === "Group discount" && pax < 6)) {
+            price *= 1 - Number(config.deal.percent) / 100;
+        }
+        return price;
+    };
     const guestError = () => {
         const total = totalGuests();
         if (config.cruise) {
-            if (state.adults < 1) return "At least 1 adult must travel on each booking.";
+            if (adultCount() < 1) return "At least 1 adult must travel on each booking.";
             if (total > 16) return "Online bookings are limited to 16 guests. Contact us for larger groups.";
             return "";
         }
@@ -123,12 +164,33 @@ if (root) {
         const date = new Date(year, month - 1 + 6, day);
         return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
     };
-    const guestErrors = (guest, lead) => {
+    const ageOnDate = (dob, referenceDate) => {
+        const birthParts = String(dob || "").split("-").map(Number);
+        const referenceParts = String(referenceDate || "").split("-").map(Number);
+        if (birthParts.length !== 3 || referenceParts.length !== 3 || [...birthParts, ...referenceParts].some(Number.isNaN)) return null;
+        const [birthYear, birthMonth, birthDay] = birthParts;
+        const [referenceYear, referenceMonth, referenceDay] = referenceParts;
+        const birthCheck = new Date(Date.UTC(birthYear, birthMonth - 1, birthDay));
+        const referenceCheck = new Date(Date.UTC(referenceYear, referenceMonth - 1, referenceDay));
+        if (birthCheck.getUTCFullYear() !== birthYear || birthCheck.getUTCMonth() !== birthMonth - 1 || birthCheck.getUTCDate() !== birthDay
+            || referenceCheck.getUTCFullYear() !== referenceYear || referenceCheck.getUTCMonth() !== referenceMonth - 1 || referenceCheck.getUTCDate() !== referenceDay) return null;
+        let age = referenceYear - birthYear;
+        if (referenceMonth * 100 + referenceDay < birthMonth * 100 + birthDay) age--;
+        return age;
+    };
+    const guestErrors = (guest, index, lead) => {
         const errors = {};
         const name = String(guest.name || "").trim();
         if (!/[A-Za-z]{2}/.test(name) || name.length < 3) errors.name = "Enter the full name as on the passport";
         const dob = new Date(`${guest.dob || ""}T00:00:00`);
         if (!guest.dob || Number.isNaN(+dob) || dob > new Date() || dob.getFullYear() < 1900) errors.dob = "Enter a valid date of birth";
+        else {
+            const age = ageOnDate(guest.dob, config.date);
+            const kind = guestKindAt(index);
+            if (age === null) errors.dob = "Enter a valid date of birth";
+            else if ((kind?.role || "adult") === "adult" && age < 12) errors.dob = "Adult guests must be at least 12 years old.";
+            else if (kind?.role === "child" && age > 11) errors.dob = "Children must be 11 years old or younger.";
+        }
         if (!String(guest.nation || "").trim()) errors.nation = "Required";
         if (!/^[A-Za-z0-9]{6,12}$/.test(String(guest.passport || "").trim())) errors.passport = "6 to 12 letters or digits";
         if (!guest.passportExpiry) errors.passportExpiry = "Passport expiry date is required";
@@ -137,7 +199,7 @@ if (root) {
         if ((lead || String(guest.phone || "").trim()) && String(guest.phone || "").replace(/\D/g, "").length < 7) errors.phone = "Enter a valid phone number";
         return errors;
     };
-    const allGuestErrors = () => guestLabels().map((_, index) => guestErrors(guestAt(index), index === 0));
+    const allGuestErrors = () => guestLabels().map((_, index) => guestErrors(guestAt(index), index, index === 0));
     const plan = () => {
         if (!config.cruise || guestError()) return [];
         return currentPlan();
@@ -160,20 +222,51 @@ if (root) {
         const total = totalGuests();
         if (!total || guestError()) return [];
         const lines = [];
+        const guestPriceGroups = new Map();
+        const addGuestPrice = (kind, price, paxNumber = null) => {
+            const tier = paxNumber === null ? null : paxTierFor(kind.id, paxNumber);
+            const tierKey = tier ? `${tier.from}:${tier.to ?? ""}` : "";
+            const key = `${kind.id}:${tierKey}:${price}`;
+            const existing = guestPriceGroups.get(key);
+            if (existing) existing.quantity++;
+            else guestPriceGroups.set(key, { kind, price, quantity: 1, tier });
+        };
         if (config.cruise) {
             const rooms = plan();
-            rooms.forEach((room, index) => {
-                const type = room.type || [...config.cabins].sort((a, b) => a.price - b.price)[0]?.type || "";
-                const price = unitPrice(total, type);
-                const name = `Room ${index + 1} · ${room.type || "Room type pending"}`;
-                if (room.adults) lines.push({ group: "Rooms", label: `${name}: ${room.adults} adult${room.adults > 1 ? "s" : ""} × ${fmt(price)}`, amount: price * room.adults });
-                if (room.children) lines.push({ group: "Guests", label: `${name}: ${room.children} child${room.children > 1 ? "ren" : ""} × ${fmt(price * Number(config.childRate))}`, amount: price * Number(config.childRate) * room.children });
-            });
+            const roomOccupancy = rooms.map((room) => room.adults);
+            let adultIndex = 0;
+            for (const kind of kinds) {
+                const count = Number(state.counts[kind.id] || 0);
+                for (let guestIndex = 0; guestIndex < count; guestIndex++) {
+                    let roomIndex;
+                    if ((kind.role || "adult") === "adult") {
+                        roomIndex = adultIndex++ % rooms.length;
+                    } else {
+                        roomIndex = roomOccupancy.indexOf(Math.min(...roomOccupancy));
+                        roomOccupancy[roomIndex]++;
+                    }
+                    const roomType = rooms[roomIndex]?.type || [...config.cabins].sort((a, b) => a.price - b.price)[0]?.type || "";
+                    addGuestPrice(kind, unitPrice(total, roomType));
+                }
+            }
         } else {
-            const base = unitPrice(total);
             kinds.forEach((kind) => {
                 const count = Number(state.counts[kind.id] || 0);
-                if (count) lines.push({ group: "Guests", label: `${kind.label} × ${count} @ ${fmt(base * kind.factor)}`, amount: base * kind.factor * count });
+                for (let index = 0; index < count; index++) {
+                    const paxNumber = kinds.slice(0, kinds.indexOf(kind)).reduce((sum, priorKind) => sum + Number(state.counts[priorKind.id] || 0), 0) + index + 1;
+                    const price = guestUnitPrice(kind, total, paxNumber);
+                    addGuestPrice(kind, price, paxNumber);
+                }
+            });
+        }
+        for (const { kind, price, quantity, tier } of guestPriceGroups.values()) {
+            const tierLabel = tier ? ` (Pax ${paxRangeLabel(tier)})` : "";
+            lines.push({
+                group: "Guests",
+                label: `${kind.label}${tierLabel}`,
+                quantity,
+                unitPrice: price,
+                amount: price * quantity,
             });
         }
         state.selectedAddons.forEach((id) => {
@@ -185,8 +278,6 @@ if (root) {
     const subtotal = () => priceLines().reduce((sum, line) => sum + line.amount, 0);
     const taxTotal = () => subtotal() * Number(config.taxRate);
     const grandTotal = () => subtotal() + taxTotal();
-    const hasValidGuests = () => !guestError() && !roomError() && !roomTypeError() && !infoError();
-    const canSubmit = () => priceLines().length > 0 && hasValidGuests();
     const serverMessage = (keys) => {
         for (const key of keys) {
             const message = errorFor(key);
@@ -211,10 +302,12 @@ if (root) {
                 <button type="button" aria-label="More ${esc(title)}" data-counter="${esc(key)}" data-delta="1" ${value >= max ? "disabled" : ""}>+</button>
             </div>
         </div>`;
-    const guestSubline = (kind) => `${["childBed", "childTwin", "childNoBed"].includes(kind.id) ? kind.bed : kind.age} · ${fmt(unitPrice(totalGuests() || 2) * kind.factor)} per person`;
+    const guestSubline = (kind) => kind.bed || kind.age || "";
     const serverGuestError = (index, field) => errorFor(`guests.${index}.${field}`);
     const renderField = (index, guest, field, title, type = "text", extra = "") => {
-        const localError = state.showErrors ? guestErrors(guest, index === 0)[field] : "";
+        const localError = state.showErrors || (field === "dob" && state.dobTouched[index])
+            ? guestErrors(guest, index, index === 0)[field]
+            : "";
         const error = serverGuestError(index, field) || localError;
         const label = `${title}${error ? `: ${error}` : ""}`;
         const list = field === "nation" ? 'list="booking-nations"' : "";
@@ -230,16 +323,42 @@ if (root) {
         const grouped = compact ? "" : groups.map((group) => {
             const items = lines.filter((line) => line.group === group);
             if (!items.length) return "";
-            return `<div class="booking-total-group"><h3>${group}</h3>${items.map((line) => `<p><span>${esc(line.label)}</span><strong>${fmt(line.amount)}</strong></p>`).join("")}</div>`;
+            return `<div class="booking-total-group"><h3>${group}</h3>${items.map((line) => line.unitPrice === undefined
+                ? `<p><span>${esc(line.label)}</span><strong>${fmt(line.amount)}</strong></p>`
+                : `<p><span>${esc(line.label)} · ${line.quantity} ${line.quantity === 1 ? "guest" : "guests"} × ${fmt(line.unitPrice)} each</span><strong>${fmt(line.amount)}</strong></p>`).join("")}</div>`;
         }).join("");
         return `${grouped}
             <div class="booking-total-line"><span>Subtotal</span><strong>${fmt(subtotal())}</strong></div>
             <div class="booking-total-line"><span>Taxes / fees (${Math.round(Number(config.taxRate) * 100)}%)</span><strong>${fmt(taxTotal())}</strong></div>
             <div class="booking-total-grand"><span>Total</span><strong>${fmt(grandTotal())}</strong></div>`;
     };
+    const paxPriceTable = () => {
+        const tiers = config.paxTiers.filter((tier) => tier.prices && Object.keys(tier.prices).length);
+        if (!tiers.length) return "";
+        const pricedKinds = kinds.filter((kind) => tiers.some((tier) => tier.prices[kind.id] !== undefined));
+        const tierHeadings = tiers.map((tier) => {
+            const range = tier.to
+                ? `${paxOrdinal(Number(tier.from))} – ${paxOrdinal(Number(tier.to))} Pax`
+                : `${paxOrdinal(Number(tier.from))}+ Pax`;
+            return `<th scope="col"><span>${range}</span><small>Normal</small></th>`;
+        }).join("");
+        const rows = pricedKinds.map((kind) => `<tr>
+            <th scope="row">${esc(kind.label)}</th>
+            ${tiers.map((tier) => `<td>${tier.prices[kind.id] === undefined
+                ? "—"
+                : fmt(guestUnitPrice(kind, totalGuests() || 2, Number(tier.from)))}</td>`).join("")}
+        </tr>`).join("");
+        return `<div class="booking-pax-price-table">
+            <h3>Price Details</h3>
+            <div class="booking-pax-price-table-scroll"><table>
+                <thead><tr><th scope="col"><span class="visually-hidden">Guest type</span></th>${tierHeadings}</tr></thead>
+                <tbody>${rows}</tbody>
+            </table></div>
+            <p>Prices are per person.</p>
+        </div>`;
+    };
     const stepSummary = (key) => {
         if (key === "guests") {
-            if (config.cruise) return `${plural(state.adults, "adult")}${state.children ? `, ${plural(state.children, "child", "children")}` : ""}`;
             return kinds.filter((kind) => state.counts[kind.id]).map((kind) => `${state.counts[kind.id]} ${kind.label}`).join(", ");
         }
         if (key === "rooms") return `${plural(plan().length, "room")} · ${plan().map((room, index) => `R${index + 1}: ${room.adults}A${room.children ? ` ${room.children}C` : ""}`).join(" · ")}`;
@@ -249,31 +368,22 @@ if (root) {
         return "";
     };
     const guestContent = () => {
-        if (config.cruise) {
-            const totalError = guestError();
-            return `${counter({ title: "Adults", sub: "12 years and over", value: state.adults, min: 0, max: 16, key: "adults" })}
-                ${counter({ title: "Children", sub: `2 to 11 years · pay ${Number(config.childRate) * 100}% of the adult fare`, value: state.children, max: 16, key: "children" })}
-                <p class="booking-total-count">${plural(cruiseTotal(), "guest")} in total</p>
-                ${state.showErrors && (errorFor("adults") || errorFor("children")) ? errorBlock(serverMessage(["adults", "children"])) : ""}
-                ${state.showErrors && totalError ? errorBlock(totalError) : ""}
-                ${continueControl()}`;
-        }
         const rows = kinds.map((kind) => {
             const current = Number(state.counts[kind.id] || 0);
             const sub = guestSubline(kind);
-            const tip = `<span class="booking-tip-wrap"><button type="button" aria-label="About ${esc(kind.label)}" aria-expanded="${!!state.tooltips[kind.id]}" data-tooltip="${esc(kind.id)}">i</button>${state.tooltips[kind.id] ? `<span class="booking-tooltip" role="tooltip"><strong>Age</strong><br>${esc(kind.age)}<br><strong>Bed</strong><br>${esc(kind.bed)}</span>` : ""}</span>`;
+            const tip = kind.age || kind.bed ? `<span class="booking-tip-wrap"><button type="button" aria-label="About ${esc(kind.label)}" aria-expanded="${!!state.tooltips[kind.id]}" data-tooltip="${esc(kind.id)}">i</button>${state.tooltips[kind.id] ? `<span class="booking-tooltip" role="tooltip">${kind.age ? `<strong>Age</strong><br>${esc(kind.age)}` : ""}${kind.bed ? `<br><strong>Bed</strong><br>${esc(kind.bed)}` : ""}</span>` : ""}</span>` : "";
             return counter({ title: kind.label, sub, value: current, max: 12, key: `count:${kind.id}`, tip });
         }).join("");
         const totalError = guestError();
         return `${rows}
             <p class="booking-total-count">${plural(landTotal(), "guest")} in total</p>
-            ${state.showErrors && errorFor("counts") ? errorBlock(errorFor("counts")) : ""}
+            ${state.showErrors && (errorFor("counts") || errorFor("adults") || errorFor("children")) ? errorBlock(serverMessage(["counts", "adults", "children"])) : ""}
             ${state.showErrors && totalError ? errorBlock(totalError) : ""}
             ${continueControl()}`;
     };
     const roomsContent = () => {
         const validation = roomError();
-        const rooms = allocateRooms(state.adults, state.children, state.rooms);
+        const rooms = allocateRooms(adultCount(), childCount(), state.rooms);
         return `${counter({ title: "Rooms", sub: `Maximum ${config.maxPerRoom} guests per room · at least 1 adult in each room`, value: state.rooms, min: 1, max: 8, key: "rooms" })}
             <p class="booking-room-need">${plural(totalGuests(), "guest")} need at least <strong>${plural(minRooms(), "room")}</strong>.</p>
             ${state.showErrors && validation ? errorBlock(validation) : ""}
@@ -340,9 +450,10 @@ if (root) {
         }).join("")}</div>
         ${continueControl(state.selectedAddons.length ? "Continue" : "Skip add-ons")}`;
     const summaryContent = () => `<div class="booking-summary-lines">${priceLines().length ? summaryLines() : '<p class="booking-nothing">Nothing to price yet. Go back and choose your guests.</p>'}</div>
+        ${priceLines().length ? `<div class="booking-pax-mobile">${paxPriceTable()}</div>` : ""}
         <div class="booking-summary-actions">
-            <button class="button button-primary" type="submit" name="action" value="proceed" data-submit-action="proceed" ${state.busy || !canSubmit() ? "disabled" : ""}>${state.busy ? '<span class="booking-spinner" aria-hidden="true"></span> Securing your fare…' : "Proceed to Payment"}</button>
-            <button class="button button-ghost" type="submit" name="action" value="cart" data-submit-action="cart" ${state.busy || !canSubmit() ? "disabled" : ""}>Add to Cart</button>
+            <button class="button button-primary" type="submit" name="action" value="proceed" data-submit-action="proceed" ${state.busy ? "disabled" : ""}>${state.busy ? '<span class="booking-spinner" aria-hidden="true"></span> Securing your fare…' : "Proceed to Payment"}</button>
+            <button class="button button-ghost" type="submit" name="action" value="cart" data-submit-action="cart" ${state.busy ? "disabled" : ""}>${config.editing ? "Save Changes" : "Add to Cart"}</button>
         </div>
         <p class="booking-step-lead">You can apply a promo code and review everything once more at payment.</p>`;
     const continueControl = (label = "Continue") => `<div class="booking-continue">
@@ -379,6 +490,7 @@ if (root) {
                     ${priceLines().length ? `<p>${esc(countLabel)}</p>${summaryLines(true)}${config.cruise && plan().some((room) => !room.type) ? '<small class="booking-estimate-note">Estimated from the lowest room rate until you choose room types.</small>' : ""}` : `<p class="booking-estimate-empty">${esc(guestError() || "Choose your guests to see a price.")}</p>`}
                 </div>
             </div>
+            ${priceLines().length ? `<div class="booking-pax-desktop">${paxPriceTable()}</div>` : ""}
         </aside>`;
     };
     const mobileTotal = () => `<div class="booking-mobile-total">
@@ -411,8 +523,8 @@ if (root) {
             fields.append(input);
         };
         add("kind", config.cruise ? "cruise" : "fh");
-        add("adults", state.adults);
-        add("children", state.children);
+        add("adults", adultCount());
+        add("children", childCount());
         add("rooms", state.rooms);
         kinds.forEach((kind) => add(`counts[${kind.id}]`, Number(state.counts[kind.id] || 0)));
         state.roomTypes.forEach((type) => add("room_types[]", type));
@@ -455,6 +567,8 @@ if (root) {
         state.step = index;
         state.showErrors = false;
         render();
+        const initialDobError = Object.entries(state.errors).find(([key]) => /^guests\.\d+\.dob$/.test(key));
+        if (initialDobError) window.alert(initialDobError[1][0]);
         requestAnimationFrame(() => document.getElementById(`booking-step-${index + 1}`)?.scrollIntoView({ behavior: "smooth", block: "start" }));
     };
     const syncLeadDetails = (index, field, value) => {
@@ -471,6 +585,17 @@ if (root) {
     const clearServerError = (key) => {
         if (state.errors[key]) delete state.errors[key];
     };
+    const reportDobError = (index) => {
+        const error = guestErrors(guestAt(index), index, index === 0).dob;
+        if (!error) {
+            delete state.dobAlerts[index];
+            return;
+        }
+        if (state.dobAlerts[index] !== error) {
+            state.dobAlerts[index] = error;
+            window.alert(error);
+        }
+    };
     const initialErrors = Object.keys(state.errors);
     if (initialErrors.some((key) => key.startsWith("room_types"))) state.step = config.cruise ? 2 : 0;
     else if (initialErrors.some((key) => key.startsWith("rooms"))) state.step = config.cruise ? 1 : 0;
@@ -483,13 +608,7 @@ if (root) {
         if (target.hasAttribute("data-counter")) {
             const key = target.dataset.counter;
             const delta = Number(target.dataset.delta);
-            if (key === "adults") {
-                state.adults = Math.max(0, Math.min(16, state.adults + delta));
-                clearServerError("adults");
-            } else if (key === "children") {
-                state.children = Math.max(0, Math.min(16, state.children + delta));
-                clearServerError("children");
-            } else if (key === "rooms") {
+            if (key === "rooms") {
                 state.rooms = Math.max(1, Math.min(8, state.rooms + delta));
                 clearServerError("rooms");
             } else if (key.startsWith("count:")) {
@@ -543,11 +662,12 @@ if (root) {
         const index = Number(target.dataset.guestIndex);
         const field = target.dataset.guestField;
         const value = field === "passport" ? target.value.toUpperCase() : target.value;
+        const supportsSelection = ["text", "search", "tel", "url", "password"].includes(target.type);
         const focus = {
             index,
             field,
-            start: target.selectionStart,
-            end: target.selectionEnd,
+            start: supportsSelection ? target.selectionStart : null,
+            end: supportsSelection ? target.selectionEnd : null,
         };
         syncLeadDetails(index, field, value);
         clearServerError(`guests.${index}.${field}`);
@@ -555,7 +675,12 @@ if (root) {
     });
     root.addEventListener("change", (event) => {
         const target = event.target;
-        if (target.matches("[data-room-type]")) {
+        if (target.matches('[data-guest-index][data-guest-field="dob"]')) {
+            const index = Number(target.dataset.guestIndex);
+            state.dobTouched[index] = true;
+            reportDobError(index);
+            render();
+        } else if (target.matches("[data-room-type]")) {
             state.roomTypes[Number(target.dataset.roomType)] = target.value;
             clearServerError("room_types");
             render();
@@ -574,11 +699,30 @@ if (root) {
             render();
         }
     });
+    root.addEventListener("focusout", (event) => {
+        const target = event.target;
+        if (!target.matches('[data-guest-index][data-guest-field="dob"]')) return;
+        const index = Number(target.dataset.guestIndex);
+        state.dobTouched[index] = true;
+        reportDobError(index);
+        render();
+    });
     form.addEventListener("submit", (event) => {
         const submitter = event.submitter;
         const action = submitter?.dataset.submitAction || submitter?.value || "proceed";
-        if (!canSubmit() || state.busy) {
+        if (state.busy) {
             event.preventDefault();
+            return;
+        }
+        const invalidDob = allGuestErrors().findIndex((errors) => errors.dob);
+        if (invalidDob >= 0) {
+            event.preventDefault();
+            state.showErrors = true;
+            state.step = config.cruise ? 3 : 1;
+            state.openGuests[invalidDob] = true;
+            reportDobError(invalidDob);
+            render();
+            requestAnimationFrame(() => app.querySelector(`[data-guest-index="${invalidDob}"][data-guest-field="dob"]`)?.focus());
             return;
         }
         event.preventDefault();

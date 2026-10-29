@@ -1,0 +1,144 @@
+{
+  "id": "RCI-NAVIGATOR-OF-THE-SEAS",
+  "source_file": "CM_RCI_Navigator_Brochure_-_UPDATED_06AUG26__HR___1_.pdf",
+  "brand": "Royal Caribbean International",
+  "seller": "Cruise Master (powered by Asia Cathay Travel Sdn Bhd) 游轮专家",
+  "name": {
+    "en": "Navigator of the Seas",
+    "zh": "海洋领航者号"
+  },
+  "specs": {
+    "registry": "Bahamas",
+    "built_at": "Kvaerner Masa-Yards, Turku, Finland",
+    "maiden_voyage": "2002-12-14",
+    "godmother": "Stefanie Graf",
+    "onboard_currency": "USD",
+    "gross_tonnage_grt": 139999,
+    "length_ft": 1020,
+    "length_m": 310,
+    "width_ft": 161,
+    "width_m": 49,
+    "draft_ft": 29,
+    "draft_m": 8,
+    "cruising_speed_knots": 22,
+    "guests_double_occupancy": 3388,
+    "guests_total": 3968,
+    "international_crew": 1232,
+    "staterooms": 1694,
+    "guest_decks": 14,
+    "total_decks": 15,
+    "guest_elevators": 14,
+    "bow_thrusters": 4
+  },
+  "pitch": "An 'amped-up' short-getaway ship with the longest waterslide at sea, bigger pool days, upgraded entertainment and new dining.",
+  "highlights": [
+    "The Blaster",
+    "Riptide",
+    "To Dry For",
+    "Playmakers Sports Bar & Arcade",
+    "Royal Escape Room: The Observatorium"
+  ],
+  "dining": {
+    "complimentary": [
+      "Café Promenade",
+      "El Loco Fresh",
+      "Main Dining Room",
+      "Windjammer (Marketplace)",
+      "Room service (complimentary for Continental Breakfast menu items; US$7.95 convenience fee for All-Day Menu and American Breakfast Menu items; full menu complimentary for Grand Suites and above)"
+    ],
+    "specialty": [
+      "Chef's Table",
+      "Chops Grille",
+      "Hooked Seafood",
+      "Izumi",
+      "Jamie's Italian by Jamie Oliver",
+      "Johnny Rockets (Express)",
+      "Starbucks"
+    ]
+  },
+  "bars_lounges": [
+    "Boleros",
+    "Copper & Clover",
+    "Cosmopolitan Bar",
+    "The Lime & Coconut",
+    "The Bamboo Room",
+    "R Bar",
+    "Schooner Bar",
+    "Solarium Bar",
+    "Viking Crown Lounge",
+    "Playmakers"
+  ],
+  "amenities": [
+    "Art Gallery",
+    "Card Room",
+    "Casino Royale",
+    "Conference Center",
+    "FlowRider",
+    "Laser Tag: Battle for Planet Z",
+    "Medical Center",
+    "Mini Golf",
+    "Outdoor Movie Screen",
+    "Pool",
+    "Rock Climbing Wall",
+    "Royal Theater",
+    "Solarium",
+    "Sports Court",
+    "Star Lounge",
+    "Studio B",
+    "Tide and Trail",
+    "Vitality Spa & Fitness Center",
+    "VOOM",
+    "Whirlpools",
+    "Running Track",
+    "Library",
+    "Onboard Shopping"
+  ],
+  "kids_teens": [
+    "Adventure Ocean",
+    "Arcade",
+    "Splash Pad",
+    "The Back Deck",
+    "The Living Room"
+  ],
+  "activities_entertainment": [
+    "The Perfect Storm waterslides (The Blaster aqua coaster, Riptide headfirst mat racer)",
+    "Doubled pool surface area / amplified pool deck",
+    "Splash Pad for families",
+    "iSkate ice skating show and ice skating",
+    "Rock climbing",
+    "Mini golf",
+    "Laser Tag: Battle for Planet Z",
+    "FlowRider",
+    "Royal Escape Room: The Observatorium (paid)",
+    "Live bands",
+    "Arcade (paid)",
+    "Sports court",
+    "Royal Theater shows: ShowGirl, Ballroom Fever",
+    "Movie nights",
+    "Pickleball (paid)",
+    "The Silent Party"
+  ],
+  "stateroom_types": [
+    "Interior",
+    "Promenade View Interior",
+    "Oceanview",
+    "Balcony"
+  ],
+  "stateroom_features_all_categories": [
+    "In-room HD TV",
+    "Mini fridge",
+    "Ample closet and storage",
+    "Private bathroom & shower",
+    "Hair dryer",
+    "Premium toiletries (shampoo, conditioner, body wash)",
+    "In-room security safe",
+    "Exclusive bedding collection"
+  ],
+  "itineraries": [],
+  "pricing": null,
+  "data_quality_flags": [
+    "Brochure has no itinerary, dates or fares – ship profile only.",
+    "Cover contains a leftover Chinese label '海洋赞礼号' (Anthem of the Seas) – ignore.",
+    "Paid items marked with a '$' icon in the brochure: Royal Escape Room, Arcade, Pickleball."
+  ]
+}

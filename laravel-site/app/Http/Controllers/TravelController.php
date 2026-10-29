@@ -9,6 +9,7 @@ use App\Models\Enquiry;
 use App\Models\Faq;
 use App\Models\Guide;
 use App\Models\NewsletterSubscriber;
+use App\Models\PromoCode;
 use App\Models\SearchLog;
 use App\Models\Ship;
 use App\Models\TravelDeal;
@@ -33,27 +34,24 @@ use Symfony\Component\HttpFoundation\Response;
 
 class TravelController extends Controller
 {
-    public function home(): View
+    public function home(): Response
     {
-        $countries = Country::query()
-            ->whereIn('slug', ['japan', 'kenya', 'iceland', 'australia'])
-            ->get()
-            ->keyBy('slug');
+        $destinations = Country::query()->inRandomOrder()->limit(4)->get()->shuffle()->values();
 
-        return view('home', [
+        return response()->view('home', [
             'featured' => TravelPackage::where('published', true)->orderByDesc('reviews')->take(6)->get(),
-            'destinations' => collect(['japan', 'kenya', 'iceland', 'australia'])->map(fn ($slug) => $countries->get($slug))->filter()->values(),
+            'destinations' => $destinations,
             'ships' => Ship::query()->orderBy('id')->get(),
             'journalPosts' => Guide::where('published', true)->orderBy('sort_order')->take(3)->get(),
             'searchOptions' => $this->searchOptions(),
             'slides' => [
                 ['image' => 'home/danube.jpg', 'kicker' => 'Limited-time · 25% off', 'title' => 'Welcome to Travel With You! ', 'text' => 'Celebrate Lunar New Year along Europe\'s legendary Danube.', 'label' => 'Book Now', 'url' => route('packages.show', ['package' => 'amaasia-lunar-new-year-best-of-the-danube-2027'])],
-                ['image' => 'star-voyager-1-xnakcrup.png', 'kicker' => 'New ship · Star Voyager', 'title' => 'Sail the Star Voyager.', 'text' => 'A boutique ship for hidden harbours, from Melaka to Singapore.', 'label' => 'View ship', 'url' => route('ships.show', ['ship' => 'star-voyager']), 'secondary_label' => 'Explore ships', 'secondary_url' => route('ships')],
-                ['image' => 'ship-navigator-of-the-seas-01', 'video' => asset('assets/video/Ship_example.mp4'), 'kicker' => 'Ship tour · Navigator of the Seas', 'title' => 'Amped up at sea.', 'text' => 'Step aboard Navigator of the Seas — record-breaking slides, a bigger pool deck and the Royal Promenade.', 'label' => 'View ship', 'url' => route('ships.show', ['ship' => 'navigator-of-the-seas']), 'secondary_label' => 'Explore ships', 'secondary_url' => route('ships')],
+                ['image' => 'star-voyager-1-xnakcrup.png', 'kicker' => 'New ship · Star Voyager', 'title' => 'Sail the Star Voyager.', 'text' => 'A boutique ship for hidden harbours, from Melaka to Singapore.', 'label' => 'View ship', 'url' => route('ships.show', ['ship' => 'star-voyager']), 'secondary_label' => 'Explore Cruise', 'secondary_url' => route('ships')],
+                ['image' => 'ship-navigator-of-the-seas-01', 'video' => asset('assets/video/Ship_example.mp4'), 'kicker' => 'Ship tour · Navigator of the Seas', 'title' => 'Amped up at sea.', 'text' => 'Step aboard Navigator of the Seas — record-breaking slides, a bigger pool deck and the Royal Promenade.', 'label' => 'View ship', 'url' => route('ships.show', ['ship' => 'navigator-of-the-seas']), 'secondary_label' => 'Explore Cruise', 'secondary_url' => route('ships')],
                 ['image' => 'package-photo-20', 'kicker' => 'Early bird · 15% off', 'title' => 'Above the cloud line.', 'text' => 'Machu Picchu at sunrise with an archaeologist at your side.', 'label' => 'View Deal', 'url' => route('deals')],
                 ['image' => 'package-photo-24', 'kicker' => 'Group discount · 10% off', 'title' => 'The Great Migration.', 'text' => 'Tented camps on the Mara. Bring five friends and save.', 'label' => 'View Deal', 'url' => route('deals')],
             ],
-        ]);
+        ])->header('Cache-Control', 'no-store, private');
     }
 
     public function packages(Request $request): View
@@ -208,6 +206,7 @@ class TravelController extends Controller
         if (! $package) {
             return view('booking', ['state' => 'package-not-found']);
         }
+        $editCartItem = $this->requestedCartItem($request, $package);
         if (! in_array($date, Pricing::availableDepartureDates($package), true)) {
             return view('booking', ['state' => 'departure-unavailable', 'package' => $package]);
         }
@@ -225,7 +224,16 @@ class TravelController extends Controller
             $gallery->push($ship->image);
         }
         $deal = Pricing::dealFor($package);
+        $cabinPrices = Pricing::cabinPrices($package);
         $errorBag = $request->session()->get('errors');
+        $oldInput = old();
+        if ($editCartItem !== null && $oldInput === []) {
+            $oldInput = $this->bookingInputFromCartItem($editCartItem['item'], $package);
+        }
+        $submitParameters = ['id' => $package->slug, 'date' => $date];
+        if ($editCartItem !== null) {
+            $submitParameters['cart_item'] = $request->query('cart_item');
+        }
 
         return view('booking', [
             'state' => null,
@@ -238,19 +246,20 @@ class TravelController extends Controller
                 'percent' => (float) $deal->discount_percent,
             ] : null,
             'taxRate' => (float) config('travel.tax_rate'),
-            'guestKinds' => Pricing::GUEST_KINDS,
-            'addons' => Pricing::ADDONS,
+            'guestKinds' => Pricing::guestKinds($package),
+            'addons' => Pricing::addons($package),
             'cabins' => $ship?->cabins->values()->map(fn ($cabin, $index) => [
                 'type' => $cabin->type,
                 'size' => $cabin->size,
-                'price' => (float) $cabin->price_from,
+                'price' => (float) ($cabinPrices[$cabin->type] ?? $cabin->price_from),
                 'note' => $cabin->note,
                 'image' => asset_img($gallery->isEmpty() ? $ship->image : $gallery[$index % $gallery->count()]),
             ])->all() ?? [],
             'packageImage' => asset_img($package->image),
             'packageUrl' => route('packages.show', ['package' => $package->slug]),
-            'submitUrl' => route('booking.submit', ['id' => $package->slug, 'date' => $date]),
-            'oldInput' => old(),
+            'submitUrl' => route('booking.submit', $submitParameters),
+            'editing' => $editCartItem !== null,
+            'oldInput' => $oldInput,
             'errors' => $errorBag?->getBag('default')->messages() ?? [],
         ]);
     }
@@ -258,7 +267,12 @@ class TravelController extends Controller
     public function submitBooking(Request $request, string $id, string $date): RedirectResponse
     {
         $package = TravelPackage::query()->where('slug', $id)->where('published', true)->firstOrFail();
-        $bookingUrl = route('booking', ['id' => $id, 'date' => $date]);
+        $editCartItem = $this->requestedCartItem($request, $package);
+        $bookingParameters = ['id' => $id, 'date' => $date];
+        if ($editCartItem !== null) {
+            $bookingParameters['cart_item'] = $request->query('cart_item');
+        }
+        $bookingUrl = route('booking', $bookingParameters);
         if (! in_array($date, Pricing::availableDepartureDates($package), true)) {
             return redirect($bookingUrl)->withErrors(['departure' => "That departure isn't available."]);
         }
@@ -276,22 +290,22 @@ class TravelController extends Controller
             'action' => ['required', Rule::in(['proceed', 'cart'])],
             'kind' => ['required', Rule::in([$kind])],
             'addons' => ['sometimes', 'array'],
-            'addons.*' => ['string', 'distinct', Rule::in(collect(Pricing::ADDONS)->pluck('id')->all())],
+            'addons.*' => ['string', 'distinct', Rule::in(collect(Pricing::addons($package))->pluck('id')->all())],
         ];
 
+        $guestKinds = Pricing::guestKinds($package);
+        $rules['counts'] = [$cruise ? 'sometimes' : 'required', 'array'];
+        foreach ($guestKinds as $guestKind) {
+            $rules['counts.'.$guestKind['id']] = [$cruise ? 'sometimes' : 'required', 'integer', 'min:0', 'max:16'];
+        }
         if ($cruise) {
             $rules += [
-                'adults' => ['required', 'integer', 'min:0', 'max:16'],
-                'children' => ['required', 'integer', 'min:0', 'max:16'],
+                'adults' => ['nullable', 'integer', 'min:0', 'max:16'],
+                'children' => ['nullable', 'integer', 'min:0', 'max:16'],
                 'rooms' => ['required', 'integer', 'min:1', 'max:8'],
                 'room_types' => ['required', 'array'],
                 'room_types.*' => ['required', 'string', 'max:120'],
             ];
-        } else {
-            $rules['counts'] = ['required', 'array'];
-            foreach (Pricing::GUEST_KINDS as $guestKind) {
-                $rules['counts.'.$guestKind['id']] = ['required', 'integer', 'min:0', 'max:12'];
-            }
         }
         $rules += [
             'guests' => ['sometimes', 'array'],
@@ -322,11 +336,23 @@ class TravelController extends Controller
         $addons = array_values($input['addons'] ?? []);
 
         if ($cruise) {
-            $adults = (int) $input['adults'];
-            $children = (int) $input['children'];
+            $counts = collect($guestKinds)->mapWithKeys(fn ($guestKind) => [
+                $guestKind['id'] => (int) ($input['counts'][$guestKind['id']] ?? 0),
+            ])->all();
+            if (! isset($input['counts'])) {
+                $legacyCounts = ['adult' => (int) ($input['adults'] ?? 0), 'childTwin' => (int) ($input['children'] ?? 0)];
+                foreach ($legacyCounts as $legacyId => $count) {
+                    if (array_key_exists($legacyId, $counts)) {
+                        $counts[$legacyId] = $count;
+                    }
+                }
+            }
+            $adults = collect($guestKinds)->filter(fn ($guestKind) => ($guestKind['role'] ?? 'adult') === 'adult')
+                ->sum(fn ($guestKind) => $counts[$guestKind['id']]);
+            $children = collect($guestKinds)->filter(fn ($guestKind) => ($guestKind['role'] ?? 'adult') === 'child')
+                ->sum(fn ($guestKind) => $counts[$guestKind['id']]);
             $total = $adults + $children;
             $rooms = (int) $input['rooms'];
-            $counts = ['adult' => $adults, 'single' => 0, 'childBed' => 0, 'childTwin' => $children, 'childNoBed' => 0];
             $roomTypes = $input['room_types'];
             if ($adults < 1) {
                 $errors = ['adults' => 'At least 1 adult must travel on each booking.'];
@@ -344,11 +370,12 @@ class TravelController extends Controller
                 ->map(fn ($room, $index) => [...$room, 'type' => $roomTypes[$index] ?? ''])
                 ->all();
         } else {
-            $counts = collect(Pricing::GUEST_KINDS)
+            $counts = collect($guestKinds)
                 ->mapWithKeys(fn ($guestKind) => [$guestKind['id'] => (int) $input['counts'][$guestKind['id']]])
                 ->all();
             $total = array_sum($counts);
-            $grownups = $counts['adult'] + $counts['single'];
+            $grownups = collect($guestKinds)->filter(fn ($guestKind) => ($guestKind['role'] ?? 'adult') === 'adult')
+                ->sum(fn ($guestKind) => $counts[$guestKind['id']]);
             if ($total === 0) {
                 $errors = ['counts' => 'Add at least one guest to continue.'];
             } elseif ($grownups < 1) {
@@ -381,8 +408,36 @@ class TravelController extends Controller
             if (mb_strlen($name) < 3 || preg_match('/[A-Za-z]{2}/', $name) !== 1) {
                 $errors[$prefix.'name'] = 'Enter the full name as on the passport';
             }
-            if (! $this->validBookingDate($dob) || (int) substr($dob, 0, 4) < 1900 || Carbon::parse($dob)->isFuture()) {
+            $validDob = $this->validBookingDate($dob)
+                && (int) substr($dob, 0, 4) >= 1900
+                && ! Carbon::parse($dob)->isFuture();
+            if (! $validDob) {
                 $errors[$prefix.'dob'] = 'Enter a valid date of birth';
+            } else {
+                $guestKindOffset = 0;
+                $guestKind = null;
+                foreach ($guestKinds as $kindDefinition) {
+                    $kindCount = (int) ($counts[$kindDefinition['id']] ?? 0);
+                    if ($index < $guestKindOffset + $kindCount) {
+                        $guestKind = $kindDefinition;
+                        break;
+                    }
+                    $guestKindOffset += $kindCount;
+                }
+
+                if ($guestKind !== null) {
+                    $birthDate = Carbon::parse($dob);
+                    $bookingDate = Carbon::parse($date);
+                    $age = (int) $bookingDate->format('Y') - (int) $birthDate->format('Y');
+                    if ($bookingDate->format('md') < $birthDate->format('md')) {
+                        $age--;
+                    }
+                    if (($guestKind['role'] ?? 'adult') === 'adult' && $age < 12) {
+                        $errors[$prefix.'dob'] = 'Adult guests must be at least 12 years old.';
+                    } elseif (($guestKind['role'] ?? 'adult') === 'child' && $age > 11) {
+                        $errors[$prefix.'dob'] = 'Children must be 11 years old or younger.';
+                    }
+                }
             }
             if ($nation === '') {
                 $errors[$prefix.'nation'] = 'Required';
@@ -434,17 +489,26 @@ class TravelController extends Controller
         }
 
         $cart = $request->session()->get('cart', []);
-        $cart[] = [
+        $cartItem = [
             'package_id' => $package->id,
             'departure_date' => $date,
             'guests' => $total,
             'addons' => $addons,
             'detail' => $detail,
         ];
+        if ($editCartItem !== null) {
+            $cart[$editCartItem['index']] = [...$editCartItem['item'], ...$cartItem];
+        } else {
+            $cart[] = ['uid' => (string) Str::uuid(), ...$cartItem];
+        }
         $request->session()->put('cart', $cart);
 
-        return $input['action'] === 'proceed'
-            ? redirect()->route('checkout')
+        if ($input['action'] === 'proceed') {
+            return redirect()->route('checkout');
+        }
+
+        return $editCartItem !== null
+            ? redirect()->route('cart')->with('success', 'Booking updated in your cart.')
             : redirect()->route('home')->with('success', 'Added to cart');
     }
 
@@ -461,6 +525,50 @@ class TravelController extends Controller
         }
 
         return $input;
+    }
+
+    private function requestedCartItem(Request $request, TravelPackage $package): ?array
+    {
+        $uid = $request->query('cart_item');
+        if ($uid === null) {
+            return null;
+        }
+
+        abort_unless(is_string($uid) && $uid !== '', 404);
+
+        $cart = $request->session()->get('cart', []);
+        $index = collect($cart)->search(fn (array $item) => ($item['uid'] ?? null) === $uid);
+        abort_unless($index !== false && isset($cart[$index]), 404);
+        abort_unless((int) ($cart[$index]['package_id'] ?? 0) === $package->id, 404);
+        abort_if(empty($cart[$index]['detail']), 404);
+
+        return ['index' => $index, 'item' => $cart[$index]];
+    }
+
+    private function bookingInputFromCartItem(array $item, TravelPackage $package): array
+    {
+        $detail = $item['detail'];
+        $counts = $detail['counts'] ?? [];
+        $guestKinds = Pricing::guestKinds($package);
+        $roleCounts = collect($guestKinds)->groupBy(fn ($kind) => $kind['role'] ?? 'adult')
+            ->map(fn ($kinds) => $kinds->sum(fn ($kind) => (int) ($counts[$kind['id']] ?? 0)));
+        $guests = array_map(function (array $guest): array {
+            if (! empty($guest['passport'])) {
+                $guest['passport'] = Crypt::decryptString($guest['passport']);
+            }
+
+            return $guest;
+        }, $detail['guests'] ?? []);
+
+        return [
+            'counts' => $counts,
+            'adults' => $roleCounts->get('adult', 0),
+            'children' => $roleCounts->get('child', 0),
+            'rooms' => count($detail['rooms'] ?? []),
+            'room_types' => array_column($detail['rooms'] ?? [], 'type'),
+            'guests' => $guests,
+            'addons' => $item['addons'] ?? [],
+        ];
     }
 
     private function validBookingDate(string $date): bool
@@ -628,7 +736,7 @@ class TravelController extends Controller
 
                 return [$month->format('Y-m') => $month->format('F Y')];
             }),
-            'ships' => $packages->pluck('ship')->filter()->unique()->sort()->take(5)->values(),
+            'ships' => $packages->pluck('ship')->filter()->unique()->sort()->values(),
             'ports' => $packages->pluck('departure_port')->filter()->unique()->sort()->values(),
         ];
     }
@@ -838,6 +946,12 @@ class TravelController extends Controller
         if (! $promo) {
             return back()->with('error', $this->invalidPromoMessage())->withInput($request->only('code'));
         }
+        if ($promo instanceof PromoCode
+            && Pricing::cartTotals($this->cartItems($request), $promo)['discount'] <= 0) {
+            return back()
+                ->with('error', 'This promo code does not apply to the packages in your cart.')
+                ->withInput($request->only('code'));
+        }
         $code = $promo instanceof TravelDeal ? $promo->promo_code : $promo->code;
         $request->session()->put('promo_code', $code);
 
@@ -886,7 +1000,7 @@ class TravelController extends Controller
             'cabin' => ['nullable', 'string', Rule::in($ship?->cabins->pluck('type')->all() ?? [])],
             'pax' => ['required', 'integer', 'min:1', 'max:12'],
             'addons' => ['sometimes', 'array'],
-            'addons.*' => ['string', 'distinct', Rule::in(collect(Pricing::ADDONS)->pluck('id')->all())],
+            'addons.*' => ['string', 'distinct', Rule::in(collect(Pricing::addons($package))->pluck('id')->all())],
         ]);
         $cart[$index] = [
             ...$cart[$index],
@@ -1053,21 +1167,7 @@ class TravelController extends Controller
 
         $totals = $this->cartTotals($items, $request);
         $orderReference = $this->uniqueOrderReference();
-        $eligible = $items->map(fn (array $item) => config('travel.stack_promo_on_deals', true)
-            || Pricing::dealFor($item['package']) === null);
-        $eligibleSubtotal = $items->filter(fn (array $item, int $index) => $eligible[$index])
-            ->sum(fn (array $item) => Pricing::itemTotal($item));
-        $discounts = $items->map(fn (array $item, int $index) => $eligible[$index] && $eligibleSubtotal > 0
-            ? round($totals['discount'] * (Pricing::itemTotal($item) / $eligibleSubtotal), 2)
-            : 0.0)->all();
-        $eligibleIndexes = $eligible->filter()->keys();
-        if ($eligibleIndexes->isNotEmpty()) {
-            $lastEligibleIndex = $eligibleIndexes->last();
-            $discounts[$lastEligibleIndex] = round(
-                $totals['discount'] - array_sum(array_slice($discounts, 0, $lastEligibleIndex)),
-                2,
-            );
-        }
+        $discounts = $totals['discount_allocations'];
         $bookings = DB::transaction(function () use ($items, $data, $totals, $orderReference, $paymentStatus, $discounts) {
             $remainingTaxes = $totals['taxes'];
 

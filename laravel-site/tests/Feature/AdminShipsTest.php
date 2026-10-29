@@ -37,6 +37,7 @@ class AdminShipsTest extends TestCase
             ->assertSee($ship->name)
             ->assertSee('Balcony')
             ->assertSee('name="cabins[0][type]"', false)
+            ->assertDontSee('name="cabins[0][price_from]"', false)
             ->assertSee('name="decks[0][label]"', false);
     }
 
@@ -61,7 +62,9 @@ class AdminShipsTest extends TestCase
             ->assertSee('A small ship for quiet harbours.')
             ->assertSee('Balcony')
             ->assertSee('Sun Deck')
-            ->assertSee('Pool deck');
+            ->assertSee('Pool deck')
+            ->assertDontSee('4500')
+            ->assertDontSee('Price');
         $this->get(route('home'))->assertOk()->assertSee('Aurora Pearl');
     }
 
