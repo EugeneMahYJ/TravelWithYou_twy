@@ -115,7 +115,7 @@
                         <li><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 4h4l2 5-3 2a14 14 0 0 0 5 5l2-3 5 2v4c0 1-1 2-2 2C10 20 4 14 3 6c0-1 1-2 2-2Z"></path></svg><a href="tel:{{ $company['phone'] }}">{{ $company['phone'] }}</a></li>
                     @endif
                     @if($company['email'])
-                        <li><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="1"></rect><path d="m4 7 8 6 8-6"></path></svg><a href="mailto:{{ $company['email'] }}">{{ $company['email'] }}</a></li>
+                        <li><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="1"></rect><path d="m4 7 8 6 8-6"></path></svg><a href="mailto:enquiry@travelwithyou.my">{{ $company['email'] }}</a></li>
                     @endif
                     @if($company['address'])
                         <li><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="2.5"></circle></svg><span>{{ $company['address'] }}</span></li>

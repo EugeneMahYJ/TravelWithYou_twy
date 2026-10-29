@@ -1,4 +1,12 @@
 document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll("select[data-other-ships-url]").forEach((select) => {
+        select.addEventListener("change", () => {
+            if (select.value === "__other_ships__") {
+                window.location.assign(select.dataset.otherShipsUrl);
+            }
+        });
+    });
+
     document.querySelectorAll("[data-clear-filters-in-place]").forEach((link) => {
         link.addEventListener("click", (event) => {
             event.preventDefault();

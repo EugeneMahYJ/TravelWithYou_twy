@@ -16,17 +16,18 @@
     </label>
     <label>
         <span>Ship</span>
-        <select name="ship">
+        <select name="ship" data-other-ships-url="{{ route('ships') }}">
             <option value="">Any ship</option>
             @foreach($options['ships'] as $ship)
                 <option value="{{ $ship }}" @selected(request('ship') === $ship)>{{ $ship }}</option>
             @endforeach
+            <option value="__other_ships__" class="other-ships-option">Other Ships</option>
         </select>
     </label>
     <label>
-        <span>Departure Port</span>
+        <span>Departure Port/City</span>
         <select name="dep_port">
-            <option value="">Any port</option>
+            <option value="">Any port/city</option>
             @foreach($options['ports'] as $port)
                 <option value="{{ $port }}" @selected(request('dep_port') === $port)>{{ $port }}</option>
             @endforeach

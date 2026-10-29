@@ -623,10 +623,12 @@ class TravelController extends Controller
         $packages ??= TravelPackage::query()->where('published', true)->get();
 
         return [
-            'months' => collect(range(1, 12))->mapWithKeys(fn ($month) => [
-                sprintf('2027-%02d', $month) => Carbon::create(2027, $month, 1)->format('F Y'),
-            ]),
-            'ships' => $packages->pluck('ship')->filter()->unique()->sort()->values(),
+            'months' => collect(range(0, 11))->mapWithKeys(function ($offset) {
+                $month = Carbon::now()->startOfMonth()->addMonths($offset);
+
+                return [$month->format('Y-m') => $month->format('F Y')];
+            }),
+            'ships' => $packages->pluck('ship')->filter()->unique()->sort()->take(5)->values(),
             'ports' => $packages->pluck('departure_port')->filter()->unique()->sort()->values(),
         ];
     }

@@ -361,6 +361,33 @@ class TravelWebsiteTest extends TestCase
         }
     }
 
+    public function test_search_bar_shows_rolling_departure_months_and_other_ships_link(): void
+    {
+        $response = $this->get(route('home'))
+            ->assertOk()
+            ->assertSee('<span>Departure Port/City</span>', false)
+            ->assertSee('<option value="__other_ships__" class="other-ships-option">Other Ships</option>', false)
+            ->assertSee('data-other-ships-url="'.route('ships').'"', false)
+            ->assertSee('href="mailto:enquiry@travelwithyou.my"', false);
+
+        preg_match('/<select name="month">(.*?)<\/select>/s', $response->getContent(), $monthSelect);
+        $this->assertNotEmpty($monthSelect);
+        preg_match_all('/<option value="(\d{4}-\d{2})"/', $monthSelect[1], $months);
+
+        $expectedMonths = collect(range(0, 11))
+            ->map(fn ($offset) => now()->startOfMonth()->addMonths($offset)->format('Y-m'))
+            ->all();
+        $this->assertSame($expectedMonths, $months[1]);
+
+        preg_match('/<select name="ship"[^>]*>(.*?)<\/select>/s', $response->getContent(), $shipSelect);
+        $this->assertNotEmpty($shipSelect);
+        preg_match_all('/<option value="([^"]*)"/', $shipSelect[1], $shipValues);
+        $shipOptions = array_filter($shipValues[1], fn ($value) => $value !== '' && $value !== '__other_ships__');
+
+        $this->assertLessThanOrEqual(5, count($shipOptions));
+        $this->assertSame('__other_ships__', end($shipValues[1]));
+    }
+
     public function test_trending_searches_return_their_expected_packages(): void
     {
         $searches = [

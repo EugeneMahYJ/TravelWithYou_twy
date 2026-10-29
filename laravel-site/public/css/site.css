@@ -248,6 +248,7 @@ button { color: inherit; }
 .search-panel label:first-child { padding-left: 0; }
 .search-panel label > span, .filter-form label > span, .form-card label > span, .booking-card label > span { display: block; margin-bottom: 6px; color: var(--muted); font: 10px var(--mono); letter-spacing: .14em; text-transform: uppercase; }
 .search-panel input, .search-panel select, .filter-form input, .filter-form select, .form-card input:not([type="checkbox"]):not([type="radio"]), .form-card select, .form-card textarea, .booking-card input, .booking-card select, .status-form select { width: 100%; min-height: 42px; padding: 9px 10px; border: 1px solid var(--line); border-radius: 0; color: var(--ink); background: var(--card); }
+.search-panel select option.other-ships-option { color: var(--accent-dark); background: #f7e3d8; font-weight: 700; text-decoration: underline; }
 .search-panel input, .search-panel select { border: 0; background: transparent; }
 .search-panel > button { margin-left: 16px; white-space: nowrap; }
 
