@@ -194,6 +194,7 @@ class AdminController extends Controller
             'countries' => Country::orderBy('name')->get(),
             'ships' => Ship::with('cabins')->orderBy('name')->get(),
             'mediaAssets' => AssetLibrary::all(),
+            'mediaFolders' => AssetLibrary::folders(),
         ]);
     }
 
@@ -206,6 +207,7 @@ class AdminController extends Controller
             'countries' => Country::orderBy('name')->get(),
             'ships' => Ship::with('cabins')->orderBy('name')->get(),
             'mediaAssets' => AssetLibrary::all(),
+            'mediaFolders' => AssetLibrary::folders(),
         ]);
     }
 
@@ -663,6 +665,7 @@ class AdminController extends Controller
         return view('admin.guides.form', [
             'guide' => new Guide,
             'mediaAssets' => AssetLibrary::all(),
+            'mediaFolders' => AssetLibrary::folders(),
         ]);
     }
 
@@ -671,6 +674,7 @@ class AdminController extends Controller
         return view('admin.guides.form', [
             'guide' => $guide,
             'mediaAssets' => AssetLibrary::all(),
+            'mediaFolders' => AssetLibrary::folders(),
         ]);
     }
 

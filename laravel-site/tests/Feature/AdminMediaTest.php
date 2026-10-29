@@ -136,7 +136,11 @@ class AdminMediaTest extends TestCase
         $this->get(route('admin.packages.create'))
             ->assertOk()
             ->assertSee('Browse library')
-            ->assertSee('data-asset-picker-upload', false)
+            ->assertDontSee('data-asset-picker-upload', false)
+            ->assertDontSee('Upload media')
+            ->assertDontSee('Create folder')
+            ->assertSee('data-asset-picker-folders', false)
+            ->assertSee('data-asset-picker-confirm', false)
             ->assertSee('sample-photo.jpg');
         $this->get(route('admin.ships.create'))
             ->assertOk()

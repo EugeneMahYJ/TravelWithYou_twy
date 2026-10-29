@@ -49,6 +49,7 @@ class AdminShipController extends Controller
             ]),
             'shipClasses' => $this->shipClasses(),
             'mediaAssets' => AssetLibrary::all(),
+            'mediaFolders' => AssetLibrary::folders(),
         ]);
     }
 
@@ -70,6 +71,7 @@ class AdminShipController extends Controller
             'ship' => $ship->load('cabins'),
             'shipClasses' => $this->shipClasses(),
             'mediaAssets' => AssetLibrary::all(),
+            'mediaFolders' => AssetLibrary::folders(),
         ]);
     }
 
