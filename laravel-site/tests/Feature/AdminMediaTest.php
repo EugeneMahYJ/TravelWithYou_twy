@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Models\TravelPackage;
 use App\Support\Totp;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -27,7 +28,12 @@ class AdminMediaTest extends TestCase
             ->assertSee('sample-video.mp4')
             ->assertSee('public/assets')
             ->assertSee('data-media-preview', false)
-            ->assertSee('data-media-delete', false);
+            ->assertSee('data-media-delete', false)
+            ->assertSee('admin-media-workspace', false)
+            ->assertSee('admin-media-folder-options', false)
+            ->assertSee('admin-media-file-options', false)
+            ->assertSee(route('admin.media.folders.create'), false)
+            ->assertSee(route('admin.media.move'), false);
     }
 
     public function test_admin_can_upload_an_image_into_the_assets_folder(): void
@@ -60,6 +66,146 @@ class AdminMediaTest extends TestCase
 
         $this->assertStringStartsWith('uploads/', $path);
         Storage::disk('assets')->assertExists($path);
+    }
+
+    public function test_admin_can_create_open_rename_move_and_delete_empty_media_folders(): void
+    {
+        Storage::fake('assets');
+        $this->actingAs($this->admin())->withSession($this->verifiedSession());
+
+        $this->post(route('admin.media.folders.create'), ['name' => 'Europe'])
+            ->assertRedirect(route('admin.media'));
+        $this->assertTrue(Storage::disk('assets')->directoryExists('europe'));
+
+        $this->post(route('admin.media.folders.create'), ['parent' => 'europe', 'name' => 'Switzerland'])
+            ->assertRedirect(route('admin.media', ['folder' => 'europe']));
+        $this->assertTrue(Storage::disk('assets')->directoryExists('europe/switzerland'));
+
+        $this->get(route('admin.media', ['folder' => 'europe/switzerland']))
+            ->assertOk()
+            ->assertSee('europe/switzerland')
+            ->assertSee('Upload');
+
+        $this->post(route('admin.media.folders.rename'), [
+            'path' => 'europe/switzerland',
+            'name' => 'Swiss Alps',
+            'current_folder' => 'europe/switzerland',
+        ])->assertRedirect(route('admin.media', ['folder' => 'europe/swiss-alps']));
+        $this->assertTrue(Storage::disk('assets')->directoryExists('europe/swiss-alps'));
+        $this->assertFalse(Storage::disk('assets')->directoryExists('europe/switzerland'));
+
+        $this->post(route('admin.media.folders.move'), [
+            'path' => 'europe/swiss-alps',
+            'destination' => '',
+            'current_folder' => 'europe/swiss-alps',
+        ])->assertRedirect(route('admin.media', ['folder' => 'swiss-alps']));
+        $this->assertTrue(Storage::disk('assets')->directoryExists('swiss-alps'));
+
+        $this->delete(route('admin.media.folders.delete'), [
+            'path' => 'swiss-alps',
+            'current_folder' => 'swiss-alps',
+        ])->assertRedirect(route('admin.media'));
+        $this->assertFalse(Storage::disk('assets')->directoryExists('swiss-alps'));
+    }
+
+    public function test_admin_cannot_delete_a_non_empty_media_folder(): void
+    {
+        Storage::fake('assets');
+        Storage::disk('assets')->put('uploads/photo.jpg', 'image');
+        $this->actingAs($this->admin())->withSession($this->verifiedSession());
+
+        $this->delete(route('admin.media.folders.delete'), ['path' => 'uploads'])
+            ->assertRedirect(route('admin.media'))
+            ->assertSessionHas('error');
+
+        Storage::disk('assets')->assertExists('uploads/photo.jpg');
+    }
+
+    public function test_renaming_a_media_folder_preserves_nested_files_and_updates_package_references(): void
+    {
+        Storage::fake('assets');
+        Storage::disk('assets')->put('europe/switzerland/photo.jpg', 'image');
+        Storage::disk('assets')->makeDirectory('europe/switzerland/empty');
+        $package = TravelPackage::create([
+            'slug' => 'folder-reference-test',
+            'name' => 'Folder Reference Test',
+            'country' => 'Switzerland',
+            'region' => 'Europe',
+            'type' => 'Tour',
+            'days' => 1,
+            'description' => 'Test package',
+            'details' => 'Test details',
+            'price_from' => 0,
+            'price_to' => 0,
+            'departures' => [],
+            'image' => 'europe/switzerland/photo.jpg',
+            'gallery' => ['assets/europe/switzerland/photo.jpg'],
+            'published' => false,
+        ]);
+        $this->actingAs($this->admin())->withSession($this->verifiedSession());
+
+        $this->post(route('admin.media.folders.rename'), [
+            'path' => 'europe/switzerland',
+            'name' => 'Swiss Alps',
+            'current_folder' => 'europe',
+        ])->assertRedirect(route('admin.media', ['folder' => 'europe']));
+
+        Storage::disk('assets')->assertExists('europe/swiss-alps/photo.jpg');
+        $this->assertTrue(Storage::disk('assets')->directoryExists('europe/swiss-alps/empty'));
+        $package->refresh();
+        $this->assertSame('europe/swiss-alps/photo.jpg', $package->image);
+        $this->assertSame(['assets/europe/swiss-alps/photo.jpg'], $package->gallery);
+    }
+
+    public function test_admin_can_upload_and_move_media_within_folders(): void
+    {
+        Storage::fake('assets');
+        Storage::disk('assets')->makeDirectory('europe');
+        Storage::disk('assets')->makeDirectory('asia');
+        $package = TravelPackage::create([
+            'slug' => 'media-folder-test',
+            'name' => 'Media Folder Test',
+            'country' => 'Switzerland',
+            'region' => 'Europe',
+            'type' => 'Tour',
+            'days' => 1,
+            'description' => 'Test package',
+            'details' => 'Test details',
+            'price_from' => 0,
+            'price_to' => 0,
+            'departures' => [],
+            'image' => 'placeholder.jpg',
+            'gallery' => [],
+            'published' => false,
+        ]);
+        $this->actingAs($this->admin())->withSession($this->verifiedSession());
+
+        $response = $this->post(route('admin.media.upload'), [
+            'file' => UploadedFile::fake()->create('trip-photo.jpg', 100, 'image/jpeg'),
+            'folder' => 'europe',
+        ], ['Accept' => 'application/json']);
+        $response->assertOk()->assertJsonPath('asset.kind', 'image');
+        $path = $response->json('asset.path');
+        $this->assertStringStartsWith('europe/', $path);
+        $package->update([
+            'image' => $path,
+            'gallery' => ['assets/'.$path, 'video:'.$path],
+        ]);
+
+        $this->post(route('admin.media.move'), [
+            'path' => $path,
+            'folder' => 'asia',
+            'current_folder' => 'europe',
+        ])->assertRedirect(route('admin.media', ['folder' => 'europe']));
+
+        Storage::disk('assets')->assertMissing($path);
+        $this->assertTrue(Storage::disk('assets')->exists('asia/'.basename($path)));
+        $package->refresh();
+        $this->assertSame('asia/'.basename($path), $package->image);
+        $this->assertSame([
+            'assets/asia/'.basename($path),
+            'video:asia/'.basename($path),
+        ], $package->gallery);
     }
 
     public function test_admin_can_delete_media_from_nested_asset_folders(): void
@@ -140,6 +286,7 @@ class AdminMediaTest extends TestCase
             ->assertDontSee('Upload media')
             ->assertDontSee('Create folder')
             ->assertSee('data-asset-picker-folders', false)
+            ->assertSee('data-asset-folder="video"', false)
             ->assertSee('data-asset-picker-confirm', false)
             ->assertSee('sample-photo.jpg');
         $this->get(route('admin.ships.create'))

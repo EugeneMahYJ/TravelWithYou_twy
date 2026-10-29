@@ -410,9 +410,21 @@ class AdminController extends Controller
             return view('admin.resource', ['title' => 'Guides', 'resource' => $resource, 'rows' => $query->get()]);
         }
         if ($resource === 'media') {
-            $files = AssetLibrary::all();
+            $allFiles = AssetLibrary::all();
+            $folder = $request->query('folder', '');
+            abort_unless(is_string($folder) && ($folder === '' || AssetLibrary::folders()->contains($folder)), 404);
+            $files = AssetLibrary::filesIn($folder);
 
-            return view('admin.resource', ['title' => 'Media', 'resource' => $resource, 'rows' => $files, 'mediaBytes' => $files->sum('size')]);
+            return view('admin.resource', [
+                'title' => 'Media library',
+                'resource' => $resource,
+                'rows' => $files,
+                'mediaBytes' => $allFiles->sum('size'),
+                'allMediaFiles' => $allFiles,
+                'mediaFolder' => $folder,
+                'mediaFolders' => AssetLibrary::foldersIn($folder),
+                'allMediaFolders' => AssetLibrary::folders(),
+            ]);
         }
         if ($resource === 'users') {
             $users = User::query()->when($request->filled('q'), function ($query) use ($request): void {
@@ -698,17 +710,139 @@ class AdminController extends Controller
 
     public function uploadMedia(Request $request): RedirectResponse|JsonResponse
     {
-        $request->validate([
+        $data = $request->validate([
             'file' => ['required', 'file', 'max:512000', 'mimes:jpg,jpeg,png,webp,gif,avif,mp4,webm,mov,m4v'],
+            'folder' => ['nullable', 'string', 'max:1024'],
         ]);
 
-        $asset = AssetLibrary::store($request->file('file'));
+        $folder = $data['folder'] ?? 'uploads';
+        try {
+            $asset = AssetLibrary::store($request->file('file'), $folder);
+        } catch (\InvalidArgumentException $exception) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $exception->getMessage()], 422);
+            }
+
+            $redirectFolder = AssetLibrary::folders()->contains($folder) ? $folder : '';
+
+            return $this->mediaRedirect($redirectFolder)->with('error', $exception->getMessage());
+        }
 
         if ($request->expectsJson()) {
             return response()->json(['message' => 'Media uploaded.', 'asset' => $asset]);
         }
 
-        return redirect()->route('admin.media')->with('success', $asset['name'].' uploaded.');
+        return redirect()->route('admin.media', ['folder' => $folder])->with('success', $asset['name'].' uploaded.');
+    }
+
+    public function createMediaFolder(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'parent' => ['nullable', 'string', 'max:1024'],
+            'name' => ['required', 'string', 'max:80'],
+        ]);
+        $parent = $data['parent'] ?? '';
+        $folder = AssetLibrary::createFolder($parent, $data['name']);
+        if ($folder === null) {
+            return $this->mediaRedirect($parent)->with('error', 'Choose a valid folder name and parent location.');
+        }
+        if ($folder === false) {
+            return $this->mediaRedirect($parent)->with('error', 'Unable to create the folder.');
+        }
+
+        return $this->mediaRedirect($parent)->with('success', basename($folder).' folder created.');
+    }
+
+    public function renameMediaFolder(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'path' => ['required', 'string', 'max:1024'],
+            'name' => ['required', 'string', 'max:80'],
+            'current_folder' => ['nullable', 'string', 'max:1024'],
+        ]);
+        $folder = AssetLibrary::renameFolder($data['path'], $data['name']);
+        if ($folder === null) {
+            return $this->mediaRedirect($data['current_folder'] ?? '')->with('error', 'Folder not found or the new name is invalid or already in use.');
+        }
+        if ($folder === false) {
+            return $this->mediaRedirect($data['current_folder'] ?? '')->with('error', 'Unable to rename the folder.');
+        }
+
+        $redirectFolder = $data['current_folder'] ?? '';
+        if ($redirectFolder === $data['path'] || str_starts_with($redirectFolder, $data['path'].'/')) {
+            $redirectFolder = $folder.substr($redirectFolder, strlen($data['path']));
+        }
+
+        return $this->mediaRedirect($redirectFolder)->with('success', basename($folder).' folder renamed.');
+    }
+
+    public function moveMediaFolder(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'path' => ['required', 'string', 'max:1024'],
+            'destination' => ['nullable', 'string', 'max:1024'],
+            'current_folder' => ['nullable', 'string', 'max:1024'],
+        ]);
+        $folder = AssetLibrary::moveFolder($data['path'], $data['destination'] ?? '');
+        if ($folder === null) {
+            return $this->mediaRedirect($data['current_folder'] ?? '')->with('error', 'Folder not found or the selected destination is invalid.');
+        }
+        if ($folder === false) {
+            return $this->mediaRedirect($data['current_folder'] ?? '')->with('error', 'Unable to move the folder.');
+        }
+
+        $redirectFolder = $data['current_folder'] ?? '';
+        if ($redirectFolder === $data['path'] || str_starts_with($redirectFolder, $data['path'].'/')) {
+            $redirectFolder = $folder.substr($redirectFolder, strlen($data['path']));
+        }
+
+        return $this->mediaRedirect($redirectFolder)->with('success', basename($data['path']).' folder moved.');
+    }
+
+    public function deleteMediaFolder(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'path' => ['required', 'string', 'max:1024'],
+            'current_folder' => ['nullable', 'string', 'max:1024'],
+        ]);
+        $deleted = AssetLibrary::deleteFolder($data['path']);
+        if ($deleted === null) {
+            return $this->mediaRedirect($data['current_folder'] ?? '')->with('error', 'Folder not found.');
+        }
+        if (! $deleted) {
+            return $this->mediaRedirect($data['current_folder'] ?? '')->with('error', 'Move or delete the folder contents before deleting this folder.');
+        }
+
+        $redirectFolder = $data['current_folder'] ?? '';
+        if ($redirectFolder === $data['path'] || str_starts_with($redirectFolder, $data['path'].'/')) {
+            $redirectFolder = dirname($data['path']);
+            $redirectFolder = $redirectFolder === '.' ? '' : $redirectFolder;
+        }
+
+        return $this->mediaRedirect($redirectFolder)->with('success', basename($data['path']).' folder deleted.');
+    }
+
+    public function moveMedia(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'path' => ['required', 'string', 'max:1024'],
+            'folder' => ['nullable', 'string', 'max:1024'],
+            'current_folder' => ['nullable', 'string', 'max:1024'],
+        ]);
+        $asset = AssetLibrary::move($data['path'], $data['folder'] ?? '');
+        if ($asset === null) {
+            return $this->mediaRedirect($data['current_folder'] ?? '')->with('error', 'Media file or destination folder was not found.');
+        }
+        if ($asset === false) {
+            return $this->mediaRedirect($data['current_folder'] ?? '')->with('error', 'Unable to move this media file.');
+        }
+
+        return $this->mediaRedirect($data['current_folder'] ?? '')->with('success', basename($data['path']).' moved to '.($data['folder'] ?: 'the root folder').'.');
+    }
+
+    private function mediaRedirect(string $folder): RedirectResponse
+    {
+        return redirect()->route('admin.media', $folder === '' ? [] : ['folder' => $folder]);
     }
 
     public function deleteMedia(Request $request): RedirectResponse|JsonResponse

@@ -62,67 +62,174 @@
         @php($videoCount = $rows->where('kind', 'video')->count())
         <div class="admin-media-toolbar">
             <div>
-                <h2><span data-media-count>{{ $rows->count() }}</span> assets</h2>
+                <p class="eyebrow accent">Content workspace</p>
+                <h2>Your media</h2>
                 <p class="muted"><span data-media-image-count>{{ $imageCount }}</span> images · <span data-media-video-count>{{ $videoCount }}</span> videos · <span data-media-bytes>{{ number_format(($mediaBytes ?? 0) / 1024 / 1024, 2) }}</span> MB in public/assets</p>
                 <span data-media-total-bytes="{{ $mediaBytes ?? 0 }}" hidden></span>
             </div>
-            <form class="admin-media-upload" method="post" action="{{ route('admin.media.upload') }}" enctype="multipart/form-data" data-media-upload>
-                @csrf
-                <label class="button button-primary admin-upload-button">
-                    <svg aria-hidden="true" viewBox="0 0 20 20"><path d="M10 14V3m-4 4 4-4 4 4M3 14v3h14v-3"></path></svg>
-                    Upload media
-                    <input type="file" name="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif,video/mp4,video/webm,video/quicktime" required data-media-file>
-                </label>
-                <noscript><button class="button button-ghost" type="submit">Upload</button></noscript>
-                <span class="admin-media-upload-status" data-media-status aria-live="polite"></span>
-            </form>
         </div>
         @error('file')<div class="notice notice-error admin-error" role="alert">{{ $message }}</div>@enderror
         <div class="admin-media-progress" data-media-progress hidden><span></span></div>
-        <div class="admin-media-filters">
-            <label class="admin-media-search"><span class="visually-hidden">Search assets</span><input type="search" placeholder="Search images and videos…" data-media-search></label>
-            <div class="admin-media-tabs" role="group" aria-label="Filter assets">
-                <button type="button" class="is-active" data-media-filter="all">All <span>{{ $rows->count() }}</span></button>
-                <button type="button" data-media-filter="image">Images <span>{{ $imageCount }}</span></button>
-                <button type="button" data-media-filter="video">Videos <span>{{ $videoCount }}</span></button>
-            </div>
-            <span class="admin-media-filter-empty" data-media-empty-filter hidden>No assets match this filter.</span>
-        </div>
-        <div class="admin-media-grid" data-media-grid>
-            @forelse($rows as $file)
-                <article class="admin-media-card" data-media-kind="{{ $file['kind'] }}" data-media-name="{{ strtolower($file['name']) }}" data-media-path="{{ $file['path'] }}" data-media-size="{{ $file['size'] }}">
-                    <button type="button" class="admin-media-preview" data-media-preview data-media-type="{{ $file['kind'] }}" data-media-url="{{ $file['url'] }}" data-media-name="{{ $file['name'] }}" data-media-path="{{ $file['path'] }}" aria-label="Preview {{ $file['name'] }}">
-                        @if($file['kind'] === 'video')
-                            <video src="{{ $file['url'] }}" muted playsinline preload="metadata"></video>
-                            <span class="admin-media-play" aria-hidden="true">▶</span>
-                        @else
-                            <img src="{{ $file['url'] }}" alt="" loading="lazy">
-                        @endif
-                        <span class="admin-media-kind">{{ $file['kind'] }}</span>
-                    </button>
-                    <div class="admin-media-info">
-                        <strong title="{{ $file['name'] }}">{{ $file['name'] }}</strong>
-                        <small>{{ number_format($file['size'] / 1024, 0) }} KB</small>
-                        <div class="admin-media-actions">
-                            <button class="text-button" type="button" data-copy-asset="{{ $file['path'] }}">Copy</button>
-                            <a class="text-link" href="{{ $file['url'] }}" target="_blank" rel="noopener">Open</a>
-                            <form method="post" action="{{ route('admin.media.delete') }}" data-media-delete>
-                                @csrf
-                                @method('delete')
-                                <input type="hidden" name="path" value="{{ $file['path'] }}">
-                                <button class="text-button danger" type="submit" aria-label="Delete {{ $file['name'] }}">Delete</button>
-                            </form>
-                            <form method="post" action="{{ route('admin.media.rename') }}" data-media-rename>
-                                @csrf
-                                <input type="hidden" name="path" value="{{ $file['path'] }}">
-                                <button class="text-button" type="button" data-media-rename-trigger aria-label="Rename {{ $file['name'] }}">Rename</button>
-                            </form>
+        <div class="admin-media-workspace">
+            <aside class="admin-media-folders" aria-label="Media folders">
+                <div class="admin-media-folders-heading">
+                    <h2>Folders</h2>
+                    <details class="admin-media-folder-create">
+                        <summary aria-label="Create folder" title="Create folder">+</summary>
+                        <form method="post" action="{{ route('admin.media.folders.create') }}" class="admin-media-menu">
+                            @csrf
+                            <input type="hidden" name="parent" value="{{ $mediaFolder }}">
+                            <label for="media-folder-name">New folder</label>
+                            <input id="media-folder-name" name="name" maxlength="80" placeholder="Folder name" required>
+                            <button class="button button-primary" type="submit">Create folder</button>
+                        </form>
+                    </details>
+                </div>
+                <nav class="admin-media-folder-tree" aria-label="Folder navigation">
+                    <a class="admin-media-folder-link {{ $mediaFolder === '' ? 'is-active' : '' }}" href="{{ route('admin.media') }}">
+                        <span class="admin-media-folder-icon" aria-hidden="true">▧</span>
+                        <span>All media</span>
+                        <span class="admin-media-folder-count">{{ $allMediaFiles->count() }}</span>
+                    </a>
+                    @foreach($allMediaFolders as $folder)
+                        @php($folderDepth = substr_count($folder, '/'))
+                        <div class="admin-media-folder-row" style="--folder-depth: {{ $folderDepth }}">
+                            <a class="admin-media-folder-link {{ $mediaFolder === $folder ? 'is-active' : '' }}" href="{{ route('admin.media', ['folder' => $folder]) }}" title="{{ $folder }}">
+                                <span class="admin-media-folder-icon" aria-hidden="true">▰</span>
+                                <span>{{ basename($folder) }}</span>
+                            </a>
+                            <details class="admin-media-folder-options">
+                                <summary aria-label="Options for {{ basename($folder) }}" title="Folder options">⋯</summary>
+                                <div class="admin-media-menu">
+                                    <form method="post" action="{{ route('admin.media.folders.rename') }}">
+                                        @csrf
+                                        <input type="hidden" name="path" value="{{ $folder }}">
+                                        <input type="hidden" name="current_folder" value="{{ $mediaFolder }}">
+                                        <label for="rename-folder-{{ $loop->index }}">Rename folder</label>
+                                        <input id="rename-folder-{{ $loop->index }}" name="name" value="{{ basename($folder) }}" maxlength="80" required>
+                                        <button class="button button-ghost" type="submit">Save name</button>
+                                    </form>
+                                    <form method="post" action="{{ route('admin.media.folders.move') }}">
+                                        @csrf
+                                        <input type="hidden" name="path" value="{{ $folder }}">
+                                        <input type="hidden" name="current_folder" value="{{ $mediaFolder }}">
+                                        <label for="move-folder-{{ $loop->index }}">Move to</label>
+                                        <select id="move-folder-{{ $loop->index }}" name="destination">
+                                            <option value="">Root folder</option>
+                                            @foreach($allMediaFolders as $destination)
+                                                <option value="{{ $destination }}" @selected($destination === dirname($folder) && dirname($folder) !== '.') @disabled($destination === $folder || str_starts_with($destination, $folder.'/'))>{{ $destination }}</option>
+                                            @endforeach
+                                        </select>
+                                        <button class="button button-ghost" type="submit">Move folder</button>
+                                    </form>
+                                    <form method="post" action="{{ route('admin.media.folders.delete') }}" onsubmit="return confirm('Delete this empty folder? Folders with files or subfolders cannot be deleted.')">
+                                        @csrf
+                                        @method('delete')
+                                        <input type="hidden" name="path" value="{{ $folder }}">
+                                        <input type="hidden" name="current_folder" value="{{ $mediaFolder }}">
+                                        <button class="admin-media-menu-danger" type="submit">Delete empty folder</button>
+                                    </form>
+                                </div>
+                            </details>
+                        </div>
+                    @endforeach
+                </nav>
+                <form class="admin-media-upload" method="post" action="{{ route('admin.media.upload') }}" enctype="multipart/form-data" data-media-upload>
+                    @csrf
+                    <input type="hidden" name="folder" value="{{ $mediaFolder !== '' ? $mediaFolder : 'uploads' }}">
+                    <label class="button button-primary admin-upload-button">
+                        <svg aria-hidden="true" viewBox="0 0 20 20"><path d="M10 14V3m-4 4 4-4 4 4M3 14v3h14v-3"></path></svg>
+                        Upload media
+                        <input type="file" name="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif,video/mp4,video/webm,video/quicktime" required data-media-file>
+                    </label>
+                    <noscript><button class="button button-ghost" type="submit">Upload</button></noscript>
+                    <span class="admin-media-upload-status" data-media-status aria-live="polite"></span>
+                </form>
+                <p class="admin-media-folder-hint">Choose a folder to browse. Use its menu to rename, move, or delete it.</p>
+            </aside>
+            <section class="admin-media-browser" aria-label="Media files">
+                <div class="admin-media-browser-toolbar">
+                    <nav class="admin-media-breadcrumbs" aria-label="Current folder">
+                        <a href="{{ route('admin.media') }}">Media</a>
+                        @php($breadcrumbPath = '')
+                        @foreach(explode('/', $mediaFolder) as $segment)
+                            @if($segment !== '')
+                                @php($breadcrumbPath = $breadcrumbPath === '' ? $segment : $breadcrumbPath.'/'.$segment)
+                                <span aria-hidden="true">/</span>
+                                <a href="{{ route('admin.media', ['folder' => $breadcrumbPath]) }}">{{ $segment }}</a>
+                            @endif
+                        @endforeach
+                    </nav>
+                    <div class="admin-media-filters">
+                        <label class="admin-media-search"><span class="visually-hidden">Search assets</span><input type="search" placeholder="Search in this folder…" data-media-search></label>
+                        <div class="admin-media-tabs" role="group" aria-label="Filter assets">
+                            <button type="button" class="is-active" data-media-filter="all">All <span>{{ $rows->count() }}</span></button>
+                            <button type="button" data-media-filter="image">Images <span>{{ $imageCount }}</span></button>
+                            <button type="button" data-media-filter="video">Videos <span>{{ $videoCount }}</span></button>
                         </div>
                     </div>
-                </article>
-            @empty
-                <p class="muted admin-media-empty">No media files yet. Upload an image or video to get started.</p>
-            @endforelse
+                </div>
+                <div class="admin-media-items-heading">
+                    <span><strong data-media-count>{{ $rows->count() }}</strong> {{ $rows->count() === 1 ? 'item' : 'items' }} in this folder</span>
+                    <span>{{ $mediaFolder === '' ? 'All folders' : $mediaFolder }}</span>
+                </div>
+                <span class="admin-media-filter-empty" data-media-empty-filter hidden>No assets match this filter.</span>
+                <div class="admin-media-grid" data-media-grid>
+                    @forelse($rows as $file)
+                        <article class="admin-media-card" data-media-kind="{{ $file['kind'] }}" data-media-name="{{ strtolower($file['name']) }}" data-media-path="{{ $file['path'] }}" data-media-size="{{ $file['size'] }}">
+                            <button type="button" class="admin-media-preview" data-media-preview data-media-type="{{ $file['kind'] }}" data-media-url="{{ $file['url'] }}" data-media-name="{{ $file['name'] }}" data-media-path="{{ $file['path'] }}" aria-label="Preview {{ $file['name'] }}">
+                                @if($file['kind'] === 'video')
+                                    <video src="{{ $file['url'] }}" muted playsinline preload="metadata"></video>
+                                    <span class="admin-media-play" aria-hidden="true">▶</span>
+                                @else
+                                    <img src="{{ $file['url'] }}" alt="" loading="lazy">
+                                @endif
+                                <span class="admin-media-kind">{{ $file['kind'] }}</span>
+                            </button>
+                            <div class="admin-media-info">
+                                <div class="admin-media-file-meta">
+                                    <strong title="{{ $file['name'] }}">{{ $file['name'] }}</strong>
+                                    <small>{{ number_format($file['size'] / 1024, 0) }} KB</small>
+                                </div>
+                                <details class="admin-media-file-options">
+                                    <summary aria-label="Options for {{ $file['name'] }}" title="File options">⋯</summary>
+                                    <div class="admin-media-menu">
+                                        <button class="admin-media-menu-action" type="button" data-copy-asset="{{ $file['path'] }}">Copy path</button>
+                                        <a class="admin-media-menu-action" href="{{ $file['url'] }}" target="_blank" rel="noopener">Open file</a>
+                                        <form method="post" action="{{ route('admin.media.rename') }}" data-media-rename>
+                                            @csrf
+                                            <input type="hidden" name="path" value="{{ $file['path'] }}">
+                                            <input type="hidden" name="current_folder" value="{{ $mediaFolder }}">
+                                            <button class="admin-media-menu-action" type="button" data-media-rename-trigger aria-label="Rename {{ $file['name'] }}">Rename</button>
+                                        </form>
+                                        <form method="post" action="{{ route('admin.media.move') }}" class="admin-media-move-form">
+                                            @csrf
+                                            <input type="hidden" name="path" value="{{ $file['path'] }}">
+                                            <input type="hidden" name="current_folder" value="{{ $mediaFolder }}">
+                                            <label for="move-file-{{ $loop->index }}">Move to</label>
+                                            <select id="move-file-{{ $loop->index }}" name="folder" aria-label="Move {{ $file['name'] }} to folder">
+                                                <option value="">Root folder</option>
+                                                @foreach($allMediaFolders as $destination)
+                                                    <option value="{{ $destination }}" @selected($destination === dirname($file['path']) && dirname($file['path']) !== '.')>{{ $destination }}</option>
+                                                @endforeach
+                                            </select>
+                                            <button class="button button-ghost" type="submit">Move file</button>
+                                        </form>
+                                        <form method="post" action="{{ route('admin.media.delete') }}" data-media-delete>
+                                            @csrf
+                                            @method('delete')
+                                            <input type="hidden" name="path" value="{{ $file['path'] }}">
+                                            <button class="admin-media-menu-danger" type="submit" aria-label="Delete {{ $file['name'] }}">Delete file</button>
+                                        </form>
+                                    </div>
+                                </details>
+                            </div>
+                        </article>
+                    @empty
+                        <p class="muted admin-media-empty">No media files in this folder. Upload an image or video to get started.</p>
+                    @endforelse
+                </div>
+            </section>
         </div>
         <template data-media-card-template>
             <article class="admin-media-card" data-media-kind="" data-media-name="" data-media-path="">
@@ -133,23 +240,33 @@
                     <span class="admin-media-kind"></span>
                 </button>
                 <div class="admin-media-info">
-                    <strong></strong>
-                    <small></small>
-                    <div class="admin-media-actions">
-                        <button class="text-button" type="button" data-copy-asset>Copy path</button>
-                        <a class="text-link" href="#" target="_blank" rel="noopener">Open</a>
-                        <form method="post" action="{{ route('admin.media.delete') }}" data-media-delete>
-                            <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                            <input type="hidden" name="_method" value="delete">
-                            <input type="hidden" name="path" value="">
-                            <button class="text-button danger" type="submit" aria-label="Delete media">Delete</button>
-                        </form>
-                        <form method="post" action="{{ route('admin.media.rename') }}" data-media-rename>
-                            <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                            <input type="hidden" name="path" value="">
-                            <button class="text-button" type="button" data-media-rename-trigger aria-label="Rename media">Rename</button>
-                        </form>
-                    </div>
+                    <div class="admin-media-file-meta"><strong></strong><small></small></div>
+                    <details class="admin-media-file-options">
+                        <summary aria-label="File options">⋯</summary>
+                        <div class="admin-media-menu">
+                            <button class="admin-media-menu-action" type="button" data-copy-asset>Copy path</button>
+                            <a class="admin-media-menu-action" href="#" target="_blank" rel="noopener">Open file</a>
+                            <form method="post" action="{{ route('admin.media.rename') }}" data-media-rename>
+                                <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                <input type="hidden" name="path" value="">
+                                <input type="hidden" name="current_folder" value="{{ $mediaFolder }}">
+                                <button class="admin-media-menu-action" type="button" data-media-rename-trigger aria-label="Rename media">Rename</button>
+                            </form>
+                            <form method="post" action="{{ route('admin.media.move') }}" class="admin-media-move-form">
+                                <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                <input type="hidden" name="path" value="">
+                                <input type="hidden" name="current_folder" value="{{ $mediaFolder }}">
+                                <label><span class="visually-hidden">Move media to folder</span><select name="folder" aria-label="Move media to folder"><option value="">Root folder</option>@foreach($allMediaFolders as $destination)<option value="{{ $destination }}">{{ $destination }}</option>@endforeach</select></label>
+                                <button class="button button-ghost" type="submit">Move file</button>
+                            </form>
+                            <form method="post" action="{{ route('admin.media.delete') }}" data-media-delete>
+                                <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                <input type="hidden" name="_method" value="delete">
+                                <input type="hidden" name="path" value="">
+                                <button class="admin-media-menu-danger" type="submit" aria-label="Delete media">Delete file</button>
+                            </form>
+                        </div>
+                    </details>
                 </div>
             </article>
         </template>

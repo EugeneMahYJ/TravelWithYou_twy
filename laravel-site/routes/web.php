@@ -120,7 +120,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('/guides/{guide}', [AdminController::class, 'updateGuide'])->name('guides.update');
         Route::post('/media', [AdminController::class, 'uploadMedia'])->name('media.upload');
         Route::post('/media/rename', [AdminController::class, 'renameMedia'])->name('media.rename');
+        Route::post('/media/move', [AdminController::class, 'moveMedia'])->name('media.move');
         Route::delete('/media', [AdminController::class, 'deleteMedia'])->name('media.delete');
+        Route::post('/media/folders', [AdminController::class, 'createMediaFolder'])->name('media.folders.create');
+        Route::post('/media/folders/rename', [AdminController::class, 'renameMediaFolder'])->name('media.folders.rename');
+        Route::post('/media/folders/move', [AdminController::class, 'moveMediaFolder'])->name('media.folders.move');
+        Route::delete('/media/folders', [AdminController::class, 'deleteMediaFolder'])->name('media.folders.delete');
         foreach (['deals', 'bookings', 'enquiries', 'guides', 'media', 'users', 'company'] as $section) {
             Route::get('/'.$section, [AdminController::class, 'resource'])->defaults('resource', $section)->name($section);
         }

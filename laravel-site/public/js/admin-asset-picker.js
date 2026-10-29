@@ -20,6 +20,19 @@ document.addEventListener("DOMContentLoaded", () => {
     let selectedItem = null;
 
     const items = () => [...grid.querySelectorAll("[data-asset-select]")];
+    const loadVisibleImages = () => {
+        const gridBounds = grid.getBoundingClientRect();
+        items().forEach((item) => {
+            if (item.hidden) return;
+            const preview = item.querySelector(".admin-asset-picker-preview");
+            const bounds = preview.getBoundingClientRect();
+            if (bounds.bottom <= gridBounds.top || bounds.top >= gridBounds.bottom
+                || bounds.right <= gridBounds.left || bounds.left >= gridBounds.right) return;
+
+            const image = preview.querySelector('img[loading="lazy"]');
+            if (image) image.loading = "eager";
+        });
+    };
     const close = () => {
         picker.hidden = true;
         selectedItem = null;
@@ -58,6 +71,7 @@ document.addEventListener("DOMContentLoaded", () => {
         empty.hidden = visible > 0;
         empty.textContent = folderItems > 0 ? "No media matches your search or filter." : "No media files in this folder.";
         countLabel.textContent = `${visible} ${visible === 1 ? "item" : "items"}${term ? " found" : " in this folder"}`;
+        loadVisibleImages();
     };
     const choose = () => {
         if (!target || !selectedItem) return;
@@ -95,8 +109,10 @@ document.addEventListener("DOMContentLoaded", () => {
             ? "Browse folders and select an image for this item."
             : "Browse folders and select media for this item.";
         breadcrumb.textContent = "All media";
+        grid.scrollTop = 0;
         filterItems();
         picker.hidden = false;
+        loadVisibleImages();
         dialog.focus();
     };
 
@@ -114,6 +130,7 @@ document.addEventListener("DOMContentLoaded", () => {
             folderLinks.forEach((link) => link.classList.toggle("is-active", link === folderLink));
             breadcrumb.textContent = activeFolder || "All media";
             setSelectedItem(null);
+            grid.scrollTop = 0;
             filterItems();
             return;
         }
@@ -147,4 +164,5 @@ document.addEventListener("DOMContentLoaded", () => {
         if (event.key === "Escape" && !picker.hidden) close();
     });
     search.addEventListener("input", filterItems);
+    grid.addEventListener("scroll", loadVisibleImages, { passive: true });
 });

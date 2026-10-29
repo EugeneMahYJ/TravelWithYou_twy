@@ -80,6 +80,15 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!copy) return;
         event.preventDefault();
         copyText(copy.dataset.copyAsset || "", copy);
+        copy.closest("details")?.removeAttribute("open");
+    });
+
+    document.addEventListener("click", (event) => {
+        const activeMenu = event.target.closest(".admin-media-folder-create, .admin-media-folder-options, .admin-media-file-options");
+        document.querySelectorAll(".admin-media-folder-create[open], .admin-media-folder-options[open], .admin-media-file-options[open]")
+            .forEach((menu) => {
+                if (menu !== activeMenu && !menu.contains(event.target)) menu.removeAttribute("open");
+            });
     });
 
     const closeModal = () => {
@@ -246,6 +255,10 @@ document.addEventListener("DOMContentLoaded", () => {
         card.querySelector('[data-media-delete] button').setAttribute("aria-label", "Delete " + asset.name);
         card.querySelector('[data-media-rename] input[name="path"]').value = asset.path;
         card.querySelector('[data-media-rename-trigger]').setAttribute("aria-label", "Rename " + asset.name);
+        const moveForm = card.querySelector(".admin-media-move-form");
+        moveForm.querySelector('input[name="path"]').value = asset.path;
+        const assetFolder = asset.path.split("/").slice(0, -1).join("/");
+        moveForm.querySelector('select[name="folder"]').value = assetFolder;
 
         return card;
     };
@@ -290,6 +303,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const form = trigger.closest("[data-media-rename]");
         const card = trigger.closest(".admin-media-card");
+        trigger.closest("details")?.removeAttribute("open");
         const pathInput = form?.querySelector('input[name="path"]');
         const path = pathInput?.value || "";
         const currentName = card?.querySelector("strong")?.textContent || "";
@@ -328,6 +342,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const path = form.querySelector('input[name="path"]')?.value || "";
         if (!window.confirm(`Delete ${path}? This cannot be undone.`)) return;
+        form.closest("details")?.removeAttribute("open");
 
         const button = form.querySelector('button[type="submit"]');
         if (button) button.disabled = true;
@@ -361,6 +376,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const formData = new FormData();
         formData.append("file", file);
         formData.append("_token", csrf);
+        const uploadFolder = uploadForm.querySelector('input[name="folder"]')?.value || "uploads";
+        formData.append("folder", uploadFolder);
 
         const xhr = new XMLHttpRequest();
         xhr.open("POST", uploadForm.action);
