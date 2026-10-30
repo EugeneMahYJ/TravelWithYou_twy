@@ -132,6 +132,19 @@ class TravelWebsiteTest extends TestCase
             ->assertSee('>Clear filters</a>', false);
     }
 
+    public function test_trip_search_clear_links_preserve_scroll_position(): void
+    {
+        $this->get(route('search'))
+            ->assertOk()
+            ->assertSee('class="text-link"', false)
+            ->assertSee('data-preserve-scroll-on-clear', false);
+
+        $this->get(route('search', ['q' => 'no-matching-trip']))
+            ->assertOk()
+            ->assertSee('class="search-empty"', false)
+            ->assertSee('href="'.route('search').'" data-preserve-scroll-on-clear', false);
+    }
+
     public function test_home_destinations_are_four_random_distinct_source_countries_and_uncached(): void
     {
         $response = $this->get(route('home'))

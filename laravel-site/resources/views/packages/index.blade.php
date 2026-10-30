@@ -8,7 +8,7 @@
 @endphp
 <x-page-head kicker="Search results" :title="$queryText !== '' ? 'Results for “'.$queryText.'”' : 'Find your trip'" :lead="$resultLead" />
 <section class="wrap search-results-section">
-    <x-search-bar :options="$searchOptions" />
+    <x-search-bar :options="$searchOptions" :preserve-scroll-on-clear="true" />
     <details class="more-filters">
         <summary>More filters</summary>
         <form method="get" action="{{ route('search') }}" class="more-filter-form">
@@ -59,7 +59,7 @@
     @if($packages->isEmpty())
         <div class="search-empty">
             <p>No trips match those filters.</p>
-            <a class="button button-ghost" href="{{ route('search') }}">Clear filters</a>
+            <a class="button button-ghost" href="{{ route('search') }}" data-preserve-scroll-on-clear>Clear filters</a>
         </div>
     @else
         <div class="package-grid search-results-grid">

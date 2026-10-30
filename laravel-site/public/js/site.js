@@ -1,4 +1,38 @@
 document.addEventListener("DOMContentLoaded", () => {
+    const clearScrollPathKey = "clear-filters-scroll-path";
+    const clearScrollYKey = "clear-filters-scroll-y";
+    try {
+        const savedPath = window.sessionStorage.getItem(clearScrollPathKey);
+        const savedScrollYValue = window.sessionStorage.getItem(clearScrollYKey);
+        window.sessionStorage.removeItem(clearScrollPathKey);
+        window.sessionStorage.removeItem(clearScrollYKey);
+        const savedScrollY = Number(savedScrollYValue);
+
+        if (savedPath === window.location.pathname && savedScrollYValue !== null
+            && Number.isFinite(savedScrollY) && savedScrollY >= 0) {
+            window.requestAnimationFrame(() => window.scrollTo(0, savedScrollY));
+        }
+    } catch (error) {
+        console.error("Unable to restore the trip page scroll position after clearing filters.", error);
+    }
+
+    document.querySelectorAll("[data-preserve-scroll-on-clear]").forEach((link) => {
+        link.addEventListener("click", (event) => {
+            if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey
+                || event.shiftKey || event.altKey || (link.target && link.target !== "_self")) return;
+
+            const destination = new URL(link.href, window.location.href);
+            if (destination.origin !== window.location.origin) return;
+
+            try {
+                window.sessionStorage.setItem(clearScrollPathKey, destination.pathname);
+                window.sessionStorage.setItem(clearScrollYKey, String(window.scrollY));
+            } catch (error) {
+                console.error("Unable to save the trip page scroll position before clearing filters.", error);
+            }
+        });
+    });
+
     document.querySelectorAll("[data-filter-select]").forEach((wrapper, index) => {
         const select = wrapper.querySelector("select");
         const trigger = wrapper.querySelector("[data-filter-select-trigger]");

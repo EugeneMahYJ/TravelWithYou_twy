@@ -142,7 +142,7 @@
         </div>
         <div class="footer-bottom-wrap">
             <div class="wrap footer-bottom">
-                <span>© 2026 TravelWithYou Ltd. All rights reserved.</span>
+                <span>Copyright © 2026 Travel With You Sdn Bhd | All rights reserved.</span>
                 <nav aria-label="Legal and account links">
                     <a href="{{ route('terms') }}">Terms &amp; Conditions</a>
                     <a href="{{ route('privacy') }}">Privacy Policy</a>

@@ -1,4 +1,4 @@
-@props(['options', 'action' => null, 'cta' => 'Search trips', 'clearUrl' => null, 'clearInPlace' => false])
+@props(['options', 'action' => null, 'cta' => 'Search trips', 'clearUrl' => null, 'clearInPlace' => false, 'preserveScrollOnClear' => false])
 
 <form class="search-panel hybrid-search-panel" action="{{ $action ?? route('search') }}" method="get" role="search">
     <label>
@@ -66,7 +66,7 @@
         @endif
     @endforeach
     <div class="search-panel-actions">
-        <a class="text-link" href="{{ $clearUrl ?? route('search') }}" @if($clearInPlace) data-clear-filters-in-place @endif>Clear filters</a>
+        <a class="text-link" href="{{ $clearUrl ?? route('search') }}" @if($clearInPlace) data-clear-filters-in-place @endif @if($preserveScrollOnClear) data-preserve-scroll-on-clear @endif>Clear filters</a>
         <button class="button button-primary" type="submit"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.8"></circle><path d="m16 16 5 5"></path></svg>{{ $cta }}</button>
     </div>
 </form>
