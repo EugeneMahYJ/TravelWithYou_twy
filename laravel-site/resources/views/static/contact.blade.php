@@ -30,9 +30,9 @@
             <p><span aria-hidden="true">✉</span><a href="mailto:{{ $company['email'] }}">{{ $company['email'] }}</a></p>
         @endif
         @if($company['address'])
-            <p><span aria-hidden="true">⌖</span>{{ $company['address'] }}</p>
+            <p><span aria-hidden="true">📍</span>{!! nl2br(e($company['address'])) !!}</p>
         @endif
-        <p class="contact-hours">{{ $company['hours'] }}</p>
+        <p class="contact-hours">{!! nl2br(e($company['hours'])) !!}</p>
     </aside>
 </section>
 @endsection

@@ -8,18 +8,6 @@
         ['Tailored Tour Packages', 'Our thoughtfully curated tour packages are crafted to meet market demand while showcasing the best of local and international destinations. We aim to create unforgettable travel experiences tailored to suit the unique interests and preferences of each client.'],
         ['Our Team', 'Our team represents a vibrant mix of cultures, reflecting Malaysia’s rich diversity. This multicultural foundation not only strengthens our relationships with loyal clients but also inspires new travelers to join us in discovering the wonders of the world. Together, we are dedicated to making every journey extraordinary.'],
     ];
-    $team = collect(config('team.members', []));
-    $featuredRoles = ['Position 1', 'Position 2'];
-    $featuredTeam = collect($featuredRoles)->map(function (string $role) use ($team): array {
-        $member = $team->first(fn (array $candidate) => ($candidate['role'] ?? '') === $role);
-
-        return [
-            'name' => $member['name'] ?? $role,
-            'role' => $role,
-            'image' => $member['image'] ?? null,
-        ];
-    });
-    $otherTeam = $team->reject(fn (array $member) => in_array($member['role'] ?? '', $featuredRoles, true));
 @endphp
 <header class="about-hero paper-grain">
     <div class="wrap about-hero-inner">
@@ -41,30 +29,7 @@
                     <div class="about-story-photo {{ $index === 1 ? 'about-story-photo-ratio-16-9' : 'about-story-photo-ratio-4-3' }}" role="img" aria-label="Photo space for {{ $title }}"></div>
                 @endif
                 @if($index === 3)
-                    <div class="about-team-grid">
-                        @foreach($featuredTeam as $member)
-                            <article class="about-team-card">
-                                @if(!empty($member['image']))
-                                    <img class="about-team-photo about-team-photo-ratio-3-4" src="{{ asset_img($member['image']) }}" alt="{{ $member['name'] }}" loading="lazy">
-                                @else
-                                    <div class="about-team-photo about-team-photo-ratio-3-4 about-team-photo-empty" role="img" aria-label="{{ $member['role'] }} photo space"></div>
-                                @endif
-                                <h3>{{ $member['name'] }}</h3>
-                                <p>{{ $member['role'] }}</p>
-                            </article>
-                        @endforeach
-                        @foreach($otherTeam as $member)
-                            <article class="about-team-card">
-                                @if(!empty($member['image']))
-                                    <img class="about-team-photo about-team-photo-ratio-3-4" src="{{ asset_img($member['image']) }}" alt="{{ $member['name'] }}" loading="lazy">
-                                @else
-                                    <div class="about-team-photo about-team-photo-ratio-3-4 about-team-photo-empty" role="img" aria-label="{{ $member['role'] }} photo space"></div>
-                                @endif
-                                <h3>{{ $member['name'] }}</h3>
-                                <p>{{ $member['role'] }}</p>
-                            </article>
-                        @endforeach
-                    </div>
+                    <div class="about-team-photo about-team-photo-ratio-4-3 about-team-photo-empty" role="img" aria-label="Our Team photo space"></div>
                 @endif
             </article>
         @endforeach

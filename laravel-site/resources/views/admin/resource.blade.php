@@ -7,7 +7,7 @@
 </div>
 <section class="admin-panel">
     @if($resource === 'company')
-        <div class="company-settings"><h2>Travel With You</h2><p><strong>Phone:</strong> {{ config('company.phone') }}</p><p><strong>Email:</strong> {{ config('company.email') }}</p><p><strong>Address:</strong> {{ config('company.address') }}</p><p><strong>Hours:</strong> {{ config('company.hours') }}</p><a class="button button-ghost" href="{{ route('contact') }}">View contact page</a></div>
+        <div class="company-settings"><h2>Travel With You</h2><p><strong>Phone:</strong> {{ config('company.phone') }}</p><p><strong>Email:</strong> {{ config('company.email') }}</p><p><strong>Address:</strong> {!! nl2br(e(config('company.address'))) !!}</p><p><strong>Hours:</strong> {!! nl2br(e(config('company.hours'))) !!}</p><a class="button button-ghost" href="{{ route('contact') }}">View contact page</a></div>
 
     @elseif($resource === 'deals')
         <form class="admin-filter-form" method="get" action="{{ route('admin.deals') }}"><label><span class="visually-hidden">Search deals</span><input name="q" type="search" value="{{ request('q') }}" placeholder="Search deals…"></label><button class="button button-ghost" type="submit">Search</button></form>

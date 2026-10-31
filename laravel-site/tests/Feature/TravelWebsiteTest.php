@@ -709,6 +709,23 @@ class TravelWebsiteTest extends TestCase
         $this->assertSame(1, Enquiry::count());
     }
 
+    public function test_contact_page_displays_company_hours_on_separate_lines(): void
+    {
+        $this->get(route('contact'))
+            ->assertOk()
+            ->assertSee('Monday–Friday, 9.30am–6.30pm<br />', false)
+            ->assertSee('Saturday, 9.30am–3pm', false);
+    }
+
+    public function test_contact_page_displays_company_address_on_separate_lines(): void
+    {
+        $this->get(route('contact'))
+            ->assertOk()
+            ->assertSee('Stellar Suites SS-10-02, Jalan Puteri 4/7<br />', false)
+            ->assertSee('Bandar Puteri Puchong 47100<br />', false)
+            ->assertSee('Selangor Kuala Lumpur Malaysia');
+    }
+
     public function test_contact_form_rejects_unlisted_topics_and_uses_the_prototype_error(): void
     {
         $this->from(route('contact'))->post(route('contact.send'), [
@@ -859,16 +876,14 @@ class TravelWebsiteTest extends TestCase
             ->assertSee('Our thoughtfully curated tour packages are crafted to meet market demand while showcasing the best of local and international destinations. We aim to create unforgettable travel experiences tailored to suit the unique interests and preferences of each client.')
             ->assertSee('Our Team')
             ->assertSee('Our team represents a vibrant mix of cultures, reflecting Malaysia’s rich diversity. This multicultural foundation not only strengthens our relationships with loyal clients but also inspires new travelers to join us in discovering the wonders of the world. Together, we are dedicated to making every journey extraordinary.')
-            ->assertSee('Director of Sales')
-            ->assertSee('Secretary')
             ->getContent();
         $this->assertSame(4, substr_count($about, 'class="section-number"'));
         $this->assertSame(2, substr_count($about, 'about-section-reversed'));
         $this->assertSame(3, substr_count($about, 'class="about-story-photo '));
         $this->assertSame(2, substr_count($about, 'about-story-photo-ratio-4-3'));
         $this->assertSame(1, substr_count($about, 'about-story-photo-ratio-16-9'));
-        $this->assertSame(2, substr_count($about, 'about-team-photo-empty'));
-        $this->assertSame(2, substr_count($about, 'about-team-photo-ratio-3-4'));
+        $this->assertSame(1, substr_count($about, 'about-team-photo-empty'));
+        $this->assertSame(1, substr_count($about, 'about-team-photo-ratio-4-3'));
         $this->assertStringNotContainsString('Mission &amp; Vision', $about);
         $this->assertStringNotContainsString('Awards &amp; Certifications', $about);
         $this->assertStringNotContainsString('Press / Media', $about);
