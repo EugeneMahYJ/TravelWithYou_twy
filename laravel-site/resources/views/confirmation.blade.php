@@ -29,7 +29,9 @@
                         $details = $booking->guest_details ?? [];
                         $bookingDetail = $details['booking_detail'] ?? [];
                         $rooms = collect($bookingDetail['rooms'] ?? []);
-                        $roomText = $rooms->map(fn ($room, $index) => 'Room '.($index + 1).': '.($room['type'] ?? 'Room type pending'))->join(', ');
+                        $roomText = ($bookingDetail['kind'] ?? '') === 'cruise'
+                            ? $rooms->map(fn ($room, $index) => 'Room '.($index + 1).': '.($room['type'] ?? 'Room type pending'))->join(', ')
+                            : ($rooms->isNotEmpty() ? $rooms->count().' '.\Illuminate\Support\Str::plural('room', $rooms->count()) : '');
                     @endphp
                     <li>
                         <span>

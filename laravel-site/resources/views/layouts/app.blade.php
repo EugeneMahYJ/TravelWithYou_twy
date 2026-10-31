@@ -96,30 +96,28 @@
                         <a href="https://www.tiktok.com/@travelwithyoupuchong" aria-label="TikTok"><img src="{{ asset('assets/tiktok.png') }}" width="40" height="40" alt=""></a>
                     </div>
                 </div>
+                @if($company['email'])
+                    <a class="footer-email" href="mailto:enquiry@travelwithyou.my">
+                        <svg aria-hidden="true" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="1"></rect><path d="m4 7 8 6 8-6"></path></svg>
+                        <span>{{ $company['email'] }}</span>
+                    </a>
+                @endif
             </div>
-            <div class="footer-links-column">
-                <h2>Quick links</h2>
+            <div class="footer-explore-column">
+                <h2>Explore</h2>
                 <ul>
-                    @foreach($primaryNav as $link)
+                    @foreach(array_slice($primaryNav, 0, 4) as $link)
                         <li><a href="{{ $link['url'] }}">{{ $link['label'] }}</a></li>
                     @endforeach
-                    <li><a href="{{ route('cart') }}">Cart</a></li>
-                    <li><a href="{{ route('account') }}">Account</a></li>
                     <li><a href="{{ route('blog') }}">Travel Guides</a></li>
                 </ul>
             </div>
-            <div class="footer-contact-column">
-                <h2>Contact</h2>
+            <div class="footer-about-column">
+                <h2>About</h2>
                 <ul>
-                    @if($company['phone'])
-                        <li><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 4h4l2 5-3 2a14 14 0 0 0 5 5l2-3 5 2v4c0 1-1 2-2 2C10 20 4 14 3 6c0-1 1-2 2-2Z"></path></svg><a href="tel:{{ $company['phone'] }}">{{ $company['phone'] }}</a></li>
-                    @endif
-                    @if($company['email'])
-                        <li><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="1"></rect><path d="m4 7 8 6 8-6"></path></svg><a href="mailto:enquiry@travelwithyou.my">{{ $company['email'] }}</a></li>
-                    @endif
-                    @if($company['address'])
-                        <li><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="2.5"></circle></svg><span>{{ $company['address'] }}</span></li>
-                    @endif
+                    @foreach(array_slice($primaryNav, 4) as $link)
+                        <li><a href="{{ $link['url'] }}">{{ $link['label'] }}</a></li>
+                    @endforeach
                 </ul>
             </div>
             <div class="footer-newsletter-column">
@@ -146,7 +144,6 @@
                 <nav aria-label="Legal and account links">
                     <a href="{{ route('terms') }}">Terms &amp; Conditions</a>
                     <a href="{{ route('privacy') }}">Privacy Policy</a>
-                    <a href="{{ route('cancellation') }}">Cancellation &amp; Refunds</a>
                     <a href="{{ route('faq') }}">FAQ</a>
                 </nav>
             </div>

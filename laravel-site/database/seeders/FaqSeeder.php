@@ -9,7 +9,11 @@ class FaqSeeder extends Seeder
 {
     public function run(): void
     {
-        foreach (PrototypeData::all()['faqs'] as $index => $faq) {
+        $faqs = PrototypeData::all()['faqs'];
+        $questions = array_column($faqs, 'q');
+        Faq::whereNotIn('question', $questions)->delete();
+
+        foreach ($faqs as $index => $faq) {
             Faq::updateOrCreate(['question' => $faq['q']], [
                 'answer' => $faq['a'],
                 'sort_order' => $index,

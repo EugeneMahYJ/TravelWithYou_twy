@@ -33,7 +33,16 @@ final class Pricing
     {
         $configured = self::value($package, 'pricing', [])['guest_types'] ?? [];
 
-        return $configured !== [] ? $configured : self::GUEST_KINDS;
+        if ($configured === []) {
+            return self::GUEST_KINDS;
+        }
+
+        $hasSingle = collect($configured)->contains('id', 'single');
+        $hasAdult = collect($configured)->contains(fn (array $kind) => ($kind['role'] ?? 'adult') === 'adult');
+
+        return $hasAdult && ! $hasSingle
+            ? [...$configured, self::GUEST_KINDS[1]]
+            : $configured;
     }
 
     public static function addons(TravelPackage|array $package): array
@@ -215,27 +224,46 @@ final class Pricing
     public static function roomError(int $adults, int $children, int $rooms, int $singles = 0): string
     {
         if ($children > 0 && $adults === 0) {
-            return 'Children must share a room with an Adult; Single guests stay in their own room.';
+            return $singles > 0
+                ? 'Children must share with an Adult. Add a sharing Adult or change a Single to Adult.'
+                : 'Children must share with an Adult. Add an Adult.';
+        }
+        if ($adults + $children + $singles === 0) {
+            return 'Add at least one Adult or Single to continue.';
+        }
+        if ($adults === 1 && $children === 0 && $singles === 0) {
+            return $rooms === 1
+                ? 'A solo Adult needs to be marked as Single to book a private room.'
+                : 'A solo Adult must be marked as Single. Choose 1 room or add enough guests to fill more rooms.';
         }
 
         $need = self::minRooms($adults, $children, $singles);
+        $sharingGuests = $adults + $children;
+        $maxRooms = $singles + min($adults, (int) floor($sharingGuests / 2));
+        if ($need > $maxRooms) {
+            return 'This guest mix cannot fit the room rules. Add or reclassify guests, or reduce the group, so each shared room has at least 2 guests and an Adult.';
+        }
+
         if ($rooms < $need) {
             $guests = $adults + $children + $singles;
             $singleNote = $singles > 0
-                ? ' (including '.$singles.' private single room'.($singles === 1 ? '' : 's').')'
+                ? ', including '.$singles.' private Single room'.($singles === 1 ? '' : 's')
                 : '';
 
-            return 'Maximum '.self::MAX_PER_ROOM.' guests per room. '.$guests.' guests need at least '.$need.' rooms'.$singleNote.'.';
+            return 'At most '.self::MAX_PER_ROOM.' guests per room. Choose at least '.$need.' rooms for '.$guests.' guests'.$singleNote.'.';
         }
 
         if ($rooms > $adults + $singles) {
-            if ($singles > 0) {
-                $adultsCanFill = $adults + $singles;
+            $roomCapacity = $maxRooms;
+            $guestTypes = $singles > 0 ? 'Adults and Singles' : 'Adults';
 
-                return 'Each room needs at least 1 Adult or Single guest. '.$adults.' adult'.($adults === 1 ? '' : 's').' and '.$singles.' single guest'.($singles === 1 ? '' : 's').' can fill at most '.$adultsCanFill.' rooms.';
-            }
+            return 'You can book up to '.$roomCapacity.' room'.($roomCapacity === 1 ? '' : 's').' with your selected '.$guestTypes.'. Reduce the number of rooms or add enough Adults or Singles.';
+        }
 
-            return 'Each room needs at least 1 adult. '.$adults.' adult'.($adults === 1 ? '' : 's').' can fill at most '.$adults.' room'.($adults === 1 ? '' : 's').'.';
+        if ($rooms > $maxRooms) {
+            $requiredSingles = max(0, 2 * $rooms - ($sharingGuests + 2 * $singles));
+
+            return 'For '.$rooms.' rooms, mark at least '.$requiredSingles.' Adult'.($requiredSingles === 1 ? '' : 's').' as Single, or reduce the number of rooms.';
         }
 
         return '';

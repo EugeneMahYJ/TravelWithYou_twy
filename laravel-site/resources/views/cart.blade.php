@@ -39,6 +39,8 @@
                                     <p><strong>{{ $item['guests'] }} guests</strong>
                                         @if(($detail['kind'] ?? '') === 'cruise')
                                             · {{ collect($detail['rooms'] ?? [])->map(fn ($room, $index) => 'Room '.($index + 1).': '.($room['type'] ?? 'type pending'))->join(', ') }}
+                                        @elseif(($detail['kind'] ?? '') === 'fh' && !empty($detail['rooms']))
+                                            · {{ count($detail['rooms']) }} {{ \Illuminate\Support\Str::plural('room', count($detail['rooms'])) }}
                                         @endif
                                     </p>
                                     <p><strong>Lead booker:</strong> {{ data_get($detail, 'guests.0.name', 'Traveller') }}

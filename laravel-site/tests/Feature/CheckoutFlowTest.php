@@ -156,7 +156,8 @@ class CheckoutFlowTest extends TestCase
             ->assertSee('− RM 500');
         $this->get(route('checkout'))
             ->assertOk()
-            ->assertSee('ASIA500, RM 500');
+            ->assertSee('ASIA500, RM 500')
+            ->assertSee('href="'.route('terms').'#terms-cancellation"', false);
     }
 
     public function test_unavailable_departure_blocks_checkout_until_cart_date_is_updated(): void

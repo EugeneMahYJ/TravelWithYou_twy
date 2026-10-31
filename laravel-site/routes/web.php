@@ -59,7 +59,6 @@ Route::post('/contact', [TravelController::class, 'sendEnquiry'])->name('contact
 Route::get('/faq', [TravelController::class, 'faq'])->name('faq');
 Route::get('/terms', [TravelController::class, 'policy'])->defaults('policy', 'terms')->name('terms');
 Route::get('/privacy', [TravelController::class, 'policy'])->defaults('policy', 'privacy')->name('privacy');
-Route::get('/cancellation', [TravelController::class, 'policy'])->defaults('policy', 'cancellation')->name('cancellation');
 Route::get('/blog', [TravelController::class, 'blog'])->name('blog');
 Route::get('/blog/{slug}', [TravelController::class, 'blogPost'])->name('blog.show');
 

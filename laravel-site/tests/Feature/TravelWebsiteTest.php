@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Booking;
 use App\Models\Enquiry;
+use App\Models\Faq;
 use App\Models\NewsletterSubscriber;
 use App\Models\SearchLog;
 use App\Models\Ship;
@@ -223,6 +224,54 @@ class TravelWebsiteTest extends TestCase
             ->assertSee('Ship room types · Aurelia Voyager')
             ->assertSeeInOrder(['Ship room types · Aurelia Voyager', 'Included', 'Not included'])
             ->assertSee('Sailing aboard');
+    }
+
+    public function test_package_recommendations_only_include_packages_from_the_same_country(): void
+    {
+        $this->seed(TourPackageSeeder::class);
+        $switzerland = TravelPackage::where('country', 'Switzerland')->where('published', true)->firstOrFail();
+        $switzerlandHtml = $this->get(route('packages.show', ['package' => $switzerland->slug]))
+            ->assertOk()
+            ->getContent();
+        $this->assertStringContainsString('package-coming-soon', $switzerlandHtml);
+        $this->assertStringContainsString('More journeys in Switzerland are in the works.', $switzerlandHtml);
+        $this->assertStringContainsString('We’re carefully curating new ways to experience this destination.', $switzerlandHtml);
+        $this->assertStringContainsString(asset('assets/countries/switzerland-package-thumbnail.jpg'), $switzerlandHtml);
+        $this->assertStringContainsString('href="'.route('search').'"', $switzerlandHtml);
+        $this->assertStringContainsString('Browse all trips', $switzerlandHtml);
+
+        $template = TravelPackage::where('slug', 'sakura-rail')->firstOrFail();
+        $attributes = $template->only([
+            'region', 'days', 'description', 'details', 'price_from', 'price_to',
+            'rating', 'reviews', 'departure_port', 'destination_port', 'departures',
+            'image', 'published',
+        ]);
+        $createPackage = fn (string $slug, string $name, string $country) => TravelPackage::create($attributes + [
+            'slug' => $slug,
+            'name' => $name,
+            'country' => $country,
+            'type' => 'Guided tour',
+        ]);
+
+        $soloPackage = $createPackage('solo-country-trip', 'Solo Country Journey', 'Solo Country');
+        $createPackage('different-country-trip', 'Different Country Journey', 'Different Country');
+
+        $soloHtml = $this->get(route('packages.show', ['package' => $soloPackage->slug]))
+            ->assertOk()
+            ->getContent();
+        $this->assertStringContainsString('package-coming-soon', $soloHtml);
+        $this->assertStringNotContainsString('Different Country Journey', $soloHtml);
+
+        $sharedCountryPackage = $createPackage('shared-country-trip', 'Shared Country Journey', 'Shared Country');
+        $sameCountryPackage = $createPackage('shared-country-sibling', 'Same Country Sibling', 'Shared Country');
+        $otherCountryPackage = $createPackage('shared-country-foreign', 'Foreign Country Journey', 'Foreign Country');
+
+        $sharedHtml = $this->get(route('packages.show', ['package' => $sharedCountryPackage->slug]))
+            ->assertOk()
+            ->getContent();
+        $this->assertStringContainsString('More in Shared Country', $sharedHtml);
+        $this->assertStringContainsString($sameCountryPackage->name, $sharedHtml);
+        $this->assertStringNotContainsString($otherCountryPackage->name, $sharedHtml);
     }
 
     public function test_package_detail_does_not_render_the_price_table_with_or_without_a_deal(): void
@@ -746,13 +795,42 @@ class TravelWebsiteTest extends TestCase
         $this->assertAuthenticatedAs($user);
     }
 
-    public function test_faq_uses_six_exclusive_native_details_items_and_blog_uses_seeded_slugs(): void
+    public function test_faq_uses_grouped_exclusive_native_details_items_and_blog_uses_seeded_slugs(): void
     {
+        Faq::create([
+            'question' => 'How do I book a tour package?',
+            'answer' => 'Old FAQ content.',
+            'sort_order' => 99,
+        ]);
+        $this->seed(FaqSeeder::class);
+        $this->assertDatabaseMissing('faqs', ['question' => 'How do I book a tour package?']);
+        $this->assertDatabaseCount('faqs', 17);
+
         $faq = $this->get(route('faq'))->assertOk()->getContent();
-        $this->assertSame(6, substr_count($faq, 'name="faq"'));
-        $this->assertMatchesRegularExpression('/<details name="faq"\s+open\s*>/', $faq);
+        $this->assertSame(17, substr_count($faq, 'name="faq"'));
+        $this->assertSame(0, substr_count($faq, '<details name="faq" open'));
+        $this->assertStringContainsString('.faq-item[open] .faq-toggle::before { content: "\\2212"; }', file_get_contents(public_path('css/site.css')));
+        $this->assertStringNotContainsString('âˆ’', file_get_contents(public_path('css/site.css')));
+        $this->assertSame(5, substr_count($faq, 'href="#faq-category-'));
+        $this->assertSame(5, substr_count($faq, 'id="faq-category-'));
+        $this->assertSame(5, substr_count($faq, 'class="faq-category-heading" id="faq-category-'));
+        $this->assertStringContainsString('.faq-category-heading {', file_get_contents(public_path('css/site.css')));
+        $this->assertStringContainsString('scroll-margin-top: 88px;', file_get_contents(public_path('css/site.css')));
+        $this->assertStringNotContainsString('17 ANSWERS', $faq);
+        $this->assertStringContainsString('General Information', $faq);
+        $this->assertStringContainsString('Booking and Reservation', $faq);
+        $this->assertStringContainsString('Payment and Pricing', $faq);
+        $this->assertStringContainsString('Tour and Travel Details', $faq);
+        $this->assertStringContainsString('Special Services', $faq);
+        $this->assertStringContainsString('Who is Travel With You?', $faq);
+        $this->assertStringContainsString('Do you offer assistance for unique activities, like adventure travel or cultural tours?', $faq);
+        $this->assertStringNotContainsString('i. Who is Travel With You?', $faq);
+        $this->assertStringNotContainsString('1. General Information', $faq);
+        $this->assertStringContainsString('We arrange a variety of activities and experiences tailored to specific interests, including adventure, cultural tours, and immersive local experiences.', $faq);
         $this->assertStringContainsString('Still need help?', $faq);
         $this->assertStringContainsString('Contact us', $faq);
+        $this->assertStringContainsString('Good questions. Thoughtful answers.', $faq);
+        $this->assertStringContainsString('Everything you need to know before planning your next trip with us. Browse by topic or open a question to find the details.', $faq);
 
         $this->get(route('blog'))
             ->assertOk()
@@ -772,22 +850,74 @@ class TravelWebsiteTest extends TestCase
     {
         $about = $this->get(route('about'))
             ->assertOk()
-            ->assertSee('Planned by people who have been there.')
-            ->assertSee('We are a travel company of 140 specialists, with one rule: never sell a trip we would not take.')
+            ->assertSee('About Us')
+            ->assertSee('Your Trusted Partner for Travel and Tours in Malaysia')
+            ->assertSee('Established in early 2018, Travel With You Sdn Bhd is built on a solid foundation of over 15 years of expertise in the travel and tourism industry. Our mission is to deliver unparalleled service and professional guidance for both local and international travel planning, ensuring every journey is seamless and memorable.')
+            ->assertSee('Our Services')
+            ->assertSee('We offer an extensive range of travel services designed to cater to diverse needs. These include MICE Tours (Meetings, Incentives, Conferences, and Events), group tours, personalized free-and-easy packages, ground-only tours, hotel and resort bookings, airport transfers, and exciting travel activities. Additionally, our team provides valuable insights and expert tips for destinations across Asia, Europe, and America, helping clients enjoy well-prepared and enriching journeys.')
+            ->assertSee('Tailored Tour Packages')
+            ->assertSee('Our thoughtfully curated tour packages are crafted to meet market demand while showcasing the best of local and international destinations. We aim to create unforgettable travel experiences tailored to suit the unique interests and preferences of each client.')
+            ->assertSee('Our Team')
+            ->assertSee('Our team represents a vibrant mix of cultures, reflecting Malaysia’s rich diversity. This multicultural foundation not only strengthens our relationships with loyal clients but also inspires new travelers to join us in discovering the wonders of the world. Together, we are dedicated to making every journey extraordinary.')
+            ->assertSee('Director of Sales')
+            ->assertSee('Secretary')
             ->getContent();
-        $this->assertSame(6, substr_count($about, 'class="section-number"'));
+        $this->assertSame(4, substr_count($about, 'class="section-number"'));
+        $this->assertSame(2, substr_count($about, 'about-section-reversed'));
+        $this->assertSame(3, substr_count($about, 'class="about-story-photo '));
+        $this->assertSame(2, substr_count($about, 'about-story-photo-ratio-4-3'));
+        $this->assertSame(1, substr_count($about, 'about-story-photo-ratio-16-9'));
+        $this->assertSame(2, substr_count($about, 'about-team-photo-empty'));
+        $this->assertSame(2, substr_count($about, 'about-team-photo-ratio-3-4'));
+        $this->assertStringNotContainsString('Mission &amp; Vision', $about);
+        $this->assertStringNotContainsString('Awards &amp; Certifications', $about);
+        $this->assertStringNotContainsString('Press / Media', $about);
         $this->assertStringNotContainsString('Amara Okafor', $about);
         $this->assertStringNotContainsString('Daniel Reyes', $about);
 
         config(['company.legal_updated' => '2026-09-01']);
-        foreach (['terms', 'privacy', 'cancellation'] as $policy) {
+        foreach (['terms', 'privacy'] as $policy) {
             $response = $this->get(route($policy))
                 ->assertOk()
                 ->assertSee('Legal')
                 ->assertSee('Last updated 1 September 2026.')
                 ->assertSee('policy-sections');
-            $this->assertSame(4, substr_count($response->getContent(), '<article>'));
+            $this->assertSame($policy === 'terms' ? 12 : 9, substr_count($response->getContent(), '<article>'));
+            if ($policy === 'terms') {
+                $response->assertSee('TOURISM INDUSTRY ACT 1992')
+                    ->assertSee('TOURISM INDUSTRY (TOUR OPERATING BUSINESS AND TRAVEL AGENCY BUSINESS) REGULATIONS 1992')
+                    ->assertSee('A maximum deposit of')
+                    ->assertSee('25% of the tour fare per person')
+                    ->assertSee('Free Independent Traveller (FIT)')
+                    ->assertSee('3.1')
+                    ->assertSee('For FIT Tour Packages')
+                    ->assertSee('3.2')
+                    ->assertSee('For Group Tour Packages')
+                    ->assertSee('Cancellation must be made in')
+                    ->assertSee('id="terms-cancellation"', false)
+                    ->assertSee('writting.')
+                    ->assertSee('Act of God, war, strikes, or govermnent orders.')
+                    ->assertSee('at least 6 months')
+                    ->assertSee('accomodation')
+                    ->assertSee('setails')
+                    ->assertSee('All tour members are encouraged to purchase travel insurance');
+            } elseif ($policy === 'privacy') {
+                $response->assertSee("Your privacy is important to us. Here's how we handle your data.", false)
+                    ->assertSee('Welcome to Travel With You Sdn Bhd.')
+                    ->assertSee('Personal Information:')
+                    ->assertSee('Payment Information:')
+                    ->assertSee('Travel Information:')
+                    ->assertSee('Marketing and Promotions:')
+                    ->assertSee('Legal and Compliance:')
+                    ->assertSee('Correction:')
+                    ->assertSee('enquiry@travelwithyou.my')
+                    ->assertSee('Stellar Suites SS-10-02, Jalan Puteri 4/7, Bandar Puteri 47100 Puchong, Selangor')
+                    ->assertSee('+60 13-2883003');
+            }
         }
+
+        $this->get('/cancellation')->assertNotFound();
+        $this->get(route('terms'))->assertDontSee('Cancellation &amp; Refunds', false);
     }
 
     public function test_unknown_page_uses_prototype_not_found_page(): void
@@ -886,7 +1016,6 @@ class TravelWebsiteTest extends TestCase
             route('faq'),
             route('terms'),
             route('privacy'),
-            route('cancellation'),
             route('blog'),
             route('blog.show', ['slug' => 'sakura-timing']),
             route('login'),
@@ -914,6 +1043,23 @@ class TravelWebsiteTest extends TestCase
             ->assertSee('Aegean Island Hopper')
             ->assertDontSee('Mediterranean Grand Cruise');
         $this->get(route('ships.show', ['ship' => 'unknown-vessel']))->assertNotFound();
+    }
+
+    public function test_footer_groups_explore_and_about_links_without_cart_or_account(): void
+    {
+        $html = $this->get(route('home'))->assertOk()->getContent();
+        $this->assertSame(1, preg_match('/<footer class="site-footer">(.*?)<\/footer>/s', $html, $matches));
+        $footer = $matches[1];
+
+        $this->assertStringContainsString('<h2>Explore</h2>', $footer);
+        $this->assertStringContainsString('<h2>About</h2>', $footer);
+        $this->assertStringContainsString('Travel Guides', $footer);
+        $this->assertStringContainsString('Contact Us', $footer);
+        $this->assertStringNotContainsString('<h2>Contact</h2>', $footer);
+        $this->assertStringContainsString('class="footer-email" href="mailto:enquiry@travelwithyou.my"', $footer);
+        $this->assertStringContainsString('enquiry@travelwithyou.my', $footer);
+        $this->assertStringNotContainsString('href="'.route('cart').'"', $footer);
+        $this->assertStringNotContainsString('href="'.route('account').'"', $footer);
     }
 
     public function test_deals_show_seeded_active_offers_and_filter_by_type_and_search(): void

@@ -83,7 +83,7 @@
                 @foreach([
                     'terms' => ['I accept the Terms & Conditions', route('terms'), 'Please accept the Terms & Conditions'],
                     'privacy' => ['I accept the Privacy Policy', route('privacy'), 'Please accept the Privacy Policy'],
-                    'cancellation' => ['I acknowledge the Cancellation & Refund Policy', route('cancellation'), 'Please acknowledge the cancellation policy'],
+                    'cancellation' => ['I acknowledge the Cancellation & Refund Policy', route('terms').'#terms-cancellation', 'Please acknowledge the cancellation policy'],
                 ] as $field => [$label, $url, $message])
                     <label class="checkout-checkbox"><input type="checkbox" name="{{ $field }}" value="1" @checked(old($field))> {{ $label }} <a href="{{ $url }}" target="_blank" rel="noopener">(read)</a></label>
                     @error($field)<small class="field-error" role="alert">{{ $message }}</small>@enderror
@@ -99,10 +99,11 @@
                         $wizardCabins = collect(data_get($item, 'detail.rooms', []))->pluck('type')->filter()->unique();
                         $cabinForPrice = $item['cabin'] ?? $wizardCabins->first();
                         $cabinLabel = $item['cabin'] ?? $wizardCabins->join(', ');
+                        $roomCount = count(data_get($item, 'detail.rooms', []));
                     @endphp
                     <li>
                         <strong>{{ $package->name }}</strong>
-                        <span class="{{ \App\Support\Pricing::itemAvailable($item) ? '' : 'checkout-expired-text' }}">{{ \App\Support\Pricing::itemAvailable($item) ? fmt_date($item['departure_date']) : 'Date unavailable' }} · {{ $item['guests'] }} pax × {{ fmt_rm(\App\Support\Pricing::unitPrice($package, $item['guests'], $item['departure_date'], $cabinForPrice)) }}{{ $cabinLabel ? ' · '.$cabinLabel : '' }}</span>
+                        <span class="{{ \App\Support\Pricing::itemAvailable($item) ? '' : 'checkout-expired-text' }}">{{ \App\Support\Pricing::itemAvailable($item) ? fmt_date($item['departure_date']) : 'Date unavailable' }} · {{ $item['guests'] }} pax × {{ fmt_rm(\App\Support\Pricing::unitPrice($package, $item['guests'], $item['departure_date'], $cabinForPrice)) }}{{ $cabinLabel ? ' · '.$cabinLabel : '' }}{{ data_get($item, 'detail.kind') === 'fh' && $roomCount ? ' · '.$roomCount.' '.\Illuminate\Support\Str::plural('room', $roomCount) : '' }}</span>
                         @if(!empty($item['addons']))<small>Add-ons: {{ collect($item['addons'])->map(fn ($id) => collect(\App\Support\Pricing::ADDONS)->firstWhere('id', $id)['label'] ?? $id)->join(', ') }}</small>@endif
                         <b>{{ fmt_rm(\App\Support\Pricing::itemTotal($item)) }}</b>
                     </li>

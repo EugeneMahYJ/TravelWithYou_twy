@@ -140,6 +140,16 @@ class TravelController extends Controller
     {
         abort_unless($package->published, 404);
 
+        $countryRecord = $package->countryRecord ?? Country::query()->where('name', $package->country)->first();
+        $countrySlug = $countryRecord?->slug ?? \Illuminate\Support\Str::slug($package->country);
+        $countryThumbnail = $countrySlug.'-package-thumbnail.jpg';
+        if (! file_exists(public_path('assets/countries/'.$countryThumbnail))) {
+            $countryThumbnail = $countrySlug.'-package-thumbnail.webp';
+        }
+        if (! file_exists(public_path('assets/countries/'.$countryThumbnail))) {
+            $countryThumbnail = null;
+        }
+
         $ship = $package->ship
             ? Ship::query()->with('cabins')->where('name', $package->ship)->first()
             : null;
@@ -156,13 +166,13 @@ class TravelController extends Controller
                 'image' => $image,
                 'caption' => ($index === 0 ? 'Destination highlight' : ($index === 1 ? 'Scenery along the way' : 'Trip atmosphere')).': '.$package->name,
             ]),
-            'countryRecord' => $package->countryRecord ?? Country::query()->where('name', $package->country)->first(),
+            'countryRecord' => $countryRecord,
+            'countryThumbnail' => $countryThumbnail ? asset('assets/countries/'.$countryThumbnail) : null,
             'highlights' => $package->highlights ?: ($package->source_data['highlights'] ?? $package->source_data['attractions'] ?? $package->source_data['highlight_badges'] ?? []),
             'related' => TravelPackage::query()
                 ->where('published', true)
                 ->where('id', '!=', $package->id)
-                ->where(fn ($query) => $query->where('country', $package->country)->orWhere('type', $package->type))
-                ->orderByRaw('CASE WHEN country = ? THEN 0 ELSE 1 END', [$package->country])
+                ->where('country', $package->country)
                 ->take(3)
                 ->get(),
         ]);
@@ -298,14 +308,35 @@ class TravelController extends Controller
         foreach ($guestKinds as $guestKind) {
             $rules['counts.'.$guestKind['id']] = [$cruise ? 'sometimes' : 'required', 'integer', 'min:0', 'max:16'];
         }
+        $rules['rooms'] = ['required', 'integer', 'min:1', 'max:8'];
         if ($cruise) {
             $rules += [
                 'adults' => ['nullable', 'integer', 'min:0', 'max:16'],
                 'children' => ['nullable', 'integer', 'min:0', 'max:16'],
-                'rooms' => ['required', 'integer', 'min:1', 'max:8'],
                 'room_types' => ['required', 'array'],
                 'room_types.*' => ['required', 'string', 'max:120'],
             ];
+        }
+        $roomTypeError = 'Select a room type for each room.';
+        if ($cruise) {
+            $requestedRooms = filter_var($request->input('rooms'), FILTER_VALIDATE_INT);
+            if (is_int($requestedRooms) && $requestedRooms >= 1 && $requestedRooms <= 8) {
+                $requestedTypes = $request->input('room_types', []);
+                $missingRooms = collect(range(0, $requestedRooms - 1))
+                    ->filter(function (int $index) use ($requestedTypes, $ship): bool {
+                        $type = is_array($requestedTypes) ? ($requestedTypes[$index] ?? null) : null;
+
+                        return ! is_string($type) || ! $ship->cabins->contains('type', $type);
+                    })
+                    ->map(fn (int $index) => $index + 1)
+                    ->values();
+                if ($missingRooms->isNotEmpty()) {
+                    $roomNames = $missingRooms->count() === 1
+                        ? 'Room '.$missingRooms->first()
+                        : 'Rooms '.$missingRooms->slice(0, -1)->implode(', ').' and '.$missingRooms->last();
+                    $roomTypeError = 'Select a room type for '.$roomNames.'.';
+                }
+            }
         }
         $rules += [
             'guests' => ['sometimes', 'array'],
@@ -324,8 +355,15 @@ class TravelController extends Controller
             'guests.array' => 'Please complete the highlighted guest details.',
             'guests.*.required' => 'Please complete the highlighted guest details.',
             'guests.*.array' => 'Please complete the highlighted guest details.',
-            'room_types.required' => 'Choose a room type for every room.',
-            'room_types.array' => 'Choose a room type for every room.',
+            'rooms.required' => 'You can book 1 to 8 rooms.',
+            'rooms.integer' => 'You can book 1 to 8 rooms.',
+            'rooms.min' => 'You can book 1 to 8 rooms.',
+            'rooms.max' => 'You can book 1 to 8 rooms.',
+            'room_types.required' => $roomTypeError,
+            'room_types.array' => $roomTypeError,
+            'room_types.*.required' => $roomTypeError,
+            'room_types.*.string' => $roomTypeError,
+            'room_types.*.max' => $roomTypeError,
         ]);
         if ($validator->fails()) {
             return redirect($bookingUrl)
@@ -357,13 +395,17 @@ class TravelController extends Controller
             $rooms = (int) $input['rooms'];
             $roomTypes = $input['room_types'];
             if ($adults < 1) {
-                $errors = ['adults' => 'At least 1 adult must travel on each booking.'];
+                $errors = ['adults' => $children > 0
+                    ? 'Children must share with an Adult. Add an Adult.'
+                    : 'Add at least one Adult or Single to continue.'];
+            } elseif ($children > 0 && $sharingAdults < 1) {
+                $errors = ['adults' => 'Children must share with an Adult. Add a sharing Adult or change a Single to Adult.'];
             } elseif ($total > 16) {
-                $errors = ['adults' => 'Online bookings are limited to 16 guests. Contact us for larger groups.'];
+                $errors = ['adults' => 'Cruise bookings allow up to 16 guests.'];
             } elseif ($roomError = Pricing::roomError($sharingAdults, $children, $rooms, $singles)) {
                 $errors = ['rooms' => $roomError];
             } elseif (count($roomTypes) !== $rooms || collect($roomTypes)->contains(fn ($type) => ! $ship->cabins->contains('type', $type))) {
-                $errors = ['room_types' => 'Choose a room type for every room.'];
+                $errors = ['room_types' => $roomTypeError];
             } else {
                 $errors = [];
             }
@@ -378,16 +420,22 @@ class TravelController extends Controller
             $total = array_sum($counts);
             $grownups = collect($guestKinds)->filter(fn ($guestKind) => ($guestKind['role'] ?? 'adult') === 'adult')
                 ->sum(fn ($guestKind) => $counts[$guestKind['id']]);
+            $singles = (int) ($counts['single'] ?? 0);
+            $sharingAdults = $grownups - $singles;
+            $children = collect($guestKinds)->filter(fn ($guestKind) => ($guestKind['role'] ?? 'adult') === 'child')
+                ->sum(fn ($guestKind) => $counts[$guestKind['id']]);
             if ($total === 0) {
-                $errors = ['counts' => 'Add at least one guest to continue.'];
+                $errors = ['counts' => 'Add at least one Adult or Single to continue.'];
             } elseif ($grownups < 1) {
-                $errors = ['counts' => 'Children must travel with at least one Adult or Single guest.'];
+                $errors = ['counts' => 'Children must share with an Adult. Add an Adult.'];
             } elseif ($total > 12) {
-                $errors = ['counts' => 'Online bookings are limited to 12 guests. Contact us for larger groups.'];
+                $errors = ['counts' => 'Flight + hotel bookings allow up to 12 guests.'];
+            } elseif ($roomError = Pricing::roomError($sharingAdults, $children, (int) $input['rooms'], $singles)) {
+                $errors = ['rooms' => $roomError];
             } else {
                 $errors = [];
             }
-            $roomPlan = [];
+            $roomPlan = Pricing::allocateRooms($sharingAdults, $children, (int) $input['rooms'], $singles);
         }
 
         $guestInputs = $input['guests'] ?? [];
@@ -435,7 +483,7 @@ class TravelController extends Controller
                         $age--;
                     }
                     if (($guestKind['id'] ?? null) === 'single' && $age < 18) {
-                        $errors[$prefix.'dob'] = 'Single guests must be at least 18 years old.';
+                        $errors[$prefix.'dob'] = 'Single guests must be 18 or older on the departure date.';
                     } elseif (($guestKind['role'] ?? 'adult') === 'adult' && $age < 12) {
                         $errors[$prefix.'dob'] = 'Adult guests must be at least 12 years old.';
                     } elseif (($guestKind['role'] ?? 'adult') === 'child' && $age > 11) {
@@ -811,12 +859,25 @@ class TravelController extends Controller
 
     public function faq(): View
     {
-        return view('static.faq', ['faqs' => Faq::orderBy('sort_order')->get()]);
+        $faqs = Faq::orderBy('sort_order')->get();
+        $categories = [
+            ['title' => 'General Information', 'offset' => 0, 'count' => 4],
+            ['title' => 'Booking and Reservation', 'offset' => 4, 'count' => 4],
+            ['title' => 'Payment and Pricing', 'offset' => 8, 'count' => 3],
+            ['title' => 'Tour and Travel Details', 'offset' => 11, 'count' => 4],
+            ['title' => 'Special Services', 'offset' => 15, 'count' => 2],
+        ];
+        $faqGroups = collect($categories)->map(fn (array $category) => [
+            'title' => $category['title'],
+            'items' => $faqs->slice($category['offset'], $category['count']),
+        ]);
+
+        return view('static.faq', ['faqGroups' => $faqGroups]);
     }
 
     public function policy(string $policy): View
     {
-        abort_unless(in_array($policy, ['terms', 'privacy', 'cancellation'], true), 404);
+        abort_unless(in_array($policy, ['terms', 'privacy'], true), 404);
 
         return view('static.policy', ['policy' => $policy]);
     }

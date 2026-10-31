@@ -338,28 +338,72 @@
   ],
   "faqs": [
     {
-      "q": "How do I book a tour package?",
-      "a": "Choose a package, pick a departure date and number of guests, then add it to your cart. Proceed to checkout, enter traveller details and pay by card, PayPal or bank transfer."
+      "q": "Who is Travel With You?",
+      "a": "Travel With You Sdn Bhd is a travel company founded in 2018 by an experienced professional with over 15 years in the tourism industry. We offer expert travel planning for both local and international destinations."
     },
     {
-      "q": "Can I change the date or number of guests after adding to cart?",
-      "a": "Yes. Open your cart and edit the date, guest count or add-ons. Prices update instantly. Once a booking is confirmed, changes are handled by our support team."
+      "q": "What types of tours do you offer?",
+      "a": "We specialize in MICE (Meetings, Incentives, Conferences, and Exhibitions) tours, group tours, free-and-easy packages, ground-only tours, hotel and resort bookings, and airport transfers. We also provide custom activities and travel tips for Asia, Europe, and America."
     },
     {
-      "q": "When is the balance due?",
-      "a": "A 20% deposit confirms most bookings. The balance is due 90 days before departure for land tours and 120 days for cruises."
+      "q": "Can I get assistance with both local and international travel?",
+      "a": "Yes, we provide travel packages and services that span Asia, Europe, and America. Our packages cater to various travel interests, from leisurely tours to business-related travel."
+    },
+    {
+      "q": "How can I contact your team?",
+      "a": "You can reach us via phone, email, or through our website’s contact form. Our customer service team is ready to assist with any inquiries or tour planning needs."
+    },
+    {
+      "q": "How do I book a tour or service with you?",
+      "a": "You can book through our website, or feel free to contact us by phone or email for assistance with bookings."
+    },
+    {
+      "q": "Is there a minimum group size required for booking?",
+      "a": "For group tours, we generally have a minimum size requirement. For specific details, please reach out to our team."
+    },
+    {
+      "q": "Can I customize my itinerary?",
+      "a": "Yes, we offer customizable itineraries to ensure your travel experience fits your personal or corporate needs."
     },
     {
       "q": "What is your cancellation policy?",
-      "a": "Free cancellation up to 90 days before departure. Between 89 and 45 days a 30% fee applies, and inside 44 days the booking is non-refundable. See the full policy for details."
+      "a": "Our cancellation policy varies based on the package booked. Please contact us for details related to your specific tour package."
     },
     {
-      "q": "Do I need travel insurance?",
-      "a": "We strongly recommend it and offer a comprehensive policy as an add-on at checkout. It is required for expedition cruises."
+      "q": "What payment methods do you accept?",
+      "a": "We accept offline payments, including bank transfers and cash payments, as well as credit card payments for in-person bookings. Please contact our team for specific payment instructions."
     },
     {
-      "q": "Do you offer group discounts?",
-      "a": "Yes. Groups of six or more qualify for selected departures. Check the Deals page or contact us for a custom quote."
+      "q": "Are there any additional fees I should know about?",
+      "a": "Our packages are comprehensive, but additional fees may apply for optional activities, private guides, or last-minute changes. We’re happy to provide full pricing details on request."
+    },
+    {
+      "q": "Do you offer any discounts or promotions?",
+      "a": "Yes, we periodically offer special discounts and promotions. You can check our website or subscribe to our newsletter to stay updated."
+    },
+    {
+      "q": "What destinations do you specialize in?",
+      "a": "Our expertise covers a wide range of destinations within Asia, Europe, and America, with a focus on both popular spots and hidden gems."
+    },
+    {
+      "q": "What is included in the tour packages?",
+      "a": "Our tour packages typically include accommodations, airport transfers, and a selection of guided activities. Details can vary by package, so please review the specific inclusions for each tour, or contact us directly for more information about the tour you’re interested in. Our team is happy to provide additional details to help you make the best choice for your travel experience."
+    },
+    {
+      "q": "Are your tours suitable for all ages?",
+      "a": "Yes, we offer a range of tours suitable for families, young travelers, seniors, and corporate groups. Our team can recommend packages that fit specific age groups or activity levels."
+    },
+    {
+      "q": "Do I need a visa for international packages?",
+      "a": "Visa requirements vary by destination. We can provide guidance and support for visa applications as part of our travel services."
+    },
+    {
+      "q": "Do you provide corporate travel planning?",
+      "a": "Yes, we offer MICE travel services for businesses, including meeting and conference planning, incentives, and exhibitions."
+    },
+    {
+      "q": "Do you offer assistance for unique activities, like adventure travel or cultural tours?",
+      "a": "We arrange a variety of activities and experiences tailored to specific interests, including adventure, cultural tours, and immersive local experiences."
     }
   ]
 }

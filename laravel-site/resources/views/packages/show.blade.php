@@ -229,14 +229,26 @@
     </section>
 </div>
 
-@if($related->isNotEmpty())
-    <section class="wrap section-block package-more-section">
-        <x-section-title number="+" :title="'More in '.$package->country" />
+<section class="wrap section-block package-more-section">
+    <x-section-title number="+" :title="'More in '.$package->country" />
+    @if($related->isNotEmpty())
         <div class="package-grid">
             @foreach($related as $relatedPackage)
                 <x-package-card :package="$relatedPackage" />
             @endforeach
         </div>
-    </section>
-@endif
+    @else
+        <article class="package-coming-soon{{ $countryThumbnail ? '' : ' package-coming-soon-no-image' }}">
+            <div class="package-coming-copy">
+                <p class="package-coming-label">New journeys are on the way</p>
+                <h3>More journeys in {{ $package->country }} are in the works.</h3>
+                <p>We’re carefully curating new ways to experience this destination. Check back to discover upcoming trips.</p>
+                <a class="package-coming-link" href="{{ route('search') }}">Explore other trips <span aria-hidden="true">→</span></a>
+            </div>
+            @if($countryThumbnail)
+                <img class="package-coming-image" src="{{ $countryThumbnail }}" alt="{{ $package->country }} destination">
+            @endif
+        </article>
+    @endif
+</section>
 @endsection

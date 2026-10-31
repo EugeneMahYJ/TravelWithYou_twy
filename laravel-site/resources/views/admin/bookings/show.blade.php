@@ -3,6 +3,7 @@
 @section('content')
 <div class="admin-heading"><div><p class="eyebrow accent">Booking detail</p><h1>{{ $booking->reference }}</h1><p>{{ $booking->package?->name }} · {{ $booking->departure_date->format('j M Y') }}</p></div><a class="text-link" href="{{ route('admin.bookings') }}">← All bookings</a></div>
 <div class="admin-booking-detail-grid">
+    @php($roomCount = collect(data_get($booking->guest_details, 'booking_detail.rooms', []))->count())
     <section class="admin-panel"><div class="admin-panel-heading"><h2>Booking summary</h2><span class="status-pill">{{ $booking->status }}</span></div><dl class="admin-detail-list">
         <div><dt>Customer</dt><dd>{{ $booking->user?->name ?? data_get($booking->guest_details, 'name', 'Guest') }}</dd></div>
         <div><dt>Email</dt><dd>{{ $booking->user?->email ?? data_get($booking->guest_details, 'email', '—') }}</dd></div>
@@ -15,6 +16,7 @@
             <div><dt>Cancelled at</dt><dd>{{ $booking->cancelled_at?->format('j M Y, H:i') ?? '—' }}</dd></div>
             <div><dt>Cancelled by</dt><dd>{{ $booking->cancelledBy?->name ?? '—' }}</dd></div>
         @endif
+        <div><dt>Rooms</dt><dd>{{ $roomCount ? $roomCount.' '.\Illuminate\Support\Str::plural('room', $roomCount) : '—' }}</dd></div>
         <div><dt>Room types</dt><dd>{{ collect(data_get($booking->guest_details, 'booking_detail.room_types', []))->pluck('type')->filter()->implode(', ') ?: '—' }}</dd></div>
         <div><dt>Add-ons</dt><dd>{{ collect(data_get($booking->guest_details, 'addons', []))->pluck('name')->filter()->implode(', ') ?: '—' }}</dd></div>
     </dl>

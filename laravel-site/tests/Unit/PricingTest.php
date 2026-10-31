@@ -271,18 +271,44 @@ class PricingTest extends TestCase
     {
         $this->assertSame(2, Pricing::minRooms(5, 2));
         $this->assertSame(3, Pricing::minRooms(2, 0, 2));
-        $this->assertSame('Maximum 4 guests per room. 7 guests need at least 2 rooms.', Pricing::roomError(5, 2, 1));
+        $this->assertSame('At most 4 guests per room. Choose at least 2 rooms for 7 guests.', Pricing::roomError(5, 2, 1));
         $this->assertSame(
-            'Maximum 4 guests per room. 4 guests need at least 3 rooms (including 2 private single rooms).',
+            'At most 4 guests per room. Choose at least 3 rooms for 4 guests, including 2 private Single rooms.',
             Pricing::roomError(2, 0, 1, 2)
         );
         $this->assertSame(
-            'Children must share a room with an Adult; Single guests stay in their own room.',
+            'Children must share with an Adult. Add a sharing Adult or change a Single to Adult.',
             Pricing::roomError(0, 1, 1, 1)
         );
         $this->assertSame(
-            'Each room needs at least 1 adult. 1 adult can fill at most 1 room.',
+            'You can book up to 1 room with your selected Adults. Reduce the number of rooms or add enough Adults or Singles.',
             Pricing::roomError(1, 1, 2)
+        );
+        $this->assertSame(
+            'You can book up to 3 rooms with your selected Adults and Singles. Reduce the number of rooms or add enough Adults or Singles.',
+            Pricing::roomError(2, 0, 5, 2)
+        );
+        $this->assertSame(
+            'A solo Adult must be marked as Single. Choose 1 room or add enough guests to fill more rooms.',
+            Pricing::roomError(1, 0, 2)
+        );
+        $this->assertSame(
+            'A solo Adult needs to be marked as Single to book a private room.',
+            Pricing::roomError(1, 0, 1)
+        );
+        $this->assertSame(
+            'This guest mix cannot fit the room rules. Add or reclassify guests, or reduce the group, so each shared room has at least 2 guests and an Adult.',
+            Pricing::roomError(1, 4, 2)
+        );
+        $this->assertSame('Add at least one Adult or Single to continue.', Pricing::roomError(0, 0, 1));
+        $this->assertSame('', Pricing::roomError(4, 0, 2));
+        $this->assertSame(
+            'For 3 rooms, mark at least 2 Adults as Single, or reduce the number of rooms.',
+            Pricing::roomError(4, 0, 3)
+        );
+        $this->assertSame(
+            'For 3 rooms, mark at least 1 Adult as Single, or reduce the number of rooms.',
+            Pricing::roomError(3, 0, 3, 1)
         );
         $this->assertSame([
             ['adults' => 1, 'children' => 2],
@@ -307,6 +333,58 @@ class PricingTest extends TestCase
         ]));
     }
 
+    public function test_room_validation_and_allocations_match_rules_for_guest_mix_matrix(): void
+    {
+        for ($adults = 0; $adults <= 8; $adults++) {
+            for ($children = 0; $children <= 8; $children++) {
+                for ($singles = 0; $singles <= 8; $singles++) {
+                    for ($rooms = 1; $rooms <= 8; $rooms++) {
+                        $sharingGuests = $adults + $children;
+                        $expectedValid = $adults + $children + $singles > 0
+                            && ! ($children > 0 && $adults === 0);
+                        if ($expectedValid && $sharingGuests > 0) {
+                            $minimum = $singles + (int) ceil($sharingGuests / Pricing::MAX_PER_ROOM);
+                            $maximum = $singles + min($adults, (int) floor($sharingGuests / 2));
+                            $expectedValid = $rooms >= $minimum && $rooms <= $maximum;
+                        } elseif ($expectedValid) {
+                            $expectedValid = $rooms === $singles;
+                        }
+
+                        $valid = Pricing::roomError($adults, $children, $rooms, $singles) === '';
+                        $this->assertSame($expectedValid, $valid, sprintf(
+                            'Unexpected validity for %d Adults, %d Children, %d Singles, and %d rooms.',
+                            $adults,
+                            $children,
+                            $singles,
+                            $rooms
+                        ));
+
+                        if (! $valid) {
+                            continue;
+                        }
+
+                        $allocation = Pricing::allocateRooms($adults, $children, $rooms, $singles);
+                        $this->assertCount($rooms, $allocation);
+                        $this->assertSame($adults, array_sum(array_column($allocation, 'adults')));
+                        $this->assertSame($children, array_sum(array_column($allocation, 'children')));
+                        $this->assertSame($singles, array_sum(array_column($allocation, 'singles')));
+                        foreach ($allocation as $room) {
+                            if (($room['singles'] ?? 0) === 1) {
+                                $this->assertSame(0, $room['adults'] + $room['children']);
+                                continue;
+                            }
+
+                            $occupants = $room['adults'] + $room['children'];
+                            $this->assertGreaterThanOrEqual(2, $occupants);
+                            $this->assertLessThanOrEqual(Pricing::MAX_PER_ROOM, $occupants);
+                            $this->assertGreaterThanOrEqual(1, $room['adults']);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     public function test_prototype_data_seeders_are_complete_and_idempotent(): void
     {
         $this->assertDatabaseCount('countries', 11);
@@ -314,7 +392,7 @@ class PricingTest extends TestCase
         $this->assertDatabaseCount('travel_deals', 8);
         $this->assertTrue(TravelDeal::where('slug', 'd4')->firstOrFail()->expires_at->isFuture());
         $this->assertDatabaseCount('guides', 7);
-        $this->assertDatabaseCount('faqs', 6);
+        $this->assertDatabaseCount('faqs', 17);
         $this->assertCount(5, Ship::with('cabins')->get());
         $this->assertSame([4, 3, 3, 3, 4], Ship::with('cabins')->orderBy('id')->get()->map(
             fn (Ship $ship) => $ship->cabins->count()
@@ -342,7 +420,7 @@ class PricingTest extends TestCase
         $this->assertDatabaseCount('ship_cabins', 17);
         $this->assertDatabaseCount('travel_deals', 8);
         $this->assertDatabaseCount('guides', 7);
-        $this->assertDatabaseCount('faqs', 6);
+        $this->assertDatabaseCount('faqs', 17);
         $this->assertSame([
             'AMALFI20' => 0.2,
             'INCA15' => 0.15,
