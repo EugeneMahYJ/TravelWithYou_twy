@@ -84,7 +84,7 @@
         @endphp
         <div class="wrap footer-grid">
             <div class="footer-brand-column">
-                <a class="brand-footer" href="{{ route('home') }}" aria-label="TravelWithYou home"><img class="brand-logo" src="{{ asset('assets/company-logo.png') }}" width="142" height="62" alt="TravelWithYou"></a>
+                <a class="brand-footer" href="{{ route('home') }}" aria-label="TravelWithYou home"><img class="brand-logo" src="{{ asset('assets/home/TWY_Logo_White_Blurry_Base.jpg') }}" width="142" height="62" alt="TravelWithYou"></a>
                 <p>Tour packages and cruises to forty countries, planned by people who have been there.</p>
                 <div class="footer-social">
                     <span>Find us on</span>
