@@ -81,8 +81,6 @@
     <footer class="site-footer">
         @php
             $company = config('company');
-            $paymentLabels = ['visa' => 'VISA', 'mc' => 'MC', 'amex' => 'AMEX', 'paypal' => 'PayPal', 'bank' => 'Bank'];
-            $enabledPaymentMethods = array_intersect_key(array_filter(config('payments.methods', [])), $paymentLabels);
         @endphp
         <div class="wrap footer-grid">
             <div class="footer-brand-column">
@@ -129,13 +127,13 @@
                     <input id="newsletter-email" type="email" name="email" value="{{ old('email') }}" placeholder="you@email.com" autocomplete="email" required>
                     <button type="submit">Join</button>
                 </form>
-                @if($enabledPaymentMethods)
-                    <div class="payment-badges" aria-label="Accepted payment methods">
-                        @foreach($enabledPaymentMethods as $method => $enabled)
-                            <span>{{ $paymentLabels[$method] }}</span>
-                        @endforeach
+                <section class="footer-payment-methods" aria-labelledby="footer-payment-methods-title">
+                    <h2 id="footer-payment-methods-title">Payment Methods</h2>
+                    <div class="footer-payment-logos">
+                        <img class="footer-payment-logo footer-payment-logo-fpx" src="{{ asset('assets/home/FPX_Logo.png') }}" alt="FPX online banking payments">
+                        <img class="footer-payment-logo footer-payment-logo-tng" src="{{ asset('assets/home/TNG_Logo.png') }}" alt="Touch 'n Go eWallet">
                     </div>
-                @endif
+                </section>
             </div>
         </div>
         <div class="footer-bottom-wrap">

@@ -925,8 +925,12 @@ textarea.account-input { min-height: 100px; resize: vertical; }
 .footer-newsletter-column input::placeholder { color: rgba(244,236,220,.55); }
 .footer-newsletter-column form button { padding: 0 15px; border: 0; color: var(--ink); background: #ff8a5f; font-size: 13px; font-weight: 700; cursor: pointer; }
 .footer-newsletter-column form button:hover { background: #fff; }
-.payment-badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
-.payment-badges span { padding: 5px 9px; border: 1px solid rgba(244,236,220,.3); color: rgba(244,236,220,.8); font: 10px var(--mono); letter-spacing: .08em; }
+.footer-payment-methods { margin-top: 28px; }
+.footer-payment-methods h2 { margin-bottom: 12px; }
+.footer-payment-logos { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.footer-payment-logo { display: block; height: 42px; border: 1px solid rgba(244,236,220,.3); border-radius: 6px; background: #fff; object-fit: cover; }
+.footer-payment-logo-fpx { width: 88px; }
+.footer-payment-logo-tng { width: 42px; }
 .footer-bottom-wrap { border-top: 1px solid rgba(244,236,220,.15); }
 .footer-bottom {
     display: flex;
