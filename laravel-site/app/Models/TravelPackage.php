@@ -101,21 +101,26 @@ class TravelPackage extends Model
 
         if ($this->type === self::TYPE_CRUISE) {
             return [
-                'International flights to and from the ports',
-                'Visas and passport fees',
-                'Travel insurance (available as an add-on)',
-                'Drinks packages and specialty dining beyond credit',
-                'Gratuities (suggested RM 16 per guest per day)',
-                'Spa treatments and personal expenses',
+                'International and domestic flight tickets to and from the embarkation port',
+                'Hotel accommodation, transfers and meals before or after the cruise, unless stated in the program',
+                'Personal expenses: onboard purchases, laundry, mini bar, spa treatments, photos, internet/Wi-Fi, etc',
+                'Specialty restaurants, alcoholic and premium beverages, and additional meals',
+                'Shore excursions and optional tours at ports of call, unless stated as included',
+                'Gratuities/service charges onboard, unless stated as included',
+                'Personal travel insurance',
+                'Visa fees',
+                'Any item not specifically mentioned in the inclusions',
             ];
         }
 
         return [
-            'International flights to and from the start point',
-            'Visas and passport fees',
-            'Travel insurance (available as an add-on)',
-            'Meals not mentioned in the itinerary',
-            'Personal expenses and gratuities',
+            'Personal expenses such as telephone, minibar, laundry and internet/Wi-Fi',
+            'Surcharge for guides speaking other languages',
+            'Additional meals',
+            'Hotel surcharge during peak season or holidays',
+            'Personal travel insurance',
+            'Visa fees',
+            'Any item not specifically mentioned in the inclusions',
         ];
     }
 
@@ -172,23 +177,23 @@ class TravelPackage extends Model
 
         if ($this->type === self::TYPE_CRUISE) {
             return [
-                'Cabin accommodation in your chosen category',
-                'Full-board dining in main restaurants',
-                'Onboard entertainment, lectures and activities',
-                'Port taxes and fees',
-                'Shore excursions as listed',
-                '24/7 support line during your trip',
+                'Cruise accommodation in the selected cabin category',
+                'Onboard meals as specified by the cruise line',
+                'Entertainment, shows and onboard activities as scheduled by the cruise line',
+                'Use of standard onboard facilities, subject to operating hours and availability',
+                'Cruise itinerary as stated in the program',
             ];
         }
 
         $included = [
-            'Accommodation as listed in the itinerary',
-            'Daily breakfast',
-            'English-speaking local guides',
-            'Ground transport listed in the itinerary',
-            'Entrance fees for listed sightseeing',
-            '24/7 support line during your trip',
+            'International flight ticket',
+            'Local tour guide during the tour',
+            'Accommodation at the hotels listed or similar, based on twin/double sharing',
+            'Daily breakfast, halal lunch and dinner as stated in the programme.(B: International breakfast buffet, L: Lunch, D: Dinner)',
+            'Shows and sightseeing as scheduled',
+            'Transportation by private air-conditioned vehicle',
+            'Daily drinking water for each guest',
+            'Guide and driver tipping',
         ];
-        return [...$included, 'Airport arrival and departure transfers on day 1 and last day'];
     }
 }
