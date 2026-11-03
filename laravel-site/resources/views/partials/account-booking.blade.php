@@ -1,4 +1,4 @@
-<article class="account-trip-card">
+<article class="account-trip-card" id="booking-{{ $booking->id }}">
     <div class="account-trip-top">
         <span class="account-reference">{{ $booking->reference }}</span>
         <span class="booking-status {{ $booking->status === 'Cancelled' ? 'is-cancelled' : ($completed ? 'is-completed' : 'is-upcoming') }}">{{ $booking->status === 'Cancelled' ? 'Cancelled' : ($completed ? 'Completed' : 'Upcoming') }}</span>

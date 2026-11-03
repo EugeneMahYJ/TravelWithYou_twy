@@ -9,10 +9,19 @@
     <section class="admin-panel admin-enquiry-original">
         <div class="admin-panel-heading"><h2>Original enquiry</h2><span class="status-pill">{{ in_array($enquiry->status, ['New', 'In progress'], true) ? 'Unanswered' : 'Replied' }}</span></div>
         <dl class="admin-enquiry-contact">
-            <div><dt>Customer</dt><dd>{{ $enquiry->name }}</dd></div>
+            <div><dt>Customer</dt><dd>{{ $enquiry->honorific ? $enquiry->honorific.' ' : '' }}{{ $enquiry->name }}</dd></div>
             <div><dt>Email</dt><dd>{{ $enquiry->email }}</dd></div>
             @if($enquiry->phone)<div><dt>Phone</dt><dd>{{ $enquiry->phone }}</dd></div>@endif
             <div><dt>Topic</dt><dd>{{ $enquiry->subject }}</dd></div>
+            @if($enquiry->company_name)
+                <div><dt>Company</dt><dd>{{ $enquiry->company_name }}</dd></div>
+                <div><dt>Travellers</dt><dd>{{ $enquiry->company_travellers }}</dd></div>
+                <div><dt>Company address</dt><dd>{!! nl2br(e($enquiry->company_address)) !!}</dd></div>
+                <div><dt>Destination</dt><dd>{{ $enquiry->destination }}</dd></div>
+                @if($enquiry->budget_from !== null && $enquiry->budget_to !== null)
+                    <div><dt>Budget</dt><dd>RM {{ number_format((float) $enquiry->budget_from, 2) }} – RM {{ number_format((float) $enquiry->budget_to, 2) }} @if($enquiry->budget_basis === 'group')for the whole group @elseif($enquiry->budget_basis === 'traveller')per traveller @endif</dd></div>
+                @endif
+            @endif
             <div><dt>Received</dt><dd>{{ $enquiry->created_at->format('j M Y, H:i') }}</dd></div>
         </dl>
         <div class="admin-enquiry-message">{{ $enquiry->message }}</div>

@@ -20,6 +20,7 @@ use App\Models\TravelPackage;
 use App\Models\User;
 use App\Support\AdminNotifications;
 use App\Support\AssetLibrary;
+use App\Support\ClientNotifications;
 use App\Support\Pricing;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -385,7 +386,8 @@ class AdminController extends Controller
             if ($request->filled('q')) {
                 $term = '%'.$request->string('q')->toString().'%';
                 $query->where(fn ($builder) => $builder->where('name', 'like', $term)->orWhere('email', 'like', $term)
-                    ->orWhere('subject', 'like', $term)->orWhere('message', 'like', $term));
+                    ->orWhere('subject', 'like', $term)->orWhere('message', 'like', $term)
+                    ->orWhere('company_name', 'like', $term)->orWhere('destination', 'like', $term));
             }
             if ($request->query('status') === 'Unanswered') {
                 $query->whereIn('status', ['New', 'In progress']);
@@ -470,7 +472,7 @@ class AdminController extends Controller
         ]);
     }
 
-    public function storeDeal(SaveAdminDealRequest $request): RedirectResponse
+    public function storeDeal(SaveAdminDealRequest $request, ClientNotifications $notifications): RedirectResponse
     {
         $data = $request->validated();
         $baseSlug = Str::slug($data['name']) ?: 'deal';
@@ -483,7 +485,7 @@ class AdminController extends Controller
             $promoCode = Str::upper(Str::random(10));
         } while (TravelDeal::where('promo_code', $promoCode)->exists());
 
-        TravelDeal::create([
+        $deal = TravelDeal::create([
             ...$data,
             'slug' => $slug,
             'promo_code' => $promoCode,
@@ -491,13 +493,15 @@ class AdminController extends Controller
             'ends_at' => filled($data['expires_at'] ?? null) ? Carbon::parse($data['expires_at'])->toDateString() : null,
             'active' => $request->boolean('active'),
         ]);
+        $notifications->dealPublished($deal);
 
         return redirect()->route('admin.deals')->with('success', 'Deal saved');
     }
 
-    public function updateDeal(SaveAdminDealRequest $request, TravelDeal $deal): RedirectResponse
+    public function updateDeal(SaveAdminDealRequest $request, ClientNotifications $notifications, TravelDeal $deal): RedirectResponse
     {
         $data = $request->validated();
+        $wasActive = $deal->active;
         if ($deal->expires_at?->isPast()
             && filled($data['expires_at'] ?? null)
             && Carbon::parse($data['expires_at'])->format('Y-m-d H:i') === $deal->expires_at->format('Y-m-d H:i')) {
@@ -509,13 +513,19 @@ class AdminController extends Controller
             'ends_at' => filled($data['expires_at'] ?? null) ? Carbon::parse($data['expires_at'])->toDateString() : null,
             'active' => $request->boolean('active'),
         ]);
+        if (! $wasActive && $deal->active) {
+            $notifications->dealPublished($deal);
+        }
 
         return redirect()->route('admin.deals')->with('success', 'Deal saved');
     }
 
-    public function toggleDeal(TravelDeal $deal): RedirectResponse
+    public function toggleDeal(ClientNotifications $notifications, TravelDeal $deal): RedirectResponse
     {
         $deal->update(['active' => ! $deal->active]);
+        if ($deal->active) {
+            $notifications->dealPublished($deal);
+        }
 
         return back()->with('success', $deal->active ? 'Deal resumed.' : 'Deal paused.');
     }
@@ -604,7 +614,7 @@ class AdminController extends Controller
         ]);
     }
 
-    public function replyToEnquiry(Request $request, Enquiry $enquiry): RedirectResponse
+    public function replyToEnquiry(Request $request, ClientNotifications $notifications, Enquiry $enquiry): RedirectResponse
     {
         $request->merge([
             'subject' => preg_replace('/[\r\n]+/', ' ', (string) $request->input('subject', '')),
@@ -647,6 +657,7 @@ class AdminController extends Controller
         $reply->sent_at = now();
         $reply->save();
         $enquiry->update(['status' => 'Replied']);
+        $notifications->enquiryReplySent($enquiry, $reply);
 
         return redirect()->route('admin.enquiries.show', $enquiry)
             ->with('success', 'Reply sent to '.$enquiry->email);
@@ -898,11 +909,16 @@ class AdminController extends Controller
         return redirect()->route('admin.media')->with('success', basename($data['path']).' renamed to '.$asset['name'].'.');
     }
 
-    public function updateStatus(Request $request, string $resource, int $id): RedirectResponse
+    public function updateStatus(Request $request, ClientNotifications $notifications, string $resource, int $id): RedirectResponse
     {
         if ($resource === 'bookings') {
             $data = $request->validate(['status' => ['required', Rule::in(['Confirmed', 'Pending payment', 'Cancelled'])]]);
-            Booking::findOrFail($id)->update($data);
+            $booking = Booking::findOrFail($id);
+            $statusChanged = $booking->status !== $data['status'];
+            $booking->update($data);
+            if ($statusChanged) {
+                $notifications->bookingStatusChanged($booking);
+            }
         } elseif ($resource === 'enquiries') {
             $data = $request->validate(['status' => ['required', Rule::in(['New', 'In progress', 'Resolved', 'Replied'])]]);
             Enquiry::findOrFail($id)->update($data);

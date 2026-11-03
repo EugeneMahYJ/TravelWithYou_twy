@@ -62,6 +62,9 @@ class AdminDealsAndEnquiriesTest extends TestCase
     public function test_deal_create_validates_values_and_allows_an_unchanged_past_end_date_on_edit(): void
     {
         $admin = $this->admin();
+        $dealSubscriber = User::factory()->create([
+            'notification_preferences' => ['deals' => true],
+        ]);
         $package = TravelPackage::firstOrFail();
         $deal = TravelDeal::firstOrFail();
         $past = now()->subDays(3)->startOfMinute();
@@ -80,6 +83,11 @@ class AdminDealsAndEnquiriesTest extends TestCase
         ])->assertRedirect(route('admin.deals'));
         $created = TravelDeal::where('name', 'A valid offer')->firstOrFail();
         $this->assertNotEmpty($created->slug);
+        $this->assertDatabaseHas('user_notifications', [
+            'user_id' => $dealSubscriber->id,
+            'type' => 'new_deal',
+            'message' => 'A valid offer is now available. Explore the latest offer.',
+        ]);
 
         $this->from(route('admin.deals.create'))->post(route('admin.deals.store'), [
             'name' => 'Invalid offer',

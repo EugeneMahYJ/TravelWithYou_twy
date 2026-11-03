@@ -44,6 +44,13 @@ Route::get('/reset/{token}', [AuthController::class, 'resetPasswordForm'])->name
 Route::post('/reset', [AuthController::class, 'resetPassword'])->name('password.update');
 Route::get('/account', [AccountController::class, 'show'])->middleware('auth')->name('account');
 Route::middleware('auth')->prefix('account')->name('account.')->group(function () {
+    Route::get('/notifications/{notificationId}', [AccountController::class, 'openNotification'])
+        ->whereNumber('notificationId')
+        ->middleware('throttle:60,1')
+        ->name('notifications.open');
+    Route::post('/notifications/read-all', [AccountController::class, 'markAllNotificationsRead'])
+        ->middleware('throttle:30,1')
+        ->name('notifications.read-all');
     Route::put('/profile', [AccountController::class, 'updateProfile'])->name('profile.update');
     Route::put('/travellers', [AccountController::class, 'updateTravellers'])->name('travellers.update');
     Route::put('/notifications', [AccountController::class, 'updateNotifications'])->name('notifications.update');
@@ -54,6 +61,8 @@ Route::middleware('auth')->prefix('account')->name('account.')->group(function (
 });
 
 Route::get('/about', [TravelController::class, 'about'])->name('about');
+Route::get('/mice', [TravelController::class, 'mice'])->name('mice');
+Route::post('/mice', [TravelController::class, 'submitMiceEnquiry'])->middleware('throttle:6,1')->name('mice.submit');
 Route::get('/contact', [TravelController::class, 'contact'])->name('contact');
 Route::post('/contact', [TravelController::class, 'sendEnquiry'])->name('contact.send');
 Route::get('/faq', [TravelController::class, 'faq'])->name('faq');

@@ -3,12 +3,29 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Enquiry extends Model
 {
-    protected $fillable = ['name', 'email', 'subject', 'message', 'status'];
+    protected $fillable = [
+        'user_id',
+        'name',
+        'email',
+        'subject',
+        'message',
+        'status',
+        'phone',
+        'company_name',
+        'company_travellers',
+        'company_address',
+        'honorific',
+        'destination',
+        'budget_basis',
+        'budget_from',
+        'budget_to',
+    ];
 
     public function replies(): HasMany
     {
@@ -18,5 +35,10 @@ class Enquiry extends Model
     public function latestReply(): HasOne
     {
         return $this->hasOne(EnquiryReply::class)->where('status', 'sent')->latestOfMany('sent_at');
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 }

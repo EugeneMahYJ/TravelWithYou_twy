@@ -14,6 +14,7 @@ use App\Models\SearchLog;
 use App\Models\Ship;
 use App\Models\TravelDeal;
 use App\Models\TravelPackage;
+use App\Support\ClientNotifications;
 use App\Support\Pricing;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
@@ -910,6 +911,76 @@ class TravelController extends Controller
         return view('static.contact');
     }
 
+    public function mice(): View
+    {
+        return view('static.mice');
+    }
+
+    public function submitMiceEnquiry(Request $request): RedirectResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'company_website' => ['prohibited'],
+            'company' => ['required', 'string', 'max:255'],
+            'travellers' => ['required', 'integer', 'min:1', 'max:5000'],
+            'company_address' => ['required', 'string', 'max:2000'],
+            'honorific' => ['required', Rule::in(['Mr.', 'Mrs.', 'Ms.'])],
+            'name' => ['required', 'string', 'max:120'],
+            'mobile' => ['required', 'string', 'regex:/^[0-9+().\s-]{7,32}$/'],
+            'email' => ['required', 'email', 'max:255'],
+            'destination' => ['required', 'string', 'max:180'],
+            'budget_basis' => ['required', Rule::in(['group', 'traveller'])],
+            'budget_from' => ['required', 'numeric', 'min:0', 'max:9999999999.99'],
+            'budget_to' => ['required', 'numeric', 'min:0', 'max:9999999999.99'],
+        ]);
+        $validator->after(function ($validator) use ($request): void {
+            $budgetFrom = $request->input('budget_from');
+            $budgetTo = $request->input('budget_to');
+            if (is_numeric($budgetFrom) && is_numeric($budgetTo) && (float) $budgetFrom > (float) $budgetTo) {
+                $validator->errors()->add('budget_to', 'The upper budget must be equal to or greater than the lower budget.');
+            }
+        });
+
+        if ($validator->fails()) {
+            return back()
+                ->withErrors($validator)
+                ->with('error', 'Please review the MICE enquiry details and try again.')
+                ->withInput($request->only([
+                    'company',
+                    'travellers',
+                    'company_address',
+                    'honorific',
+                    'name',
+                    'mobile',
+                    'email',
+                    'destination',
+                    'budget_basis',
+                    'budget_from',
+                    'budget_to',
+                ]));
+        }
+
+        $data = $validator->validated();
+        Enquiry::create([
+            'user_id' => $request->user()?->id,
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'subject' => 'MICE enquiry',
+            'message' => 'Group travel enquiry for '.$data['destination'].'.',
+            'status' => 'New',
+            'phone' => $data['mobile'],
+            'company_name' => $data['company'],
+            'company_travellers' => $data['travellers'],
+            'company_address' => $data['company_address'],
+            'honorific' => $data['honorific'],
+            'destination' => $data['destination'],
+            'budget_basis' => $data['budget_basis'] ?? null,
+            'budget_from' => $data['budget_from'] ?? null,
+            'budget_to' => $data['budget_to'] ?? null,
+        ]);
+
+        return back()->with('success', 'Your MICE enquiry has been sent. We’ll be in touch within one working day.');
+    }
+
     public function sendEnquiry(Request $request): RedirectResponse
     {
         $validator = Validator::make($request->all(), [
@@ -925,7 +996,10 @@ class TravelController extends Controller
                 ->withInput($request->only('name', 'email', 'subject', 'message'));
         }
 
-        Enquiry::create($validator->validated());
+        Enquiry::create([
+            ...$validator->validated(),
+            'user_id' => $request->user()?->id,
+        ]);
 
         return back()->with('success', 'Message sent. We reply within one working day.');
     }
@@ -1138,7 +1212,7 @@ class TravelController extends Controller
         ]);
     }
 
-    public function placeOrder(Request $request): RedirectResponse
+    public function placeOrder(Request $request, ClientNotifications $notifications): RedirectResponse
     {
         if ($request->boolean('apply_promo')) {
             $codeValidator = Validator::make($request->only('code'), ['code' => ['required', 'string', 'max:40']]);
@@ -1225,6 +1299,10 @@ class TravelController extends Controller
                 : ['token' => $request->input('payment_token')];
             $result = $gateway->process($data['payment_method'], $paymentDetails);
             if (! ($result['success'] ?? false)) {
+                if ($request->user()) {
+                    $notifications->paymentFailed($request->user());
+                }
+
                 return redirect()->route('payment.failed');
             }
             $paymentStatus = $result['status'] ?? 'Pending payment';
@@ -1233,10 +1311,10 @@ class TravelController extends Controller
         $totals = $this->cartTotals($items, $request);
         $orderReference = $this->uniqueOrderReference();
         $discounts = $totals['discount_allocations'];
-        $bookings = DB::transaction(function () use ($items, $data, $totals, $orderReference, $paymentStatus, $discounts) {
+        $bookings = DB::transaction(function () use ($items, $data, $totals, $orderReference, $paymentStatus, $discounts, $notifications) {
             $remainingTaxes = $totals['taxes'];
 
-            return $items->values()->map(function ($item, $index) use ($items, $data, $orderReference, $paymentStatus, $discounts, &$remainingTaxes) {
+            return $items->values()->map(function ($item, $index) use ($items, $data, $orderReference, $paymentStatus, $discounts, &$remainingTaxes, $notifications) {
                 $subtotal = Pricing::itemTotal($item);
                 $isLast = $index === $items->count() - 1;
                 $discount = $discounts[$index] ?? 0.0;
@@ -1256,7 +1334,7 @@ class TravelController extends Controller
                     $travellers[] = $guest;
                 }
 
-                return Booking::create([
+                $booking = Booking::create([
                     'reference' => 'TWY-'.Str::upper(Str::random(7)),
                     'order_reference' => $orderReference,
                     'user_id' => Auth::id(),
@@ -1289,6 +1367,10 @@ class TravelController extends Controller
                     'status' => $paymentStatus,
                     'payment_method' => $data['payment_method'],
                 ]);
+
+                $notifications->bookingStatusChanged($booking);
+
+                return $booking;
             });
         });
         $request->session()->forget('cart');

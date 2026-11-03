@@ -60,6 +60,11 @@ class AccountBookingCancellationTest extends TestCase
         $this->assertSame('Cancelled', $pending->status);
         $this->assertNotNull($pending->cancelled_at);
         $this->assertSame($owner->id, $pending->cancelled_by);
+        $this->assertDatabaseHas('user_notifications', [
+            'user_id' => $owner->id,
+            'type' => 'booking_changes',
+            'url' => route('account', ['tab' => 'bookings'], false).'#booking-'.$pending->id,
+        ]);
 
         $this->get(route('account', ['tab' => 'bookings']))
             ->assertOk()

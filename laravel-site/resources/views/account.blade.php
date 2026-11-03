@@ -4,12 +4,12 @@
 @php
     $tabs = [
         'profile' => 'Profile',
+        'inbox' => 'Inbox',
         'bookings' => 'Bookings',
         'wishlist' => 'Wishlist',
         'travellers' => 'Travellers',
         'payments' => 'Payment methods',
         'notifications' => 'Notifications',
-        'support' => 'Support',
         'security' => 'Security',
     ];
 @endphp
@@ -29,6 +29,65 @@
         </form>
     </nav>
     <div class="account-content">
+        <section class="account-panel" id="account-panel-inbox" role="tabpanel" aria-labelledby="account-tab-inbox" data-account-panel="inbox" @if($activeTab !== 'inbox') hidden @endif>
+            <div class="account-panel-heading"><p class="eyebrow">Your updates</p><h2>Inbox</h2><p>Important account and booking updates, plus replies to enquiries you sent while signed in.</p></div>
+            <div class="account-section-heading">
+                <h3>Notifications</h3>
+                @if($userNotifications->contains(fn ($notification) => $notification->read_at === null))
+                    <form method="post" action="{{ route('account.notifications.read-all') }}">@csrf
+                        <button class="user-notification-action" type="submit">Mark all read</button>
+                    </form>
+                @endif
+            </div>
+            @if($userNotifications->isEmpty())
+                <p class="account-muted">You have no notifications yet.</p>
+            @else
+                <div class="user-notification-list">
+                    @foreach($userNotifications as $notification)
+                        <a class="user-notification-item {{ $notification->read_at ? 'is-read' : 'is-unread' }}" href="{{ route('account.notifications.open', $notification->id) }}">
+                            <span class="user-notification-indicator" aria-hidden="true"></span>
+                            <span class="user-notification-copy">
+                                <strong>{{ $notification->title }}</strong>
+                                <small>{{ $notification->message }}</small>
+                                <time datetime="{{ $notification->created_at->toIso8601String() }}">{{ $notification->created_at->format('d M Y, g:i a') }}</time>
+                            </span>
+                        </a>
+                    @endforeach
+                </div>
+            @endif
+            <div class="account-section-heading account-history-heading"><h3>Enquiries</h3></div>
+            @forelse($enquiries as $enquiry)
+                <article class="account-enquiry-card" id="account-enquiry-{{ $enquiry->id }}">
+                    <div class="account-enquiry-heading">
+                        <div><p class="eyebrow">Your enquiry</p><h4>{{ $enquiry->subject }}</h4></div>
+                        <time datetime="{{ $enquiry->created_at->toIso8601String() }}">{{ $enquiry->created_at->format('d M Y') }}</time>
+                    </div>
+                    <p class="account-enquiry-message">{{ $enquiry->message }}</p>
+                    @if($enquiry->company_name)
+                        <dl class="account-enquiry-details">
+                            <div><dt>Company</dt><dd>{{ $enquiry->company_name }}</dd></div>
+                            <div><dt>Travellers</dt><dd>{{ $enquiry->company_travellers }}</dd></div>
+                            <div><dt>Company address</dt><dd>{{ $enquiry->company_address }}</dd></div>
+                            <div><dt>Destination</dt><dd>{{ $enquiry->destination }}</dd></div>
+                            <div><dt>Budget</dt><dd>RM {{ number_format((float) $enquiry->budget_from, 2) }} – RM {{ number_format((float) $enquiry->budget_to, 2) }} {{ $enquiry->budget_basis === 'group' ? 'for the whole group' : 'per traveller' }}</dd></div>
+                        </dl>
+                    @endif
+                    @forelse($enquiry->replies as $reply)
+                        <div class="account-enquiry-reply">
+                            <p class="eyebrow">Reply from Travel With You</p>
+                            <h5>{{ $reply->subject }}</h5>
+                            <p>{{ $reply->body }}</p>
+                            <time datetime="{{ $reply->sent_at?->toIso8601String() }}">{{ $reply->sent_at?->format('d M Y, g:i a') }}</time>
+                        </div>
+                    @empty
+                        <p class="account-enquiry-pending">Our team will reply to your enquiry by email and here in your account.</p>
+                    @endforelse
+                </article>
+            @empty
+                <p class="account-muted">Enquiries submitted while signed in will appear here with their replies.</p>
+            @endforelse
+        </section>
+
         <section class="account-panel" id="account-panel-profile" role="tabpanel" aria-labelledby="account-tab-profile" data-account-panel="profile" @if($activeTab !== 'profile') hidden @endif>
             <div class="account-panel-heading"><p class="eyebrow">Your details</p><h2>Profile</h2><p>Keep your account information up to date.</p></div>
             <form class="account-form account-profile-form" method="post" action="{{ route('account.profile.update') }}">@csrf @method('put')
@@ -121,16 +180,6 @@
                 <label class="account-preference"><span><strong>Monthly newsletter</strong><small>Travel stories and inspiration, once a month.</small></span><input type="checkbox" name="news" value="1" @checked($notificationPreferences['news'])></label>
                 <div class="account-form-actions"><button class="button button-primary" type="submit">Save changes</button></div>
             </form>
-        </section>
-
-        <section class="account-panel" id="account-panel-support" role="tabpanel" aria-labelledby="account-tab-support" data-account-panel="support" @if($activeTab !== 'support') hidden @endif>
-            <div class="account-panel-heading"><p class="eyebrow">Here to help</p><h2>Support</h2></div>
-            <article class="account-support-ticket">
-                <p class="eyebrow">12 Sep 2026 · Resolved</p>
-                <h3>Change travel date for TWY-48215</h3>
-                <p>Date moved to 23 Jan 2027 at no cost.</p>
-            </article>
-            <a class="button button-primary" href="{{ route('contact') }}">New support request</a>
         </section>
 
         <section class="account-panel" id="account-panel-security" role="tabpanel" aria-labelledby="account-tab-security" data-account-panel="security" @if($activeTab !== 'security') hidden @endif>

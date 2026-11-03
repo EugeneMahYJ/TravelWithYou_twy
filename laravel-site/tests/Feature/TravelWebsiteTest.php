@@ -1380,7 +1380,7 @@ class TravelWebsiteTest extends TestCase
         $this->assertDatabaseHas('users', ['email' => 'taylor@example.test', 'is_admin' => false]);
     }
 
-    public function test_account_requires_authentication_and_renders_all_tabs(): void
+    public function test_account_requires_authentication_and_renders_available_tabs(): void
     {
         $this->get(route('account'))->assertRedirect(route('login'));
 
@@ -1394,13 +1394,12 @@ class TravelWebsiteTest extends TestCase
             ->assertSee('Travellers')
             ->assertSee('Payment methods')
             ->assertSee('Notifications')
-            ->assertSee('Support')
+            ->assertDontSee('Support')
             ->assertSee('Security')
             ->assertSee('No saved packages yet.')
             ->assertSee('Your username is unique and is used to log in.')
             ->assertSee('900101-14-5678')
             ->assertSee('Visa ending 4242')
-            ->assertSee('Change travel date for TWY-48215')
             ->assertSee('Add an extra layer of security');
     }
 

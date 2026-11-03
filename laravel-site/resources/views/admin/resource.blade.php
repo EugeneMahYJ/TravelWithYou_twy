@@ -51,7 +51,40 @@
     @elseif($resource === 'enquiries')
         <div class="admin-panel-heading"><h2>{{ $waitingCount }} waiting for a reply</h2><nav class="admin-tabs" aria-label="Enquiry status">@foreach(['All', 'Unanswered', 'Replied'] as $tab)<a class="{{ request('status', 'All') === $tab ? 'is-active' : '' }}" href="{{ route('admin.enquiries', array_filter(['status' => $tab === 'All' ? null : $tab, 'q' => request('q')])) }}">{{ $tab }}</a>@endforeach</nav></div>
         <form class="admin-filter-form" method="get" action="{{ route('admin.enquiries') }}"><input type="hidden" name="status" value="{{ request('status') }}"><label><span class="visually-hidden">Search enquiries</span><input name="q" type="search" value="{{ request('q') }}" placeholder="Search name, email, subject…"></label><button class="button button-ghost" type="submit">Search</button></form>
-        <div class="admin-enquiry-list">@forelse($rows as $row)<article class="admin-enquiry-card"><div class="admin-enquiry-head"><div><span class="status-pill">{{ in_array($row->status, ['New', 'In progress'], true) ? 'Unanswered' : 'Replied' }}</span><h2>{{ $row->subject }}</h2></div><time>{{ $row->created_at->format('j M Y') }}</time></div><p><strong>{{ $row->name }}</strong> · <a href="mailto:{{ $row->email }}">{{ $row->email }}</a></p><p>{{ $row->message }}</p><div class="admin-enquiry-actions"><a class="button button-primary" href="{{ route('admin.enquiries.show', $row) }}">Reply</a>@if(in_array($row->status, ['New', 'In progress'], true))<form method="post" action="{{ route('admin.status', ['resource' => 'enquiries', 'id' => $row->id]) }}">@csrf @method('patch')<input type="hidden" name="status" value="Replied"><button class="button button-ghost" type="submit">Mark replied</button></form>@endif</div>@if($row->status === 'Replied' && $row->latestReply)<p class="admin-enquiry-last-replied">Last replied {{ $row->latestReply->sent_at?->format('j M Y, H:i') }} by {{ $row->latestReply->admin?->name ?? 'Admin' }}</p>@endif</article>@empty<p class="muted">No enquiries found.</p>@endforelse</div>
+        <div class="admin-enquiry-list">
+            @forelse($rows as $row)
+                <article class="admin-enquiry-card">
+                    <div class="admin-enquiry-head">
+                        <div><span class="status-pill">{{ in_array($row->status, ['New', 'In progress'], true) ? 'Unanswered' : 'Replied' }}</span><h2>{{ $row->subject }}</h2></div>
+                        <time>{{ $row->created_at->format('j M Y') }}</time>
+                    </div>
+                    <p><strong>{{ $row->honorific ? $row->honorific.' ' : '' }}{{ $row->name }}</strong> · <a href="mailto:{{ $row->email }}">{{ $row->email }}</a></p>
+                    @if($row->company_name)
+                        <p><strong>{{ $row->company_name }}</strong> · {{ $row->company_travellers }} travellers</p>
+                        @if($row->destination)
+                            <p>{{ $row->destination }}</p>
+                        @endif
+                    @endif
+                    <p>{{ $row->message }}</p>
+                    <div class="admin-enquiry-actions">
+                        <a class="button button-primary" href="{{ route('admin.enquiries.show', $row) }}">Reply</a>
+                        @if(in_array($row->status, ['New', 'In progress'], true))
+                            <form method="post" action="{{ route('admin.status', ['resource' => 'enquiries', 'id' => $row->id]) }}">
+                                @csrf
+                                @method('patch')
+                                <input type="hidden" name="status" value="Replied">
+                                <button class="button button-ghost" type="submit">Mark replied</button>
+                            </form>
+                        @endif
+                    </div>
+                    @if($row->status === 'Replied' && $row->latestReply)
+                        <p class="admin-enquiry-last-replied">Last replied {{ $row->latestReply->sent_at?->format('j M Y, H:i') }} by {{ $row->latestReply->admin?->name ?? 'Admin' }}</p>
+                    @endif
+                </article>
+            @empty
+                <p class="muted">No enquiries found.</p>
+            @endforelse
+        </div>
 
     @elseif($resource === 'guides')
         <form class="admin-filter-form" method="get" action="{{ route('admin.guides') }}"><label><span class="visually-hidden">Search guides</span><input name="q" type="search" value="{{ request('q') }}" placeholder="Search guides…"></label><button class="button button-ghost" type="submit">Search</button></form>

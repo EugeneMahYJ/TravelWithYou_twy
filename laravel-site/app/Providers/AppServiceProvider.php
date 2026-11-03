@@ -27,6 +27,13 @@ class AppServiceProvider extends ServiceProvider
     {
         View::share('company', config('company'));
         $this->app->scoped(AdminNotifications::class);
+        View::composer('layouts.app', function ($view): void {
+            $user = auth()->user();
+            $view->with([
+                'userNotificationItems' => $user ? $user->siteNotifications()->latest()->limit(5)->get() : collect(),
+                'userUnreadNotificationCount' => $user ? $user->siteNotifications()->whereNull('read_at')->count() : 0,
+            ]);
+        });
         View::composer('admin.layouts.admin', function ($view): void {
             $notifications = app(AdminNotifications::class);
             $view->with([

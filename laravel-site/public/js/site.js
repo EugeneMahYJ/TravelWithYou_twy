@@ -196,6 +196,27 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    const userNotificationMenu = document.querySelector("[data-user-notification-menu]");
+    const userNotificationToggle = userNotificationMenu?.querySelector("[data-user-notification-toggle]");
+    const userNotificationPanel = userNotificationMenu?.querySelector("[data-user-notification-panel]");
+    if (userNotificationMenu && userNotificationToggle && userNotificationPanel) {
+        const closeNotifications = (restoreFocus = false) => {
+            userNotificationMenu.open = false;
+            if (restoreFocus) userNotificationToggle.focus();
+        };
+        userNotificationMenu.addEventListener("keydown", (event) => {
+            if (event.key === "Escape" && userNotificationMenu.open) {
+                event.preventDefault();
+                closeNotifications(true);
+            }
+        });
+        document.addEventListener("click", (event) => {
+            if (!(event.target instanceof Node) || !userNotificationMenu.contains(event.target)) {
+                closeNotifications();
+            }
+        });
+    }
+
     const toast = document.querySelector("[data-toast]");
     if (toast) {
         const dismissToast = () => {

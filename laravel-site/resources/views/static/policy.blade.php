@@ -31,7 +31,9 @@
             <h2><span>2.</span>Information We Collect</h2>
             <p>We collect information to provide better services to all our clients. This may include:</p>
             <ul>
-                <li><strong>Personal Information:</strong> Name, email address, phone number, passport details, and other contact information.</li>
+                <li><strong>Personal Information:</strong> Name, email address, phone number, passport details, account preferences, and other contact information.</li>
+                <li><strong>MICE Enquiries:</strong> Company name and address, group size, contact-person details, preferred destination, and any budget range you provide for a meetings, incentives, conferences, or events enquiry.</li>
+                <li><strong>Account Notifications:</strong> In-site alerts about bookings, payments, account security, and deal preferences, including whether an alert has been read.</li>
                 <li><strong>Payment Information:</strong> Credit/debit card details or bank information used for processing transactions.</li>
                 <li><strong>Travel Information:</strong> Details about your trip, such as flight, hotel, and itinerary preferences.</li>
             </ul>
@@ -42,6 +44,9 @@
             <ul>
                 <li><strong>To Provide Services:</strong> Processing bookings, issuing tickets, arranging accommodations, and other travel-related services.</li>
                 <li><strong>Customer Support:</strong> Responding to inquiries, complaints, and providing assistance related to bookings or services.</li>
+                <li><strong>Enquiry Replies:</strong> If you submit an enquiry while signed in, we link it to your account so you can view our replies in your account inbox. Guest enquiries are handled by email and are not linked to an account solely by matching an email address.</li>
+                <li><strong>Account Notifications:</strong> Showing important booking, payment, and security updates, and promotional deal alerts when you have enabled deal notifications.</li>
+                <li><strong>MICE Planning:</strong> Reviewing and responding to corporate group-travel enquiries using the company, contact, destination, traveller-count, and budget details you submit.</li>
                 <li><strong>Payment Processing:</strong> Handling payment transactions and refunds.</li>
                 <li><strong>Marketing and Promotions:</strong> Sending promotional offers, newsletters, or travel tips (you can opt out at any time).</li>
                 <li><strong>Legal and Compliance:</strong> Ensuring compliance with laws, regulations, and internal policies.</li>

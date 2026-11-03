@@ -20,8 +20,9 @@
                 $primaryNav = [
                     ['label' => 'Destinations', 'url' => route('destinations'), 'active' => request()->is('destinations*')],
                     ['label' => 'Trip', 'url' => route('search'), 'active' => request()->is('search*') || request()->is('packages*') || request()->is('package/*')],
-                    ['label' => 'Deals', 'url' => route('deals'), 'active' => request()->is('deals*')],
                     ['label' => 'Cruise', 'url' => route('ships'), 'active' => request()->is('ships*')],
+                    ['label' => 'Deals', 'url' => route('deals'), 'active' => request()->is('deals*')],
+                    ['label' => 'MICE', 'url' => route('mice'), 'active' => request()->is('mice*')],
                     ['label' => 'About', 'url' => route('about'), 'active' => request()->is('about*')],
                     ['label' => 'Contact Us', 'url' => route('contact'), 'active' => request()->is('contact*')],
                 ];
@@ -36,6 +37,39 @@
                 <input type="search" name="q" value="{{ request('q') }}" placeholder="Search trips, countries…" aria-label="Search trips, countries">
             </form>
             <div class="header-actions">
+                @auth
+                    <details class="user-notification-menu" data-user-notification-menu>
+                        <summary class="header-icon user-notification-toggle" aria-label="Notifications{{ $userUnreadNotificationCount > 0 ? ', '.$userUnreadNotificationCount.' unread' : '' }}" aria-controls="user-notification-panel" data-user-notification-toggle>
+                            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"></path></svg>
+                            @if($userUnreadNotificationCount > 0)
+                                <span class="user-notification-count">{{ $userUnreadNotificationCount > 99 ? '99+' : $userUnreadNotificationCount }}</span>
+                            @endif
+                        </summary>
+                        <section class="user-notification-panel" id="user-notification-panel" aria-label="Recent notifications" data-user-notification-panel>
+                            <div class="user-notification-panel-heading">
+                                <strong>Notifications</strong>
+                                @if($userUnreadNotificationCount > 0)
+                                    <form method="post" action="{{ route('account.notifications.read-all') }}">@csrf
+                                        <button class="user-notification-action" type="submit">Mark all read</button>
+                                    </form>
+                                @endif
+                            </div>
+                            @forelse($userNotificationItems as $notification)
+                                <a class="user-notification-item {{ $notification->read_at ? 'is-read' : 'is-unread' }}" href="{{ route('account.notifications.open', $notification->id) }}">
+                                    <span class="user-notification-indicator" aria-hidden="true"></span>
+                                    <span class="user-notification-copy"><strong>{{ $notification->title }}</strong><small>{{ $notification->message }}</small></span>
+                                </a>
+                            @empty
+                                <p class="user-notification-empty">You’re all caught up.</p>
+                            @endforelse
+                            <a class="user-notification-all" href="{{ route('account', ['tab' => 'inbox']) }}">View all notifications</a>
+                        </section>
+                    </details>
+                @else
+                    <a class="header-icon" href="{{ route('login') }}" aria-label="Log in to view notifications" title="Log in to view notifications">
+                        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"></path></svg>
+                    </a>
+                @endauth
                 <a class="header-icon" href="{{ route('cart') }}" aria-label="Cart, {{ count(session('cart', [])) }} items">
                     <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 4h2l2.2 11.1a2 2 0 0 0 2 1.6h8.5a2 2 0 0 0 1.9-1.4L22 8H6"></path><circle cx="10" cy="20" r="1"></circle><circle cx="18" cy="20" r="1"></circle></svg>
                     @if(count(session('cart', [])) > 0)
@@ -100,6 +134,9 @@
                         <span>{{ $company['email'] }}</span>
                     </a>
                 @endif
+                @if($company['address'])
+                    <p class="footer-address">{!! nl2br(e($company['address'])) !!}</p>
+                @endif
             </div>
             <div class="footer-explore-column">
                 <h2>Explore</h2>
@@ -113,7 +150,7 @@
             <div class="footer-about-column">
                 <h2>About</h2>
                 <ul>
-                    @foreach(array_slice($primaryNav, 4) as $link)
+                    @foreach(array_slice($primaryNav, 5) as $link)
                         <li><a href="{{ $link['url'] }}">{{ $link['label'] }}</a></li>
                     @endforeach
                 </ul>

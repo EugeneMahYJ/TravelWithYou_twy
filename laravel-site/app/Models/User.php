@@ -105,4 +105,14 @@ class User extends Authenticatable
     {
         return $this->hasMany(EnquiryReply::class, 'admin_id');
     }
+
+    public function enquiries(): HasMany
+    {
+        return $this->hasMany(Enquiry::class);
+    }
+
+    public function siteNotifications(): HasMany
+    {
+        return $this->hasMany(UserNotification::class);
+    }
 }

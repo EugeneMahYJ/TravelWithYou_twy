@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Booking;
+use App\Support\ClientNotifications;
 use App\Support\CredentialRules;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -13,7 +14,7 @@ use Illuminate\View\View;
 
 class AccountController extends Controller
 {
-    private const TABS = ['profile', 'bookings', 'wishlist', 'travellers', 'payments', 'notifications', 'support', 'security'];
+    private const TABS = ['profile', 'inbox', 'bookings', 'wishlist', 'travellers', 'payments', 'notifications', 'security'];
 
     public function show(Request $request): View
     {
@@ -28,6 +29,11 @@ class AccountController extends Controller
             'bookings' => $bookings,
             'upcomingBookings' => $upcomingBookings,
             'completedBookings' => $completedBookings,
+            'enquiries' => $user->enquiries()
+                ->with(['replies' => fn ($query) => $query->where('status', 'sent')])
+                ->orderByDesc('created_at')
+                ->get(),
+            'userNotifications' => $user->siteNotifications()->latest()->get(),
             'favorites' => $user->favorites()->where('published', true)->orderBy('name')->get(),
             'activeTab' => in_array($activeTab, self::TABS, true) ? $activeTab : 'profile',
             'travellerDetails' => $user->traveller_details ?? [],
@@ -39,11 +45,11 @@ class AccountController extends Controller
         ]);
     }
 
-    public function cancelBooking(Request $request, Booking $booking): RedirectResponse
+    public function cancelBooking(Request $request, ClientNotifications $notifications, Booking $booking): RedirectResponse
     {
         abort_unless($booking->user_id === $request->user()->id, 403);
 
-        $cancelled = DB::transaction(function () use ($booking, $request): bool {
+        $cancelled = DB::transaction(function () use ($booking, $request, $notifications): bool {
             $lockedBooking = $booking->newQuery()->lockForUpdate()->findOrFail($booking->id);
             abort_unless($lockedBooking->user_id === $request->user()->id, 403);
             if ($lockedBooking->status !== 'Pending payment') {
@@ -55,6 +61,7 @@ class AccountController extends Controller
                 'cancelled_at' => now(),
                 'cancelled_by' => $request->user()->id,
             ])->save();
+            $notifications->bookingStatusChanged($lockedBooking);
 
             return true;
         });
@@ -65,7 +72,7 @@ class AccountController extends Controller
         );
     }
 
-    public function updateProfile(Request $request): RedirectResponse
+    public function updateProfile(Request $request, ClientNotifications $notifications): RedirectResponse
     {
         $user = $request->user();
         $data = $request->validate([
@@ -100,11 +107,19 @@ class AccountController extends Controller
             'username.regex' => 'Use 3-20 letters, numbers, dots, dashes or underscores.',
         ]);
 
+        $emailChanged = Str::lower($user->email) !== Str::lower($data['email']);
         $user->forceFill([
             'username' => Str::lower($data['username']),
             'email' => Str::lower($data['email']),
             'phone' => $data['phone'] ?? null,
         ])->save();
+        if ($emailChanged) {
+            $notifications->accountSecurityChanged(
+                $user,
+                'Account email updated',
+                'The email address on your account has changed.',
+            );
+        }
 
         return redirect()->route('account', ['tab' => 'profile'])->with('success', 'Profile updated');
     }
@@ -140,24 +155,62 @@ class AccountController extends Controller
         return redirect()->route('account', ['tab' => 'notifications'])->with('success', 'Saved');
     }
 
-    public function changePassword(Request $request): RedirectResponse
+    public function changePassword(Request $request, ClientNotifications $notifications): RedirectResponse
     {
         $data = $request->validate([
             'current_password' => ['required', 'current_password'],
             'new_password' => ['required', 'confirmed', ...CredentialRules::password()],
         ], CredentialRules::passwordMessages('new_password'));
 
-        $request->user()->forceFill(['password' => Hash::make($data['new_password'])])->save();
+        $user = $request->user();
+        $user->forceFill(['password' => Hash::make($data['new_password'])])->save();
+        $notifications->accountSecurityChanged(
+            $user,
+            'Password changed',
+            'Your account password was changed.',
+        );
 
         return redirect()->route('account', ['tab' => 'security'])->with('success', 'Password changed');
     }
 
-    public function toggleTwoFactor(Request $request): RedirectResponse
+    public function toggleTwoFactor(Request $request, ClientNotifications $notifications): RedirectResponse
     {
         $enabled = $request->boolean('enabled');
-        $request->user()->forceFill(['account_mfa_enabled' => $enabled])->save();
+        $user = $request->user();
+        $changed = $user->account_mfa_enabled !== $enabled;
+        $user->forceFill(['account_mfa_enabled' => $enabled])->save();
+        if ($changed) {
+            $notifications->accountSecurityChanged(
+                $user,
+                $enabled ? 'Two-factor authentication enabled' : 'Two-factor authentication disabled',
+                $enabled
+                    ? 'Two-factor authentication was enabled for your account.'
+                    : 'Two-factor authentication was disabled for your account.',
+            );
+        }
 
         return redirect()->route('account', ['tab' => 'security'])->with('success', $enabled ? 'Two-factor authentication enabled.' : 'Two-factor authentication disabled.');
+    }
+
+    public function openNotification(Request $request, int $notificationId): RedirectResponse
+    {
+        $notification = $request->user()->siteNotifications()->findOrFail($notificationId);
+        if ($notification->read_at === null) {
+            $notification->forceFill(['read_at' => now()])->save();
+        }
+
+        if (! str_starts_with($notification->url, '/') || str_starts_with($notification->url, '//')) {
+            abort(404);
+        }
+
+        return redirect($notification->url);
+    }
+
+    public function markAllNotificationsRead(Request $request): RedirectResponse
+    {
+        $request->user()->siteNotifications()->whereNull('read_at')->update(['read_at' => now()]);
+
+        return redirect()->route('account', ['tab' => 'inbox'])->with('success', 'All notifications marked as read.');
     }
 
     public function placeholderAction(Request $request): RedirectResponse
