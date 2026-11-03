@@ -250,7 +250,7 @@ class AdminController extends Controller
                 }
             }
             $departurePaxTiers = [];
-            if (($data['type'] ?? null) === 'Flight + hotel') {
+            if (($data['type'] ?? null) === TravelPackage::TYPE_FLIGHT_AND_HOTEL) {
                 foreach ($departures as $index => $date) {
                     $tiers = collect($data['departure_pax_tiers'][$index] ?? [])
                         ->map(fn (array $tier) => [
@@ -300,7 +300,7 @@ class AdminController extends Controller
             'country' => $data['country'] ?? ($existing?->country ?? 'Unspecified'),
             'country_id' => $data['country_id'] ?? $existing?->country_id,
             'region' => $data['region'] ?? ($existing?->region ?? 'Other'),
-            'type' => $data['type'] ?? ($existing?->type ?? 'Adventure'),
+            'type' => $data['type'] ?? ($existing?->type ?? TravelPackage::TYPE_FLIGHT_AND_HOTEL),
             'ship' => $data['ship'] ?? null,
             'brand' => $data['brand'] ?? ($existing?->brand),
             'operator' => $data['operator'] ?? ($existing?->operator),

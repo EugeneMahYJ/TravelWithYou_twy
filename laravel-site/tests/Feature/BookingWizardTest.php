@@ -110,7 +110,7 @@ class BookingWizardTest extends TestCase
         $this->from(route('booking', ['id' => 'sakura-rail', 'date' => '2027-03-27']))
             ->post(route('booking.submit', ['id' => 'sakura-rail', 'date' => '2027-03-27']), $largeLand)
             ->assertRedirect()
-            ->assertSessionHasErrors(['counts' => 'Flight + hotel bookings allow up to 12 guests.']);
+            ->assertSessionHasErrors(['counts' => 'Flight + Hotel bookings allow up to 12 guests.']);
 
         $noAdultCruise = $this->cruisePayload(adults: 0, children: 1, rooms: 1);
         $this->from(route('booking', ['id' => 'med-grand', 'date' => '2027-06-03']))
@@ -498,7 +498,7 @@ class BookingWizardTest extends TestCase
             'name' => 'Custom Booking Test',
             'country' => 'Japan',
             'region' => 'Asia',
-            'type' => 'Rail',
+            'type' => 'Flight + Hotel',
             'days' => 3,
             'description' => 'A test journey.',
             'details' => 'A test journey.',

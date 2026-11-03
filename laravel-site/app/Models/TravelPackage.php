@@ -8,6 +8,15 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class TravelPackage extends Model
 {
+    public const TYPE_FLIGHT_AND_HOTEL = 'Flight + Hotel';
+
+    public const TYPE_CRUISE = 'Cruise';
+
+    public const TRIP_TYPES = [
+        self::TYPE_FLIGHT_AND_HOTEL,
+        self::TYPE_CRUISE,
+    ];
+
     protected $fillable = [
         'slug',
         'source_id',
@@ -67,6 +76,13 @@ class TravelPackage extends Model
         ];
     }
 
+    public function getTypeAttribute(?string $value): string
+    {
+        return $value === self::TYPE_CRUISE
+            ? self::TYPE_CRUISE
+            : self::TYPE_FLIGHT_AND_HOTEL;
+    }
+
     public function bookings(): HasMany
     {
         return $this->hasMany(Booking::class, 'package_id');
@@ -83,7 +99,7 @@ class TravelPackage extends Model
             return $this->getAttribute('excluded');
         }
 
-        if ($this->type === 'Cruise') {
+        if ($this->type === self::TYPE_CRUISE) {
             return [
                 'International flights to and from the ports',
                 'Visas and passport fees',
@@ -154,7 +170,7 @@ class TravelPackage extends Model
             return $this->getAttribute('included');
         }
 
-        if ($this->type === 'Cruise') {
+        if ($this->type === self::TYPE_CRUISE) {
             return [
                 'Cabin accommodation in your chosen category',
                 'Full-board dining in main restaurants',
@@ -173,10 +189,6 @@ class TravelPackage extends Model
             'Entrance fees for listed sightseeing',
             '24/7 support line during your trip',
         ];
-        if ($this->type === 'Wildlife') {
-            return [...$included, 'Park and conservancy fees', 'Daily game drives', 'Internal flights listed'];
-        }
-
         return [...$included, 'Airport arrival and departure transfers on day 1 and last day'];
     }
 }

@@ -51,7 +51,7 @@
             <label><span>Package name</span><input name="name" value="{{ old('name', $package->name) }}" required>@error('name')<small class="field-error">{{ $message }}</small>@enderror</label>
             <label><span>URL slug</span><input name="slug" value="{{ old('slug', $package->slug) }}" placeholder="Generated from name if blank">@error('slug')<small class="field-error">{{ $message }}</small>@enderror</label>
             <label><span>Country</span><select name="country"><option value="">Choose a country</option>@foreach($countries as $country)<option value="{{ $country->slug }}" @selected(old('country', $package->countryRecord?->slug ?: \Illuminate\Support\Str::slug($package->country)) === $country->slug)>{{ $country->name }}</option>@endforeach</select>@error('country')<small class="field-error">{{ $message }}</small>@enderror</label>
-            <label><span>Trip type</span><select name="type" data-package-type><option value="">Choose a type</option>@foreach(['Flight + hotel', 'Cruise', 'Rail', 'Wildlife', 'Adventure', 'Culture'] as $type)<option value="{{ $type }}" @selected(old('type', $package->type) === $type)>{{ $type }}</option>@endforeach</select>@error('type')<small class="field-error">{{ $message }}</small>@enderror</label>
+            <label><span>Trip type</span><select name="type" data-package-type><option value="">Choose a type</option>@foreach(\App\Models\TravelPackage::TRIP_TYPES as $type)<option value="{{ $type }}" @selected(old('type', $package->type) === $type)>{{ $type }}</option>@endforeach</select>@error('type')<small class="field-error">{{ $message }}</small>@enderror</label>
             <label><span>Ship (cruises)</span><select name="ship" data-package-ship><option value="">Choose a ship</option>@foreach($ships as $ship)<option value="{{ $ship->name }}" data-cabins="{{ $ship->cabins->map(fn ($cabin) => ['type' => $cabin->type, 'size' => $cabin->size, 'note' => $cabin->note, 'legacyPrice' => $cabin->price_from])->values()->toJson() }}" @selected($selectedShipName === $ship->name)>{{ $ship->name }}</option>@endforeach</select>@error('ship')<small class="field-error">{{ $message }}</small>@enderror</label>
             <label><span>Duration (days)</span><input type="number" min="1" max="365" name="days" value="{{ old('days', $package->days) }}">@error('days')<small class="field-error">{{ $message }}</small>@enderror</label>
             <label><span>Nights</span><input type="number" min="0" max="365" name="nights" value="{{ old('nights', $package->nights) }}"></label>
@@ -101,7 +101,7 @@
     </section>
     <section class="admin-editor-section">
         <div class="admin-panel-heading"><h2>Departure dates &amp; prices</h2><button class="text-button admin-add-row" type="button" data-add-departure>+ Add date</button></div>
-        <p class="muted">Set an exact price for every guest type on every departure date. Flight + hotel packages can also use passenger-number price bands. Cruise packages use cabin prices instead.</p>
+        <p class="muted">Set an exact price for every guest type on every departure date. Flight + Hotel packages can also use passenger-number price bands. Cruise packages use cabin prices instead.</p>
         <div class="admin-repeat-list" data-departure-prices>
             @foreach($departures as $index => $departure)
                 <article class="admin-day-row" data-departure-row>
@@ -112,7 +112,7 @@
                             <label data-price-type="{{ $guestType['id'] }}"><span>{{ $guestType['label'] }} price (RM)</span><input type="number" min="1" name="departure_prices[{{ $index }}][{{ $guestType['id'] }}]" value="{{ $departurePrices[$index][$guestType['id']] ?? '' }}" @if(old('status', $package->admin_status) !== 'Draft' && old('type', $package->type) !== 'Cruise') required @endif></label>
                         @endforeach
                     </div>
-                    <div class="admin-pax-tier-editor" data-flight-pax-pricing @if(old('type', $package->type) !== 'Flight + hotel') hidden @endif>
+                    <div class="admin-pax-tier-editor" data-flight-pax-pricing @if(old('type', $package->type) !== \App\Models\TravelPackage::TYPE_FLIGHT_AND_HOTEL) hidden @endif>
                         <div class="admin-panel-heading"><strong>Passenger price bands</strong><button class="text-button admin-add-row" type="button" data-add-pax-tier>Add band</button></div>
                         <p class="muted">Optional. A band overrides the regular departure price for those passenger numbers. Uncovered numbers use the regular price.</p>
                         <div class="admin-repeat-list" data-pax-tier-rows>

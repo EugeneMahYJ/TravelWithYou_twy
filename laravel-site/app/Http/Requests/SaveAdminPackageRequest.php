@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Country;
+use App\Models\TravelPackage;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -72,7 +73,7 @@ class SaveAdminPackageRequest extends FormRequest
             'country' => [$published ? 'required' : 'nullable', 'string', 'max:120'],
             'country_id' => ['nullable', 'integer', 'exists:countries,id'],
             'region' => [$published ? 'required' : 'nullable', 'string', 'max:80'],
-            'type' => [$published ? 'required' : 'nullable', 'string', 'max:80'],
+            'type' => [$published ? 'required' : 'nullable', Rule::in(TravelPackage::TRIP_TYPES)],
             'ship' => ['nullable', 'string', 'max:160'],
             'brand' => ['nullable', 'string', 'max:160'],
             'operator' => ['nullable', 'string', 'max:200'],
@@ -165,7 +166,7 @@ class SaveAdminPackageRequest extends FormRequest
             if (! collect($guestTypes)->contains(fn ($guestType) => is_array($guestType) && ($guestType['role'] ?? null) === 'adult')) {
                 $validator->errors()->add('guest_types', 'Add at least one Adult guest type.');
             }
-            if ($this->input('type') !== 'Cruise') {
+            if ($this->input('type') !== TravelPackage::TYPE_CRUISE) {
                 foreach ($this->input('departures', []) as $index => $date) {
                     foreach ($guestTypes as $guestType) {
                         if (! is_array($guestType) || blank($guestType['id'] ?? null)) {
@@ -176,7 +177,7 @@ class SaveAdminPackageRequest extends FormRequest
                         }
                     }
                 }
-                if ($this->input('type') === 'Flight + hotel') {
+                if ($this->input('type') === TravelPackage::TYPE_FLIGHT_AND_HOTEL) {
                     foreach ($this->input('departure_pax_tiers', []) as $departureIndex => $tiers) {
                         if (! is_array($tiers)) {
                             continue;

@@ -40,8 +40,8 @@
     <div class="trend-row"><span class="eyebrow">Trending searches</span>
         <a href="{{ route('search', ['q' => 'sakura']) }}">Cherry blossom</a>
         <a href="{{ route('search', ['q' => 'Mediterranean']) }}">Mediterranean cruise</a>
-        <a href="{{ route('search', ['q' => 'Wildlife']) }}">Safari</a>
-        <a href="{{ route('search', ['q' => 'Beach', 'price' => '2-3.5']) }}">Beach under RM 3,500</a>
+        <a href="{{ route('search', ['q' => 'Great Migration']) }}">Safari</a>
+        <a href="{{ route('search', ['q' => 'Andaman', 'price' => '2-3.5']) }}">Beach under RM 3,500</a>
         <a href="{{ route('search', ['q' => 'aurora']) }}">Northern lights</a>
         <a href="{{ route('search', ['q' => 'Greece']) }}">Greek islands</a>
     </div>

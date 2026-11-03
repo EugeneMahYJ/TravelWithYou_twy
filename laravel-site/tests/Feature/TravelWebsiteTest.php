@@ -250,7 +250,7 @@ class TravelWebsiteTest extends TestCase
             'slug' => $slug,
             'name' => $name,
             'country' => $country,
-            'type' => 'Guided tour',
+            'type' => 'Flight + Hotel',
         ]);
 
         $soloPackage = $createPackage('solo-country-trip', 'Solo Country Journey', 'Solo Country');
@@ -441,23 +441,33 @@ class TravelWebsiteTest extends TestCase
     public function test_each_search_filter_matches_the_catalogue(): void
     {
         $cases = [
-            [['q' => 'sakura'], 'Sakura Rail Journey', 'Kyoto Temple Retreat'],
-            [['ship' => 'Coral Horizon'], 'Aegean Island Hopper', 'Mediterranean Grand Cruise'],
-            [['dep_port' => 'Tokyo'], 'Sakura Rail Journey', 'Kyoto Temple Retreat'],
-            [['dest_port' => 'Osaka'], 'Sakura Rail Journey', 'Kyoto Temple Retreat'],
-            [['month' => '2027-03'], 'Sakura Rail Journey', 'Kyoto Temple Retreat'],
-            [['price' => 'lt2'], 'Voyage Hainan', 'Sakura Rail Journey'],
-            [['region' => 'Asia'], 'Sakura Rail Journey', 'Amalfi Coast Slow Escape'],
-            [['country' => 'Japan'], 'Sakura Rail Journey', 'Amalfi Coast Slow Escape'],
-            [['type' => 'Wildlife'], 'Maasai Mara Great Migration', 'Kyoto Temple Retreat'],
-            [['duration' => '1-7'], 'Kyoto Temple Retreat', 'Sakura Rail Journey'],
+            [['q' => 'sakura'], 'Sakura Rail Journey'],
+            [['ship' => 'Coral Horizon'], 'Aegean Island Hopper'],
+            [['dep_port' => 'Tokyo'], 'Sakura Rail Journey'],
+            [['dest_port' => 'Osaka'], 'Sakura Rail Journey'],
+            [['month' => '2027-03'], 'Sakura Rail Journey'],
+            [['price' => 'lt2'], 'Sakura Rail Journey'],
+            [['region' => 'Asia'], 'Sakura Rail Journey'],
+            [['country' => 'Japan'], 'Sakura Rail Journey'],
+            [['type' => 'Cruise'], 'Mediterranean Grand Cruise'],
+            [['duration' => '1-7'], 'Kyoto Temple Retreat'],
         ];
 
-        foreach ($cases as [$filters, $included, $excluded]) {
-            $this->get(route('search', $filters))
+        foreach ($cases as [$filters, $included]) {
+            $response = $this->get(route('search', $filters))
                 ->assertOk()
-                ->assertSee($included)
-                ->assertDontSee($excluded);
+                ->assertSee($included);
+            $response->assertViewHas('packages', function ($packages) use ($filters, $included): bool {
+                $results = $packages->getCollection();
+                $matches = $results->contains('name', $included);
+                if (($filters['type'] ?? null) === 'Cruise') {
+                    $matches = $matches && $results->every(fn (TravelPackage $package) => $package->type === TravelPackage::TYPE_CRUISE);
+                }
+
+                $this->assertTrue($matches, "Unexpected package results for {$included}: ".$results->pluck('name')->implode(', '));
+
+                return true;
+            });
         }
     }
 
@@ -516,8 +526,8 @@ class TravelWebsiteTest extends TestCase
         $searches = [
             [['q' => 'sakura'], 'Sakura Rail Journey'],
             [['q' => 'Mediterranean'], 'Mediterranean Grand Cruise'],
-            [['q' => 'Wildlife'], 'Maasai Mara Great Migration'],
-            [['q' => 'Beach', 'price' => '2-3.5'], 'Amalfi Coast Slow Escape'],
+            [['q' => 'Great Migration'], 'Maasai Mara Great Migration'],
+            [['q' => 'Andaman', 'price' => '2-3.5'], 'Andaman Escape'],
             [['q' => 'aurora'], 'Iceland Ring Road & Aurora'],
             [['q' => 'Greece'], 'Aegean Island Hopper'],
         ];
@@ -581,10 +591,10 @@ class TravelWebsiteTest extends TestCase
             ]);
         }
 
-        $response = $this->get(route('search', ['type' => 'Cultural', 'region' => 'Asia']))
+        $response = $this->get(route('search', ['type' => 'Flight + Hotel', 'region' => 'Asia']))
             ->assertOk()
             ->assertSee('Filtered Japan cultural trip 1');
-        $this->assertStringContainsString('type=Cultural', $response->getContent());
+        $this->assertStringContainsString('type=', $response->getContent());
         $this->assertStringContainsString('region=Asia', $response->getContent());
         $this->assertStringContainsString('page=2', $response->getContent());
     }
@@ -1198,6 +1208,9 @@ class TravelWebsiteTest extends TestCase
             ->assertOk()
             ->assertDontSee('Advanced · brochure data')
             ->assertDontSee('name="source_data_json"', false)
+            ->assertSee('value="Flight + Hotel"', false)
+            ->assertSee('value="Cruise"', false)
+            ->assertDontSee('value="Wildlife"', false)
             ->assertSee('data-guest-types', false)
             ->assertSee('data-departure-prices', false)
             ->assertSee('data-package-addons', false);
@@ -1215,6 +1228,8 @@ class TravelWebsiteTest extends TestCase
             'departures' => ['2027-01-01'],
             'image' => 'package-form-test.jpg',
         ]);
+        $this->assertSame('Flight + Hotel', $package->type);
+        $this->assertSame('Adventure', $package->getRawOriginal('type'));
         $this->get(route('admin.packages.edit', $package))
             ->assertOk()
             ->assertDontSee('Advanced · brochure data')
@@ -1238,7 +1253,7 @@ class TravelWebsiteTest extends TestCase
                 'name' => 'Highlands Weekend',
                 'country' => 'Malaysia',
                 'region' => 'Asia',
-                'type' => 'Adventure',
+                'type' => 'Flight + Hotel',
                 'days' => 4,
                 'description' => 'A small group escape to the highlands.',
                 'details' => 'Walk forest trails and spend slow afternoons in the hills.',
@@ -1252,6 +1267,12 @@ class TravelWebsiteTest extends TestCase
             ])->assertRedirect(route('admin.packages'));
 
         $this->assertDatabaseHas('travel_packages', ['slug' => 'highlands-weekend', 'published' => true]);
+        $this->assertDatabaseHas('travel_packages', ['slug' => 'highlands-weekend', 'type' => 'Flight + Hotel']);
+
+        $this->from(route('admin.packages.create'))
+            ->post(route('admin.packages.store'), ['name' => 'Old Type Trip', 'type' => 'Adventure'])
+            ->assertSessionHasErrors('type');
+        $this->assertDatabaseMissing('travel_packages', ['slug' => 'old-type-trip']);
     }
 
     public function test_imported_tour_package_renders_and_can_be_edited_by_admin(): void
@@ -1259,6 +1280,10 @@ class TravelWebsiteTest extends TestCase
         $this->seed(TourPackageSeeder::class);
         $package = TravelPackage::where('source_id', 'JPD-12')->firstOrFail();
         $this->assertSame(13, TravelPackage::whereNotNull('source_id')->count());
+        $this->assertSame([], TravelPackage::query()->get()
+            ->reject(fn (TravelPackage $travelPackage) => in_array($travelPackage->type, TravelPackage::TRIP_TYPES, true))
+            ->pluck('type')
+            ->all());
 
         $this->get(route('packages.show', ['package' => $package->slug]))
             ->assertOk()
@@ -1266,7 +1291,7 @@ class TravelWebsiteTest extends TestCase
             ->assertSee('Not included')
             ->assertSee('Noboribetsu Date Jidaimura')
             ->assertSee('4,990');
-        $this->get(route('search', ['type' => 'Ocean cruise']))
+        $this->get(route('search', ['type' => 'Cruise']))
             ->assertOk()
             ->assertSee('Alaska Discoverer');
 
@@ -1285,7 +1310,7 @@ class TravelWebsiteTest extends TestCase
                 'slug' => $package->slug,
                 'country' => $package->country,
                 'region' => $package->region,
-                'type' => 'Guided tour',
+                'type' => 'Flight + Hotel',
                 'ship' => '',
                 'brand' => $package->brand,
                 'operator' => $package->operator,

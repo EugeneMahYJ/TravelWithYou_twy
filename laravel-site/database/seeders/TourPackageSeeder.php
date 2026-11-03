@@ -38,11 +38,11 @@ class TourPackageSeeder extends Seeder
     ];
 
     private const TYPES = [
-        'guided_land_tour' => 'Guided tour',
-        'river_cruise' => 'River cruise',
-        'ocean_cruise' => 'Ocean cruise',
-        'expedition_cruise' => 'Expedition cruise',
-        'short_cruise' => 'Short cruise',
+        'guided_land_tour' => TravelPackage::TYPE_FLIGHT_AND_HOTEL,
+        'river_cruise' => TravelPackage::TYPE_CRUISE,
+        'ocean_cruise' => TravelPackage::TYPE_CRUISE,
+        'expedition_cruise' => TravelPackage::TYPE_CRUISE,
+        'short_cruise' => TravelPackage::TYPE_CRUISE,
     ];
 
     private const IMAGES = [
@@ -110,7 +110,8 @@ class TourPackageSeeder extends Seeder
                 'name' => $record['title']['en'],
                 'country' => $country,
                 'region' => $region,
-                'type' => self::TYPES[$record['category']] ?? Str::headline($record['category']),
+                'type' => self::TYPES[$record['category']]
+                    ?? throw new RuntimeException("Unsupported tour category {$record['category']} for tour {$record['id']}."),
                 'ship' => is_array($record['ship'] ?? null) ? ($record['ship']['name'] ?? null) : ($record['ship'] ?? null),
                 'brand' => $brand,
                 'operator' => $record['operator'] ?? $record['seller'] ?? null,

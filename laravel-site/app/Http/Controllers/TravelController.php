@@ -75,14 +75,26 @@ class TravelController extends Controller
         $query->when($request->filled('q'), function ($builder) use ($request) {
             $term = '%'.Str::lower(trim($request->string('q')->toString())).'%';
             $builder->where(function ($matches) use ($term) {
-                foreach (['name', 'description', 'country', 'type'] as $column) {
+                foreach (['name', 'description', 'country'] as $column) {
                     $matches->orWhereRaw('LOWER('.$column.') LIKE ?', [$term]);
                 }
             });
         });
-        foreach (['ship' => 'ship', 'country' => 'country', 'region' => 'region', 'type' => 'type', 'dep_port' => 'departure_port', 'dest_port' => 'destination_port'] as $filter => $column) {
+        foreach (['ship' => 'ship', 'country' => 'country', 'region' => 'region', 'dep_port' => 'departure_port', 'dest_port' => 'destination_port'] as $filter => $column) {
             if ($request->filled($filter)) {
                 $query->whereRaw('LOWER('.$column.') = ?', [Str::lower($request->string($filter)->toString())]);
+            }
+        }
+        if ($request->filled('type')) {
+            $type = $request->string('type')->toString();
+            if ($type === TravelPackage::TYPE_CRUISE) {
+                $query->where('type', TravelPackage::TYPE_CRUISE);
+            } elseif ($type === TravelPackage::TYPE_FLIGHT_AND_HOTEL) {
+                $query->where(fn ($builder) => $builder
+                    ->whereNull('type')
+                    ->orWhere('type', '!=', TravelPackage::TYPE_CRUISE));
+            } else {
+                $query->whereRaw('1 = 0');
             }
         }
         if ($request->filled('month')) {
@@ -131,7 +143,7 @@ class TravelController extends Controller
             'packages' => $packages,
             'regions' => Country::query()->select('region')->distinct()->orderBy('region')->pluck('region'),
             'countries' => Country::query()->orderBy('name')->pluck('name'),
-            'types' => TravelPackage::query()->where('published', true)->distinct()->orderBy('type')->pluck('type'),
+            'types' => TravelPackage::TRIP_TYPES,
             'searchOptions' => $this->searchOptions(),
             'activeFilters' => $filters,
         ]);
@@ -225,7 +237,7 @@ class TravelController extends Controller
         $ship = $package->ship
             ? Ship::query()->with('cabins')->where('name', $package->ship)->first()
             : null;
-        $cruise = $package->type === 'Cruise' && $ship !== null;
+        $cruise = $package->type === TravelPackage::TYPE_CRUISE && $ship !== null;
         if ($cruise && $ship->cabins->isEmpty()) {
             return view('booking', ['state' => 'no-cabins', 'package' => $package]);
         }
@@ -291,7 +303,7 @@ class TravelController extends Controller
         $ship = $package->ship
             ? Ship::query()->with('cabins')->where('name', $package->ship)->first()
             : null;
-        $cruise = $package->type === 'Cruise' && $ship !== null;
+        $cruise = $package->type === TravelPackage::TYPE_CRUISE && $ship !== null;
         if ($cruise && $ship->cabins->isEmpty()) {
             return redirect($bookingUrl);
         }
@@ -430,7 +442,7 @@ class TravelController extends Controller
             } elseif ($grownups < 1) {
                 $errors = ['counts' => 'Children must share with an Adult. Add an Adult.'];
             } elseif ($total > 12) {
-                $errors = ['counts' => 'Flight + hotel bookings allow up to 12 guests.'];
+                $errors = ['counts' => 'Flight + Hotel bookings allow up to 12 guests.'];
             } elseif ($roomError = Pricing::roomError($sharingAdults, $children, (int) $input['rooms'], $singles)) {
                 $errors = ['rooms' => $roomError];
             } else {
