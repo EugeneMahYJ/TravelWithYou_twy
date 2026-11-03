@@ -1081,6 +1081,10 @@ class TravelWebsiteTest extends TestCase
         $this->assertStringContainsString('Travel Guides', $footer);
         $this->assertStringContainsString('Contact Us', $footer);
         $this->assertStringNotContainsString('<h2>Contact</h2>', $footer);
+        $this->assertSame(5, substr_count($footer, 'class="footer-payment-logo '));
+        $this->assertStringContainsString('assets/home/Visa_Logo.jpg', $footer);
+        $this->assertStringContainsString('assets/home/Mastercard_Logo.png', $footer);
+        $this->assertStringContainsString('assets/home/Duitnow_Logo.png', $footer);
         $this->assertStringContainsString('class="footer-email" href="mailto:enquiry@travelwithyou.my"', $footer);
         $this->assertStringContainsString('enquiry@travelwithyou.my', $footer);
         $this->assertStringNotContainsString('href="'.route('cart').'"', $footer);

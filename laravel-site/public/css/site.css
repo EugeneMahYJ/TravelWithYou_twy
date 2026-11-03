@@ -1,4 +1,4 @@
-﻿@font-face {
+@font-face {
     font-family: "Newsreader";
     src: url("../fonts/newsreader-latin.woff2") format("woff2");
     font-style: normal;
@@ -925,10 +925,10 @@ textarea.account-input { min-height: 100px; resize: vertical; }
 .footer-newsletter-column form button:hover { background: #fff; }
 .footer-payment-methods { margin-top: 28px; }
 .footer-payment-methods h2 { margin-bottom: 12px; }
-.footer-payment-logos { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.footer-payment-logo { display: block; height: 42px; border: 1px solid rgba(244,236,220,.3); border-radius: 6px; background: #fff; object-fit: cover; }
-.footer-payment-logo-fpx { width: 88px; }
-.footer-payment-logo-tng { width: 42px; }
+.footer-payment-logos { display: grid; grid-template-columns: max-content max-content max-content; align-items: center; gap: 8px; }
+.footer-payment-logo { display: block; width: 44px; height: 44px; padding: 3px; border: 1px solid rgba(244,236,220,.3); border-radius: 6px; background: #fff; object-fit: contain; }
+.footer-payment-logo-visa { width: 84px; }
+.footer-payment-logo-mastercard { width: 51px; }
 .footer-bottom-wrap { border-top: 1px solid rgba(244,236,220,.15); }
 .footer-bottom {
     display: flex;

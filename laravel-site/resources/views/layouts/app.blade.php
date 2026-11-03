@@ -168,6 +168,9 @@
                     <h2 id="footer-payment-methods-title">Payment Methods</h2>
                     <div class="footer-payment-logos">
                         <img class="footer-payment-logo footer-payment-logo-fpx" src="{{ asset('assets/home/FPX_Logo.png') }}" alt="FPX online banking payments">
+                        <img class="footer-payment-logo footer-payment-logo-visa" src="{{ asset('assets/home/Visa_Logo.jpg') }}" alt="Visa">
+                        <img class="footer-payment-logo footer-payment-logo-mastercard" src="{{ asset('assets/home/Mastercard_Logo.png') }}" alt="Mastercard">
+                        <img class="footer-payment-logo footer-payment-logo-duitnow" src="{{ asset('assets/home/Duitnow_Logo.png') }}" alt="DuitNow">
                         <img class="footer-payment-logo footer-payment-logo-tng" src="{{ asset('assets/home/TNG_Logo.png') }}" alt="Touch 'n Go eWallet">
                     </div>
                 </section>
