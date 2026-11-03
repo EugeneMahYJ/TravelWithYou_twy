@@ -1085,6 +1085,14 @@ class TravelWebsiteTest extends TestCase
         $this->assertStringContainsString('assets/home/Visa_Logo.jpg', $footer);
         $this->assertStringContainsString('assets/home/Mastercard_Logo.png', $footer);
         $this->assertStringContainsString('assets/home/Duitnow_Logo.png', $footer);
+        $instagramPosition = strpos($footer, 'aria-label="Instagram"');
+        $whatsAppPosition = strpos($footer, 'href="https://wa.me/60132883003"');
+        $facebookPosition = strpos($footer, 'aria-label="Facebook"');
+        $this->assertNotFalse($instagramPosition);
+        $this->assertNotFalse($whatsAppPosition);
+        $this->assertNotFalse($facebookPosition);
+        $this->assertTrue($instagramPosition < $whatsAppPosition && $whatsAppPosition < $facebookPosition);
+        $this->assertStringContainsString('assets/home/WhatsApp_Logo.png', $footer);
         $this->assertStringContainsString('class="footer-email" href="mailto:enquiry@travelwithyou.my"', $footer);
         $this->assertStringContainsString('enquiry@travelwithyou.my', $footer);
         $this->assertStringNotContainsString('href="'.route('cart').'"', $footer);
