@@ -1204,7 +1204,7 @@ class TravelWebsiteTest extends TestCase
         foreach (['packages', 'deals', 'bookings', 'enquiries', 'guides', 'media', 'users', 'company'] as $section) {
             $this->get(route('admin.'.$section))->assertOk()->assertDontSee('@if');
         }
-        $this->get(route('admin.packages.create'))
+        $createForm = $this->get(route('admin.packages.create'))
             ->assertOk()
             ->assertDontSee('Advanced · brochure data')
             ->assertDontSee('name="source_data_json"', false)
@@ -1214,6 +1214,15 @@ class TravelWebsiteTest extends TestCase
             ->assertSee('data-guest-types', false)
             ->assertSee('data-departure-prices', false)
             ->assertSee('data-package-addons', false);
+        $this->assertSame(1, preg_match('/data-inclusion-presets="([^"]*)"/', $createForm->getContent(), $presetAttribute));
+        $presets = json_decode(
+            html_entity_decode($presetAttribute[1], ENT_QUOTES | ENT_HTML5),
+            true,
+            512,
+            JSON_THROW_ON_ERROR,
+        );
+        $this->assertContains('International flight ticket', $presets[TravelPackage::TYPE_FLIGHT_AND_HOTEL]['included']);
+        $this->assertContains('Cruise accommodation in the selected cabin category', $presets[TravelPackage::TYPE_CRUISE]['included']);
         $package = TravelPackage::create([
             'slug' => 'package-form-test',
             'name' => 'Package Form Test',

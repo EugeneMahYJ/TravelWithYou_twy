@@ -10,6 +10,18 @@
     if (!is_array($included) || $included === []) $included = [''];
     $excluded = old('excluded', $package->excluded());
     if (!is_array($excluded) || $excluded === []) $excluded = [''];
+    $flightPackage = new \App\Models\TravelPackage(['type' => \App\Models\TravelPackage::TYPE_FLIGHT_AND_HOTEL]);
+    $cruisePackage = new \App\Models\TravelPackage(['type' => \App\Models\TravelPackage::TYPE_CRUISE]);
+    $inclusionPresets = [
+        \App\Models\TravelPackage::TYPE_FLIGHT_AND_HOTEL => [
+            'included' => $flightPackage->included(),
+            'excluded' => $flightPackage->excluded(),
+        ],
+        \App\Models\TravelPackage::TYPE_CRUISE => [
+            'included' => $cruisePackage->included(),
+            'excluded' => $cruisePackage->excluded(),
+        ],
+    ];
     $pricing = $package->pricing ?? [];
     $guestTypes = old('guest_types', $pricing['guest_types'] ?? \App\Support\Pricing::GUEST_KINDS);
     $departurePrices = old('departure_prices');
@@ -155,7 +167,7 @@
         @error('trip_plan.*.place')<small class="field-error">{{ $message }}</small>@enderror
         @error('trip_plan.*.activities')<small class="field-error">{{ $message }}</small>@enderror
     </section>
-    <section class="admin-editor-section">
+    <section class="admin-editor-section" data-inclusion-presets="{{ json_encode($inclusionPresets) }}">
         <h2>Included / Not included</h2>
         <div class="admin-inclusion-preview">
             <div>

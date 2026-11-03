@@ -195,5 +195,7 @@ class TravelPackage extends Model
             'Daily drinking water for each guest',
             'Guide and driver tipping',
         ];
+
+        return $included;
     }
 }

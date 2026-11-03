@@ -6,9 +6,37 @@ document.addEventListener("DOMContentLoaded", () => {
     const packageType = document.querySelector("[data-package-type]");
     const packageShip = document.querySelector("[data-package-ship]");
     const cruiseSection = document.querySelector("[data-cruise-only]");
+    const inclusionSection = document.querySelector("[data-inclusion-presets]");
+    const inclusionPresets = JSON.parse(inclusionSection?.dataset.inclusionPresets ?? "{}");
+    const inclusionEdits = new Map();
+    let activeInclusionType = packageType?.value || "Flight + Hotel";
     const slug = (value) => String(value).toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
     const guestRows = () => [...(guestTypes?.querySelectorAll("[data-guest-type-row]") ?? [])];
     const paxTierTemplate = document.querySelector("[data-pax-tier-template]");
+    const inclusionValues = () => Object.fromEntries(["included", "excluded"].map((kind) => [
+        kind,
+        [...(inclusionSection?.querySelectorAll(`[data-repeat-rows="${kind}"] input`) ?? [])].map((input) => input.value),
+    ]));
+    const renderInclusionList = (kind, values) => {
+        const list = inclusionSection?.querySelector(`[data-repeat-rows="${kind}"]`);
+        const template = inclusionSection?.querySelector(`[data-repeat-template="${kind}"]`);
+        if (!list || !template) return;
+        list.replaceChildren(...values.map((value) => {
+            const row = template.content.firstElementChild.cloneNode(true);
+            row.querySelector("input").value = value;
+            return row;
+        }));
+    };
+    const switchInclusionPreset = (nextType) => {
+        if (nextType === activeInclusionType) return;
+        inclusionEdits.set(activeInclusionType, inclusionValues());
+        const nextValues = inclusionEdits.get(nextType) ?? inclusionPresets[nextType];
+        if (nextValues) {
+            renderInclusionList("included", nextValues.included);
+            renderInclusionList("excluded", nextValues.excluded);
+        }
+        activeInclusionType = nextType;
+    };
     const reindexPaxTiers = (row) => {
         const departureIndex = row.querySelector('input[name^="departures["]')?.name.match(/departures\[(\d+)\]/)?.[1] ?? "0";
         row.querySelectorAll("[data-pax-tier-row]").forEach((tier, tierIndex) => {
@@ -101,7 +129,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     };
     const refreshPaxTierFields = () => {
-        const isFlightPackage = packageType?.value === "Flight + hotel";
+        const isFlightPackage = packageType?.value === "Flight + Hotel";
         const published = document.querySelector('[name="status"]')?.value !== "Draft";
         departureRows?.querySelectorAll("[data-flight-pax-pricing]").forEach((section) => {
             section.hidden = !isFlightPackage;
@@ -299,6 +327,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     packageType?.addEventListener("change", () => {
+        switchInclusionPreset(packageType.value || "Flight + Hotel");
         refreshCruiseFields();
         refreshPaxTierFields();
     });
