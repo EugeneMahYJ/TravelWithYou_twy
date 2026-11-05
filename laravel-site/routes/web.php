@@ -51,6 +51,9 @@ Route::middleware('auth')->prefix('account')->name('account.')->group(function (
     Route::post('/notifications/read-all', [AccountController::class, 'markAllNotificationsRead'])
         ->middleware('throttle:30,1')
         ->name('notifications.read-all');
+    Route::post('/enquiries/{enquiry}/reply', [AccountController::class, 'replyToEnquiry'])
+        ->middleware('throttle:10,1')
+        ->name('enquiries.reply');
     Route::put('/profile', [AccountController::class, 'updateProfile'])->name('profile.update');
     Route::put('/travellers', [AccountController::class, 'updateTravellers'])->name('travellers.update');
     Route::put('/notifications', [AccountController::class, 'updateNotifications'])->name('notifications.update');

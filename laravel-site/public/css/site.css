@@ -1616,6 +1616,7 @@ textarea.account-input { min-height: 100px; resize: vertical; }
 .auth-footnote { margin: 0; color: var(--muted); text-align: center; font-size: 13px; }
 .contact-port { grid-template-columns: minmax(0, 7fr) minmax(270px, 5fr); gap: 48px; padding-block: 48px 80px; }
 .contact-form { align-content: start; }
+.contact-form-note { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
 .contact-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 15px; }
 .contact-form > label, .contact-form-grid > label { display: grid; gap: 6px; font-size: 13px; font-weight: 600; }
 .contact-form input, .contact-form select, .contact-form textarea { width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid var(--line); background: var(--paper); }
@@ -2091,6 +2092,7 @@ textarea.account-input { min-height: 100px; resize: vertical; }
 .admin-enquiry-contact dd { margin: 5px 0 0; font-size: 12px; overflow-wrap: anywhere; }
 .admin-enquiry-message { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.65; }
 .admin-enquiry-reply { padding: 14px 0; border-top: 1px solid var(--line); }
+.admin-enquiry-reply-user { padding-inline: 12px; background: var(--paper); }
 .admin-enquiry-reply-heading { display: flex; justify-content: space-between; gap: 12px; color: var(--muted); font-size: 11px; }
 .admin-enquiry-reply h3 { margin: 10px 0; font: 500 19px var(--display); }
 .admin-enquiry-failed { color: var(--accent); font-size: 11px; }
@@ -2490,13 +2492,22 @@ textarea.account-input { min-height: 100px; resize: vertical; }
 .account-enquiry-details dt { color: var(--muted); font: 10px var(--mono); letter-spacing: .06em; text-transform: uppercase; }
 .account-enquiry-details dd { margin: 4px 0 0; font-size: 12px; overflow-wrap: anywhere; }
 .account-enquiry-reply { margin-top: 17px; padding: 15px; border-left: 3px solid var(--sea); background: var(--card); }
+.account-enquiry-message-user { border-left-color: var(--accent); }
 .account-enquiry-reply > p:not(.eyebrow) { margin: 10px 0; font-size: 13px; line-height: 1.6; white-space: pre-line; }
 .account-enquiry-pending { margin: 14px 0 0; color: var(--muted); font-size: 12px; }
+.account-enquiry-reply-form { display: grid; gap: 10px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
+.account-enquiry-reply-form > label { margin: 0 0 2px; font-size: 16px; font-weight: 700; }
+.account-enquiry-reply-compose { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 12px; }
+.account-enquiry-reply-compose > textarea { width: 100%; min-height: 140px; padding: 13px 14px; border: 1px solid var(--line); border-radius: 12px; color: var(--ink); background: var(--card); font: inherit; resize: vertical; }
+.account-enquiry-reply-compose > .button { min-height: 48px; justify-self: end; white-space: nowrap; }
+.account-enquiry-reply-form > .field-error { margin-top: -3px; }
 @media (max-width: 760px) {
     .user-notification-panel { position: fixed; top: 68px; right: 12px; left: 12px; width: auto; max-height: calc(100dvh - 82px); }
 }
 @media (max-width: 480px) {
     .account-enquiry-details { grid-template-columns: 1fr; }
+    .account-enquiry-reply-compose { grid-template-columns: 1fr; }
+    .account-enquiry-reply-compose > .button { justify-self: start; }
 }
 @media (max-width: 760px) {
     .destination-mosaic { grid-template-columns: 1fr; grid-template-rows: none; }

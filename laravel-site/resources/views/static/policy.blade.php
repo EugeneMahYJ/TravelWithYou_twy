@@ -44,7 +44,7 @@
             <ul>
                 <li><strong>To Provide Services:</strong> Processing bookings, issuing tickets, arranging accommodations, and other travel-related services.</li>
                 <li><strong>Customer Support:</strong> Responding to inquiries, complaints, and providing assistance related to bookings or services.</li>
-                <li><strong>Enquiry Replies:</strong> If you submit an enquiry while signed in, we link it to your account so you can view our replies in your account inbox. Guest enquiries are handled by email and are not linked to an account solely by matching an email address.</li>
+                <li><strong>Enquiry Conversations:</strong> If you submit an enquiry while signed in, we link it to your account so you can view the conversation and send follow-up messages in your account inbox. Guest enquiries are handled by email and are not linked to an account solely by matching an email address.</li>
                 <li><strong>Account Notifications:</strong> Showing important booking, payment, and security updates, and promotional deal alerts when you have enabled deal notifications.</li>
                 <li><strong>MICE Planning:</strong> Reviewing and responding to corporate group-travel enquiries using the company, contact, destination, traveller-count, and budget details you submit.</li>
                 <li><strong>Payment Processing:</strong> Handling payment transactions and refunds.</li>

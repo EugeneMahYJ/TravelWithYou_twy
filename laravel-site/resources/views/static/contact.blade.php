@@ -7,6 +7,13 @@
         @if($errors->any())
             <p role="alert" class="notice notice-error">Please add your name, a valid email and a message.</p>
         @endif
+        <p class="contact-form-note">
+            @auth
+                We’ll reply by email and include the response in your account inbox, where you can continue the conversation.
+            @else
+                No account is needed. We’ll reply to the email address you provide within one working day.
+            @endauth
+        </p>
         <div class="contact-form-grid">
             <label><span>Name</span><input name="name" value="{{ old('name') }}" autocomplete="name" required>@error('name')<small class="field-error">{{ $message }}</small>@enderror</label>
             <label><span>Email</span><input type="email" name="email" value="{{ old('email') }}" autocomplete="email" required>@error('email')<small class="field-error">{{ $message }}</small>@enderror</label>

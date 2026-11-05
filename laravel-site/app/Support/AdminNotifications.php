@@ -96,11 +96,20 @@ class AdminNotifications
             }
         }
 
-        $unansweredEnquiryIds = Enquiry::query()
+        $unansweredEnquiries = Enquiry::query()
             ->whereIn('status', ['New', 'In progress'])
             ->orderBy('id')
-            ->pluck('id')
-            ->all();
+            ->withMax('messages', 'created_at')
+            ->get(['id']);
+        $unansweredEnquiryIds = $unansweredEnquiries->pluck('id')->all();
+        $unansweredActivity = $unansweredEnquiries->contains(
+            fn (Enquiry $enquiry): bool => $enquiry->messages_max_created_at !== null,
+        )
+            ? $unansweredEnquiries->map(fn (Enquiry $enquiry): array => [
+                $enquiry->id,
+                $enquiry->messages_max_created_at,
+            ])->all()
+            : null;
         $pendingPaymentIds = Booking::query()
             ->where('status', 'Pending payment')
             ->orderBy('id')
@@ -151,6 +160,7 @@ class AdminNotifications
                 count($unansweredEnquiryIds).' enquiries waiting for a reply',
                 'Review unanswered traveller messages.',
                 route('admin.enquiries', ['status' => 'Unanswered']),
+                fingerprintValues: $unansweredActivity,
             ),
             $this->item(
                 'warning',
@@ -277,13 +287,17 @@ class AdminNotifications
         string $detail,
         string $url,
         ?string $time = null,
+        ?array $fingerprintValues = null,
     ): ?array {
         if ($count === 0) {
             return null;
         }
 
         sort($ids, SORT_NUMERIC);
-        $fingerprint = sha1(json_encode(array_slice($ids, 0, 500), JSON_THROW_ON_ERROR));
+        $fingerprint = sha1(json_encode(
+            array_slice($fingerprintValues ?? $ids, 0, 500),
+            JSON_THROW_ON_ERROR,
+        ));
 
         return compact('severity', 'key', 'fingerprint', 'count', 'title', 'detail', 'url', 'time');
     }

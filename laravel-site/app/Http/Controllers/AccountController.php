@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Booking;
+use App\Models\Enquiry;
+use App\Models\EnquiryMessage;
 use App\Support\ClientNotifications;
 use App\Support\CredentialRules;
 use Illuminate\Http\RedirectResponse;
@@ -30,7 +32,10 @@ class AccountController extends Controller
             'upcomingBookings' => $upcomingBookings,
             'completedBookings' => $completedBookings,
             'enquiries' => $user->enquiries()
-                ->with(['replies' => fn ($query) => $query->where('status', 'sent')])
+                ->with([
+                    'replies' => fn ($query) => $query->where('status', 'sent')->with('admin'),
+                    'messages.sender',
+                ])
                 ->orderByDesc('created_at')
                 ->get(),
             'userNotifications' => $user->siteNotifications()->latest()->get(),
@@ -43,6 +48,33 @@ class AccountController extends Controller
                 'news' => false,
             ], $user->notification_preferences ?? []),
         ]);
+    }
+
+    public function replyToEnquiry(Request $request, Enquiry $enquiry): RedirectResponse
+    {
+        $request->merge(['message' => trim((string) $request->input('message', ''))]);
+        $data = $request->validate([
+            'message' => ['required', 'string', 'min:1', 'max:5000'],
+        ]);
+
+        DB::transaction(function () use ($enquiry, $request, $data): void {
+            $ownedEnquiry = Enquiry::query()
+                ->whereKey($enquiry->id)
+                ->where('user_id', $request->user()->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            EnquiryMessage::create([
+                'enquiry_id' => $ownedEnquiry->id,
+                'sender_id' => $request->user()->id,
+                'body' => $data['message'],
+            ]);
+            $ownedEnquiry->update(['status' => 'New']);
+        });
+
+        return redirect()->route('account', ['tab' => 'inbox'])
+            ->withFragment('account-enquiry-'.$enquiry->id)
+            ->with('success', 'Your message was sent to our team.');
     }
 
     public function cancelBooking(Request $request, ClientNotifications $notifications, Booking $booking): RedirectResponse

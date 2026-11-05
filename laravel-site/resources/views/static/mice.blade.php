@@ -156,7 +156,14 @@
             </fieldset>
 
             <div class="mice-form-footer">
-                <p>Your contact details will be used to respond to this enquiry. See our <a href="{{ route('privacy') }}">Privacy Policy</a>.</p>
+                <p>
+                    @auth
+                        We’ll reply by email and include the response in your account inbox.
+                    @else
+                        No account is needed. We’ll reply to your email within one working day.
+                    @endauth
+                    Your contact details will be used to respond to this enquiry. See our <a href="{{ route('privacy') }}">Privacy Policy</a>.
+                </p>
                 <button class="button button-primary" type="submit">Send MICE enquiry <span aria-hidden="true">→</span></button>
             </div>
         </form>

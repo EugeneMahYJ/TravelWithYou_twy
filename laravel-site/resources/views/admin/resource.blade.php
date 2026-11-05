@@ -65,9 +65,14 @@
                             <p>{{ $row->destination }}</p>
                         @endif
                     @endif
-                    <p>{{ $row->message }}</p>
+                    @if($row->latestMessage)
+                        <p class="admin-enquiry-last-replied">Latest message from {{ $row->latestMessage->sender?->name ?? $row->name }} · {{ $row->latestMessage->created_at->format('j M Y, H:i') }}</p>
+                        <p>{{ $row->latestMessage->body }}</p>
+                    @else
+                        <p>{{ $row->message }}</p>
+                    @endif
                     <div class="admin-enquiry-actions">
-                        <a class="button button-primary" href="{{ route('admin.enquiries.show', $row) }}">Reply</a>
+                        <a class="button button-primary" href="{{ route('admin.enquiries.show', $row) }}">{{ $row->user_id ? 'Reply' : 'View guest enquiry' }}</a>
                         @if(in_array($row->status, ['New', 'In progress'], true))
                             <form method="post" action="{{ route('admin.status', ['resource' => 'enquiries', 'id' => $row->id]) }}">
                                 @csrf

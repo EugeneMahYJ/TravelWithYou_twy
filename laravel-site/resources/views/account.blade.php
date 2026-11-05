@@ -30,7 +30,7 @@
     </nav>
     <div class="account-content">
         <section class="account-panel" id="account-panel-inbox" role="tabpanel" aria-labelledby="account-tab-inbox" data-account-panel="inbox" @if($activeTab !== 'inbox') hidden @endif>
-            <div class="account-panel-heading"><p class="eyebrow">Your updates</p><h2>Inbox</h2><p>Important account and booking updates, plus replies to enquiries you sent while signed in.</p></div>
+            <div class="account-panel-heading"><p class="eyebrow">Your updates</p><h2>Inbox</h2><p>Important account and booking updates, plus conversations for enquiries you sent while signed in.</p></div>
             <div class="account-section-heading">
                 <h3>Notifications</h3>
                 @if($userNotifications->contains(fn ($notification) => $notification->read_at === null))
@@ -72,16 +72,29 @@
                             <div><dt>Budget</dt><dd>RM {{ number_format((float) $enquiry->budget_from, 2) }} – RM {{ number_format((float) $enquiry->budget_to, 2) }} {{ $enquiry->budget_basis === 'group' ? 'for the whole group' : 'per traveller' }}</dd></div>
                         </dl>
                     @endif
-                    @forelse($enquiry->replies as $reply)
-                        <div class="account-enquiry-reply">
-                            <p class="eyebrow">Reply from Travel With You</p>
-                            <h5>{{ $reply->subject }}</h5>
-                            <p>{{ $reply->body }}</p>
-                            <time datetime="{{ $reply->sent_at?->toIso8601String() }}">{{ $reply->sent_at?->format('d M Y, g:i a') }}</time>
+                    @foreach($enquiry->conversationMessages() as $message)
+                        <div class="account-enquiry-reply account-enquiry-message-{{ $message['type'] }}">
+                            <p class="eyebrow">{{ $message['type'] === 'user' ? 'You' : 'Reply from Travel With You' }}</p>
+                            @if($message['subject'])<h5>{{ $message['subject'] }}</h5>@endif
+                            <p>{{ $message['body'] }}</p>
+                            <time datetime="{{ $message['timestamp']?->toIso8601String() }}">{{ $message['timestamp']?->format('d M Y, g:i a') }}</time>
                         </div>
-                    @empty
-                        <p class="account-enquiry-pending">Our team will reply to your enquiry by email and here in your account.</p>
-                    @endforelse
+                    @endforeach
+                    @if($enquiry->replies->isEmpty())
+                        <p class="account-enquiry-pending">Our team will reply here and by email. You can add a message to this thread at any time.</p>
+                    @endif
+                    <form class="account-enquiry-reply-form" method="post" action="{{ route('account.enquiries.reply', $enquiry) }}">
+                        @csrf
+                        <input type="hidden" name="enquiry_id" value="{{ $enquiry->id }}">
+                        <label for="enquiry-reply-{{ $enquiry->id }}">Reply to this thread</label>
+                        <div class="account-enquiry-reply-compose">
+                            <textarea id="enquiry-reply-{{ $enquiry->id }}" name="message" rows="4" maxlength="5000" required>{{ old('enquiry_id') == $enquiry->id ? old('message') : '' }}</textarea>
+                            <button class="button button-primary" type="submit">Send message</button>
+                        </div>
+                        @if(old('enquiry_id') == $enquiry->id)
+                            @error('message')<small class="field-error">{{ $message }}</small>@enderror
+                        @endif
+                    </form>
                 </article>
             @empty
                 <p class="account-muted">Enquiries submitted while signed in will appear here with their replies.</p>

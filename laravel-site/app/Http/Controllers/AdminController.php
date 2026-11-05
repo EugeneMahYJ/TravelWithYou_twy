@@ -382,7 +382,7 @@ class AdminController extends Controller
             ]);
         }
         if ($resource === 'enquiries') {
-            $query = Enquiry::with('latestReply.admin')->latest();
+            $query = Enquiry::with(['latestReply.admin', 'latestMessage.sender'])->latest('updated_at');
             if ($request->filled('q')) {
                 $term = '%'.$request->string('q')->toString().'%';
                 $query->where(fn ($builder) => $builder->where('name', 'like', $term)->orWhere('email', 'like', $term)
@@ -608,14 +608,22 @@ class AdminController extends Controller
 
     public function showEnquiry(Enquiry $enquiry): View
     {
+        $enquiry->load(['replies.admin', 'messages.sender']);
+
         return view('admin.enquiries.show', [
-            'enquiry' => $enquiry->load(['replies.admin']),
+            'enquiry' => $enquiry,
+            'conversationMessages' => $enquiry->conversationMessages(includeFailedReplies: true),
             'latestReply' => $enquiry->latestReply()->with('admin')->first(),
+            'guestReplyMailto' => $enquiry->user_id === null
+                ? 'mailto:'.$enquiry->email.'?subject='.rawurlencode('Re: '.$enquiry->subject)
+                : null,
         ]);
     }
 
     public function replyToEnquiry(Request $request, ClientNotifications $notifications, Enquiry $enquiry): RedirectResponse
     {
+        abort_if($enquiry->user_id === null, 404);
+
         $request->merge([
             'subject' => preg_replace('/[\r\n]+/', ' ', (string) $request->input('subject', '')),
         ]);

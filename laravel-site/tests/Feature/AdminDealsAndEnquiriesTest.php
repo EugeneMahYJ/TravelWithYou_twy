@@ -342,7 +342,10 @@ class AdminDealsAndEnquiriesTest extends TestCase
 
     private function enquiry(): Enquiry
     {
+        $user = User::factory()->create(['email' => 'customer@example.test']);
+
         return Enquiry::create([
+            'user_id' => $user->id,
             'name' => 'Casey Traveller',
             'email' => 'customer@example.test',
             'subject' => 'Booking question',

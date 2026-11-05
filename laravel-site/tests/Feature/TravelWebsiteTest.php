@@ -1086,7 +1086,7 @@ class TravelWebsiteTest extends TestCase
         $this->assertStringContainsString('assets/home/Mastercard_Logo.png', $footer);
         $this->assertStringContainsString('assets/home/Duitnow_Logo.png', $footer);
         $instagramPosition = strpos($footer, 'aria-label="Instagram"');
-        $whatsAppPosition = strpos($footer, 'href="https://wa.me/60132883003"');
+        $whatsAppPosition = strpos($footer, 'href="https://wa.me/60132883003');
         $facebookPosition = strpos($footer, 'aria-label="Facebook"');
         $this->assertNotFalse($instagramPosition);
         $this->assertNotFalse($whatsAppPosition);
