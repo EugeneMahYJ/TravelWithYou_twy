@@ -124,7 +124,7 @@
                     <span>Find us on</span>
                     <div>
                         <a href="https://www.instagram.com/travelwityou/" aria-label="Instagram"><img src="{{ asset('assets/instagram.png') }}" width="40" height="40" alt=""></a>
-                        <a href="https://wa.me/60132883003" aria-label="WhatsApp"><img src="{{ asset('assets/home/WhatsApp_Logo.png') }}" width="40" height="40" alt=""></a>
+                        <a href="https://wa.me/60132883003?text=Hi%2C%20I%20want%20to%20know%20more%20about%20your%20tour%20packages." aria-label="WhatsApp"><img src="{{ asset('assets/home/WhatsApp_Logo.png') }}" width="40" height="40" alt=""></a>
                         <a href="https://www.facebook.com/TravelwizU" aria-label="Facebook"><img src="{{ asset('assets/facebook.png') }}" width="40" height="40" alt=""></a>
                         <a href="https://www.tiktok.com/@travelwithyoupuchong" aria-label="TikTok"><img src="{{ asset('assets/tiktok.png') }}" width="40" height="40" alt=""></a>
                     </div>
