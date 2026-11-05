@@ -55,10 +55,13 @@
             'maxPerRoom' => \App\Support\Pricing::MAX_PER_ROOM,
             'guestKinds' => $guestKinds,
             'addons' => $addons,
-            'nations' => ['Malaysian', 'Singaporean', 'Indonesian', 'Thai', 'Chinese', 'Indian', 'Japanese', 'Korean', 'Australian', 'British', 'American', 'Canadian', 'German', 'French'],
+            'nations' => explode('|', 'Afghan|Albanian|Algerian|American|Andorran|Angolan|Antiguan and Barbudan|Argentine|Armenian|Australian|Austrian|Azerbaijani|Bahamian|Bahraini|Bangladeshi|Barbadian|Basotho|Belarusian|Belgian|Belizean|Beninese|Bhutanese|Bolivian|Bosnian and Herzegovinian|Botswanan|Brazilian|British|Bruneian|Bulgarian|Burkinabe|Burmese|Burundian|Cambodian|Cameroonian|Canadian|Cape Verdean|Central African|Chadian|Chilean|Chinese|Colombian|Comoran|Congolese (DR Congo)|Congolese (Republic of the Congo)|Costa Rican|Croatian|Cuban|Cypriot|Czech|Danish|Djiboutian|Dominican (Dominica)|Dominican (Dominican Republic)|Dutch|East Timorese|Ecuadorian|Egyptian|Emirati|Equatorial Guinean|Eritrean|Estonian|Eswatini|Ethiopian|Fijian|Filipino|Finnish|French|Gabonese|Gambian|Georgian|German|Ghanaian|Greek|Grenadian|Guatemalan|Guinean|Guinea-Bissauan|Guyanese|Haitian|Honduran|Hungarian|Icelandic|Indian|Indonesian|Iranian|Iraqi|Irish|Israeli|Italian|Ivorian|Jamaican|Japanese|Jordanian|Kazakhstani|Kenyan|Kiribati|Kittitian and Nevisian|Kosovar|Kuwaiti|Kyrgyz|Lao|Latvian|Lebanese|Liberian|Libyan|Liechtensteiner|Lithuanian|Luxembourgish|Malagasy|Malawian|Malaysian|Maldivian|Malian|Maltese|Marshallese|Mauritanian|Mauritian|Mexican|Micronesian|Moldovan|Monégasque|Mongolian|Montenegrin|Moroccan|Mozambican|Namibian|Nauruan|Nepalese|New Zealander|Nicaraguan|Nigerian|Nigerien|North Korean|North Macedonian|Norwegian|Omani|Pakistani|Palauan|Palestinian|Panamanian|Papua New Guinean|Paraguayan|Peruvian|Polish|Portuguese|Qatari|Romanian|Russian|Rwandan|Saint Lucian|Saint Vincentian|Salvadoran|Samoan|San Marinese|São Toméan|Saudi|Senegalese|Serbian|Seychellois|Sierra Leonean|Singaporean|Slovak|Slovenian|Solomon Islander|Somali|South African|South Korean|South Sudanese|Spanish|Sri Lankan|Sudanese|Surinamese|Swedish|Swiss|Syrian|Taiwanese|Tajik|Tanzanian|Thai|Togolese|Tongan|Trinidadian and Tobagonian|Tunisian|Turkish|Turkmen|Tuvaluan|Ugandan|Ukrainian|Uruguayan|Uzbekistani|Vanuatuan|Vatican|Venezuelan|Vietnamese|Yemeni|Zambian|Zimbabwean'),
+            'priorityNations' => ['Malaysian', 'Singaporean', 'Chinese', 'Indonesian', 'Thai'],
             'packageUrl' => $packageUrl,
             'submitUrl' => $submitUrl,
             'editing' => $editing,
+            'existingDocuments' => $existingDocuments,
+            'documentMaxBytes' => 5 * 1024 * 1024,
             'today' => today()->toDateString(),
             'oldInput' => $oldInput,
             'errors' => $errors,
@@ -66,7 +69,7 @@
     @endphp
     <section class="wrap booking-page" data-booking-root>
         <script type="application/json" data-booking-config>@json($bookingConfig, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT)</script>
-        <form class="booking-form" method="post" action="{{ $submitUrl }}" data-booking-form>
+        <form class="booking-form" method="post" enctype="multipart/form-data" action="{{ $submitUrl }}" data-booking-form>
             @csrf
             <div data-booking-app></div>
             <noscript><p class="notice">Enable JavaScript to complete your booking.</p></noscript>

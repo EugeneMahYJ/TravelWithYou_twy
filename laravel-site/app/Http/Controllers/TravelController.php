@@ -16,10 +16,12 @@ use App\Models\TravelDeal;
 use App\Models\TravelPackage;
 use App\Support\ClientNotifications;
 use App\Support\Pricing;
+use App\Support\TravellerDocumentStorage;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -267,6 +269,10 @@ class TravelController extends Controller
         if ($editCartItem !== null && $oldInput === []) {
             $oldInput = $this->bookingInputFromCartItem($editCartItem['item'], $package);
         }
+        if (! array_key_exists('requests', $oldInput)) {
+            $travellerDetails = Auth::user()?->traveller_details ?? [];
+            $oldInput['requests'] = $travellerDetails['dietary_needs'] ?? ($travellerDetails['requests'] ?? '');
+        }
         $submitParameters = ['id' => $package->slug, 'date' => $date];
         if ($editCartItem !== null) {
             $submitParameters['cart_item'] = $request->query('cart_item');
@@ -298,10 +304,19 @@ class TravelController extends Controller
             'editing' => $editCartItem !== null,
             'oldInput' => $oldInput,
             'errors' => $errorBag?->getBag('default')->messages() ?? [],
+            'existingDocuments' => collect($editCartItem['item']['detail']['document_paths'] ?? $editCartItem['item']['document_paths'] ?? [])
+                ->map(fn ($path): bool => is_string($path) && app(TravellerDocumentStorage::class)->exists($path))
+                ->values()
+                ->all(),
         ]);
     }
 
-    public function submitBooking(Request $request, string $id, string $date): RedirectResponse
+    public function submitBooking(
+        Request $request,
+        string $id,
+        string $date,
+        TravellerDocumentStorage $documentStorage,
+    ): RedirectResponse
     {
         $package = TravelPackage::query()->where('slug', $id)->where('published', true)->firstOrFail();
         $editCartItem = $this->requestedCartItem($request, $package);
@@ -375,10 +390,17 @@ class TravelController extends Controller
             'guests.*.passportExpiry' => ['nullable', 'string', 'max:10'],
             'guests.*.email' => ['nullable', 'string', 'max:255'],
             'guests.*.phone' => ['nullable', 'string', 'max:40'],
+            'requests' => ['nullable', 'string', 'max:2000'],
+            'documents' => ['sometimes', 'array', 'max:20'],
+            'documents.*' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png', 'mimetypes:image/jpeg,image/png', 'extensions:jpg,jpeg,png', 'max:5120'],
         ];
 
         $validator = Validator::make($request->all(), $rules, [
             'guests.*.passport.max' => '6 to 12 letters or digits',
+            'documents.*.mimes' => 'Upload a JPG, JPEG, or PNG image.',
+            'documents.*.mimetypes' => 'Upload a JPG, JPEG, or PNG image.',
+            'documents.*.extensions' => 'Upload a JPG, JPEG, or PNG image.',
+            'documents.*.max' => 'Each traveller image must be 5 MB or less.',
             'guests.array' => 'Please complete the highlighted guest details.',
             'guests.*.required' => 'Please complete the highlighted guest details.',
             'guests.*.array' => 'Please complete the highlighted guest details.',
@@ -469,6 +491,15 @@ class TravelController extends Controller
         if (count($guestInputs) !== $total) {
             $errors['guests'] = 'Please complete the highlighted guest details.';
         }
+        $uploadedDocuments = $request->file('documents', []);
+        $existingDocumentPaths = $editCartItem['item']['detail']['document_paths'] ?? $editCartItem['item']['document_paths'] ?? [];
+        for ($index = 0; $index < $total; $index++) {
+            $uploadedDocument = is_array($uploadedDocuments) ? ($uploadedDocuments[$index] ?? null) : null;
+            $existingPath = $existingDocumentPaths[$index] ?? null;
+            if (! $uploadedDocument instanceof UploadedFile && (! is_string($existingPath) || ! $documentStorage->exists($existingPath))) {
+                $errors['documents.'.$index] = 'Upload one passport or ID image for this traveller.';
+            }
+        }
         $normalizedGuests = [];
         $minimumExpiry = Carbon::parse($date)->addMonths(6)->toDateString();
         foreach (array_values($guestInputs) as $index => $guest) {
@@ -556,6 +587,7 @@ class TravelController extends Controller
             'kind' => $kind,
             'rooms' => $roomPlan,
             'counts' => $counts,
+            'requests' => trim((string) ($input['requests'] ?? '')),
             'guests' => array_map(function (array $guest) {
                 $guest['passport'] = Crypt::encryptString($guest['passport']);
 
@@ -568,6 +600,42 @@ class TravelController extends Controller
         }
 
         $cart = $request->session()->get('cart', []);
+        $cartUid = $editCartItem !== null
+            ? ($editCartItem['item']['uid'] ?? (string) Str::uuid())
+            : (string) Str::uuid();
+        $documentPaths = [];
+        $storedDocumentPaths = [];
+        try {
+            for ($index = 0; $index < $total; $index++) {
+                $uploadedDocument = is_array($uploadedDocuments) ? ($uploadedDocuments[$index] ?? null) : null;
+                $existingPath = $existingDocumentPaths[$index] ?? null;
+                $documentPaths[$index] = $uploadedDocument instanceof UploadedFile
+                    ? $documentStorage->storePending($uploadedDocument, $package, $date, $cartUid, $index)
+                    : $existingPath;
+                if ($uploadedDocument instanceof UploadedFile) {
+                    $storedDocumentPaths[] = $documentPaths[$index];
+                }
+            }
+        } catch (\Throwable $exception) {
+            foreach ($storedDocumentPaths as $path) {
+                if (! $documentStorage->delete($path)) {
+                    Log::warning('Unable to remove a partially stored traveller document.', ['path' => $path]);
+                }
+            }
+
+            throw $exception;
+        }
+
+        $removedDocumentPaths = collect($existingDocumentPaths)
+            ->filter(fn ($path): bool => is_string($path) && ! in_array($path, $documentPaths, true))
+            ->values();
+        foreach ($removedDocumentPaths as $path) {
+            if (! $documentStorage->delete($path)) {
+                Log::warning('Unable to remove a replaced or removed staged traveller document.', ['path' => $path]);
+            }
+        }
+
+        $detail['document_paths'] = array_values($documentPaths);
         $cartItem = [
             'package_id' => $package->id,
             'departure_date' => $date,
@@ -578,7 +646,7 @@ class TravelController extends Controller
         if ($editCartItem !== null) {
             $cart[$editCartItem['index']] = [...$editCartItem['item'], ...$cartItem];
         } else {
-            $cart[] = ['uid' => (string) Str::uuid(), ...$cartItem];
+            $cart[] = ['uid' => $cartUid, ...$cartItem];
         }
         $request->session()->put('cart', $cart);
 
@@ -593,7 +661,7 @@ class TravelController extends Controller
 
     private function safeBookingInput(Request $request): array
     {
-        $input = $request->except(['_token', '_method']);
+        $input = $request->except(['_token', '_method', 'documents']);
         if (isset($input['guests']) && is_array($input['guests'])) {
             foreach ($input['guests'] as &$guest) {
                 if (is_array($guest)) {
@@ -619,16 +687,25 @@ class TravelController extends Controller
         $index = collect($cart)->search(fn (array $item) => ($item['uid'] ?? null) === $uid);
         abort_unless($index !== false && isset($cart[$index]), 404);
         abort_unless((int) ($cart[$index]['package_id'] ?? 0) === $package->id, 404);
-        abort_if(empty($cart[$index]['detail']), 404);
 
         return ['index' => $index, 'item' => $cart[$index]];
     }
 
     private function bookingInputFromCartItem(array $item, TravelPackage $package): array
     {
-        $detail = $item['detail'];
+        $detail = $item['detail'] ?? [];
         $counts = $detail['counts'] ?? [];
         $guestKinds = Pricing::guestKinds($package);
+        if ($counts === []) {
+            $counts = array_fill_keys(array_column($guestKinds, 'id'), 0);
+            $singleKind = collect($guestKinds)->first(fn (array $kind): bool => $kind['id'] === 'single');
+            $defaultAdult = (int) $item['guests'] === 1 ? $singleKind : null;
+            $defaultAdult ??= collect($guestKinds)->first(fn (array $kind): bool => ($kind['role'] ?? 'adult') === 'adult' && $kind['id'] !== 'single')
+                ?? collect($guestKinds)->first();
+            if ($defaultAdult !== null) {
+                $counts[$defaultAdult['id']] = (int) $item['guests'];
+            }
+        }
         $roleCounts = collect($guestKinds)->groupBy(fn ($kind) => $kind['role'] ?? 'adult')
             ->map(fn ($kinds) => $kinds->sum(fn ($kind) => (int) ($counts[$kind['id']] ?? 0)));
         $guests = array_map(function (array $guest): array {
@@ -638,14 +715,26 @@ class TravelController extends Controller
 
             return $guest;
         }, $detail['guests'] ?? []);
+        if ($guests === []) {
+            $guests = array_fill(0, (int) $item['guests'], [
+                'name' => '',
+                'dob' => '',
+                'nation' => '',
+                'passport' => '',
+                'passportExpiry' => '',
+                'email' => '',
+                'phone' => '',
+            ]);
+        }
 
         return [
             'counts' => $counts,
             'adults' => $roleCounts->get('adult', 0),
             'children' => $roleCounts->get('child', 0),
-            'rooms' => count($detail['rooms'] ?? []),
+            'rooms' => max(1, count($detail['rooms'] ?? []) ?: (int) ceil((int) $item['guests'] / Pricing::MAX_PER_ROOM)),
             'room_types' => array_column($detail['rooms'] ?? [], 'type'),
             'guests' => $guests,
+            'requests' => $detail['requests'] ?? '',
             'addons' => $item['addons'] ?? [],
         ];
     }
@@ -1132,6 +1221,8 @@ class TravelController extends Controller
                 unset($guest['passport']);
             }
             unset($guest);
+            unset($displayDetail['document_paths']);
+            unset($item['document_paths']);
 
             return [...$item, 'display_detail' => $displayDetail];
         });
@@ -1179,7 +1270,7 @@ class TravelController extends Controller
         return redirect()->route('cart')->with('success', 'Trip updated.');
     }
 
-    public function removeFromCart(Request $request, string $uid): RedirectResponse
+    public function removeFromCart(Request $request, string $uid, TravellerDocumentStorage $documentStorage): RedirectResponse
     {
         $cart = $request->session()->get('cart', []);
         $index = collect($cart)->search(fn (array $item) => ($item['uid'] ?? null) === $uid);
@@ -1187,9 +1278,15 @@ class TravelController extends Controller
             $index = (int) $uid;
         }
         if ($index !== false && isset($cart[$index])) {
+            $documentPaths = $cart[$index]['detail']['document_paths'] ?? $cart[$index]['document_paths'] ?? [];
             unset($cart[$index]);
             $cart = array_values($cart);
             $request->session()->put('cart', $cart);
+            foreach ($documentPaths as $path) {
+                if (is_string($path) && ! $documentStorage->delete($path)) {
+                    Log::warning('Unable to remove staged traveller document for a removed cart item.', ['path' => $path]);
+                }
+            }
             if ($cart === []) {
                 $request->session()->forget('promo_code');
             }
@@ -1198,18 +1295,22 @@ class TravelController extends Controller
         return redirect()->route('cart')->with('success', 'Trip removed from your cart.');
     }
 
-    public function checkout(Request $request): View|RedirectResponse
+    public function checkout(Request $request, TravellerDocumentStorage $documentStorage): View|RedirectResponse
     {
         $items = $this->cartItems($request);
         if ($items->isEmpty()) {
             return redirect()->route('search')->with('error', 'Add a trip to your cart before checking out.');
         }
 
+        $incompleteItem = $items->first(fn (array $item): bool => Pricing::itemAvailable($item)
+            && $this->cartItemNeedsBookingCompletion($item, $documentStorage));
+        if ($incompleteItem !== null) {
+            return redirect($this->bookingUrlForCartItem($incompleteItem))
+                ->with('success', 'Complete traveller details and upload the required documents for each trip before checkout.');
+        }
+
         $firstDetailGuest = collect($items->first()['detail']['guests'] ?? [])->first() ?? [];
         $traveller = Auth::user()?->traveller_details ?? [];
-        if (isset($firstDetailGuest['passport']) && is_string($firstDetailGuest['passport'])) {
-            $firstDetailGuest['passport'] = Crypt::decryptString($firstDetailGuest['passport']);
-        }
         $promo = Pricing::promoForCode($request->session()->get('promo_code'));
 
         return view('checkout', [
@@ -1225,20 +1326,15 @@ class TravelController extends Controller
                 'phone' => Auth::user()?->phone ?? ($firstDetailGuest['phone'] ?? ''),
                 'address' => $traveller['billing_address'] ?? '',
             ],
-            'travellerDefaults' => array_merge($traveller, [
-                'name' => $firstDetailGuest['name'] ?? ($traveller['name_as_per_ic'] ?? ($traveller['name'] ?? Auth::user()?->name ?? '')),
-                'dob' => $firstDetailGuest['dob'] ?? ($traveller['date_of_birth'] ?? ($traveller['dob'] ?? '')),
-                'nationality' => $firstDetailGuest['nationality'] ?? ($traveller['nationality'] ?? ''),
-                'passport_number' => $firstDetailGuest['passport'] ?? ($traveller['passport_number'] ?? ''),
-                'passport_expiry' => $firstDetailGuest['passportExpiry'] ?? ($traveller['passport_expiry'] ?? ''),
-                'requests' => $traveller['dietary_needs'] ?? ($traveller['requests'] ?? ''),
-            ]),
             'activePromoCount' => Pricing::promos()->count(),
-            'nations' => ['Malaysian', 'Singaporean', 'Indonesian', 'Thai', 'Chinese', 'Indian', 'Japanese', 'Korean', 'Australian', 'British', 'American', 'Canadian', 'German', 'French'],
         ]);
     }
 
-    public function placeOrder(Request $request, ClientNotifications $notifications): RedirectResponse
+    public function placeOrder(
+        Request $request,
+        ClientNotifications $notifications,
+        TravellerDocumentStorage $documentStorage,
+    ): RedirectResponse
     {
         if ($request->boolean('apply_promo')) {
             $codeValidator = Validator::make($request->only('code'), ['code' => ['required', 'string', 'max:40']]);
@@ -1262,23 +1358,29 @@ class TravelController extends Controller
         if ($items->contains(fn (array $item) => ! Pricing::itemAvailable($item))) {
             return redirect()->route('cart')->with('error', 'Update your cart before checking out.');
         }
+        $incompleteItem = $items->first(fn (array $item): bool => $this->cartItemNeedsBookingCompletion($item, $documentStorage));
+        if ($incompleteItem !== null) {
+            return redirect($this->bookingUrlForCartItem($incompleteItem))
+                ->with('success', 'Complete traveller details and upload the required documents for each trip before checkout.');
+        }
 
         $gateway = app()->bound(PaymentGateway::class) ? app(PaymentGateway::class) : null;
         $needsCardInputs = $gateway && request('payment_method', 'card') === 'card' && $gateway->hostedFieldsView() === null;
         $safeInput = $request->except(['card_number', 'card_expiry', 'card_cvc', 'payment_token']);
-        $latestDeparture = max($items->pluck('departure_date')->all());
-        $minimumExpiry = Carbon::parse($latestDeparture)->addMonthsNoOverflow(6)->startOfDay();
+        unset(
+            $safeInput['documents'],
+            $safeInput['traveller_name'],
+            $safeInput['traveller_dob'],
+            $safeInput['nationality'],
+            $safeInput['passport_number'],
+            $safeInput['passport_expiry'],
+            $safeInput['requests'],
+        );
         $rules = [
             'name' => ['required', 'string', 'max:120'],
             'email' => ['required', 'email', 'max:255'],
             'phone' => ['required', 'string', 'max:40'],
             'contact_address' => ['required', 'string', 'max:500'],
-            'traveller_name' => ['required', 'string', 'max:120'],
-            'traveller_dob' => ['required', 'date', 'after_or_equal:1900-01-01', 'before_or_equal:today'],
-            'nationality' => ['required', 'string', 'max:100'],
-            'passport_number' => ['required', 'regex:/^[A-Za-z0-9]{6,12}$/'],
-            'passport_expiry' => ['required', 'date', 'after_or_equal:'.$minimumExpiry->toDateString()],
-            'requests' => ['nullable', 'string', 'max:2000'],
             'payment_method' => ['required', Rule::in(['card', 'paypal', 'bank'])],
             'billing_same' => ['nullable', 'boolean'],
             'billing_address' => ['required_unless:billing_same,1', 'nullable', 'string', 'max:500'],
@@ -1304,7 +1406,6 @@ class TravelController extends Controller
             'terms.accepted' => 'Please accept the Terms & Conditions',
             'privacy.accepted' => 'Please accept the Privacy Policy',
             'cancellation.accepted' => 'Please acknowledge the cancellation policy',
-            'passport_expiry.after_or_equal' => 'Passport must be valid for 6 months after departure (on or after '.$minimumExpiry->format('j M Y').')',
         ];
         $validator = Validator::make($request->all(), $rules, $messages);
         if ($validator->fails()) {
@@ -1337,68 +1438,133 @@ class TravelController extends Controller
         $totals = $this->cartTotals($items, $request);
         $orderReference = $this->uniqueOrderReference();
         $discounts = $totals['discount_allocations'];
-        $bookings = DB::transaction(function () use ($items, $data, $totals, $orderReference, $paymentStatus, $discounts, $notifications) {
-            $remainingTaxes = $totals['taxes'];
+        $movedDocuments = [];
+        try {
+            $bookings = DB::transaction(function () use (
+                $items,
+                $data,
+                $totals,
+                $orderReference,
+                $paymentStatus,
+                $discounts,
+                $notifications,
+                $documentStorage,
+                &$movedDocuments,
+            ) {
+                $remainingTaxes = $totals['taxes'];
 
-            return $items->values()->map(function ($item, $index) use ($items, $data, $orderReference, $paymentStatus, $discounts, &$remainingTaxes, $notifications) {
-                $subtotal = Pricing::itemTotal($item);
-                $isLast = $index === $items->count() - 1;
-                $discount = $discounts[$index] ?? 0.0;
-                $taxes = $isLast
-                    ? $remainingTaxes
-                    : round(($subtotal - $discount) * (float) config('travel.tax_rate'), 2);
-                $remainingTaxes -= $taxes;
-                $detail = $item['detail'] ?? [];
-                $travellers = [];
-                $passports = [];
-                foreach ($detail['guests'] ?? [] as $guest) {
-                    $passport = $guest['passport'] ?? null;
-                    if (is_string($passport) && $passport !== '') {
-                        $passports[] = Crypt::decryptString($passport);
+                return $items->values()->map(function ($item, $index) use (
+                    $items,
+                    $data,
+                    $orderReference,
+                    $paymentStatus,
+                    $discounts,
+                    &$remainingTaxes,
+                    $notifications,
+                    $documentStorage,
+                    &$movedDocuments,
+                ) {
+                    $subtotal = Pricing::itemTotal($item);
+                    $isLast = $index === $items->count() - 1;
+                    $discount = $discounts[$index] ?? 0.0;
+                    $taxes = $isLast
+                        ? $remainingTaxes
+                        : round(($subtotal - $discount) * (float) config('travel.tax_rate'), 2);
+                    $remainingTaxes -= $taxes;
+                    $detail = $item['detail'] ?? [];
+                    $travellers = $detail['guests'] ?? [];
+                    $passports = [];
+                    foreach ($travellers as &$guest) {
+                        $passport = $guest['passport'] ?? null;
+                        if (is_string($passport) && $passport !== '') {
+                            $passports[] = Crypt::decryptString($passport);
+                        }
+                        unset($guest['passport']);
                     }
-                    unset($guest['passport']);
-                    $travellers[] = $guest;
-                }
+                    unset($guest);
+                    $leadTraveller = $travellers[0] ?? [];
+                    $leadPassport = $passports[0] ?? '';
+                    if ($travellers === []) {
+                        $travellers = array_map(fn (int $travellerIndex): array => [
+                            'name' => $travellerIndex === 0 ? $data['name'] : 'Traveller '.($travellerIndex + 1),
+                            'document_path' => null,
+                        ], range(0, (int) $item['guests'] - 1));
+                        $leadTraveller = $travellers[0] ?? [];
+                    }
 
-                $booking = Booking::create([
-                    'reference' => 'TWY-'.Str::upper(Str::random(7)),
-                    'order_reference' => $orderReference,
-                    'user_id' => Auth::id(),
-                    'package_id' => $item['package']->id,
-                    'departure_date' => $item['departure_date'],
-                    'guests' => $item['guests'],
-                    'guest_details' => [
-                        'name' => $data['name'],
-                        'email' => $data['email'],
-                        'phone' => $data['phone'],
-                        'contact_address' => $data['contact_address'],
-                        'billing_address' => $data['billing_address'],
-                        'traveller' => [
-                            'name' => $data['traveller_name'],
-                            'dob' => $data['traveller_dob'],
-                            'nationality' => $data['nationality'],
-                            'passport_expiry' => $data['passport_expiry'],
-                            'requests' => $data['requests'] ?? '',
+                    $bookingReference = 'TWY-'.Str::upper(Str::random(7));
+                    $booking = Booking::create([
+                        'reference' => $bookingReference,
+                        'order_reference' => $orderReference,
+                        'user_id' => Auth::id(),
+                        'package_id' => $item['package']->id,
+                        'departure_date' => $item['departure_date'],
+                        'guests' => $item['guests'],
+                        'guest_details' => [
+                            'name' => $data['name'],
+                            'email' => $data['email'],
+                            'phone' => $data['phone'],
+                            'contact_address' => $data['contact_address'],
+                            'billing_address' => $data['billing_address'],
+                            'traveller' => [
+                                'name' => $leadTraveller['name'] ?? '',
+                                'dob' => $leadTraveller['dob'] ?? '',
+                                'nationality' => $leadTraveller['nation'] ?? '',
+                                'passport_expiry' => $leadTraveller['passportExpiry'] ?? '',
+                                'requests' => $detail['requests'] ?? '',
+                            ],
+                            'travellers' => $travellers,
+                            'booking_detail' => array_diff_key($detail, ['guests' => true, 'document_paths' => true]),
+                            'addons' => $item['addons'] ?? [],
                         ],
-                        'travellers' => $travellers,
-                        'booking_detail' => array_diff_key($detail, ['guests' => true]),
-                        'addons' => $item['addons'] ?? [],
-                    ],
-                    'traveller_passports' => $passports,
-                    'passport_number' => $data['passport_number'],
-                    'subtotal' => $subtotal,
-                    'discount' => $discount,
-                    'taxes' => $taxes,
-                    'total' => round($subtotal - $discount + $taxes, 2),
-                    'status' => $paymentStatus,
-                    'payment_method' => $data['payment_method'],
-                ]);
+                        'traveller_passports' => $passports,
+                        'passport_number' => $leadPassport,
+                        'subtotal' => $subtotal,
+                        'discount' => $discount,
+                        'taxes' => $taxes,
+                        'total' => round($subtotal - $discount + $taxes, 2),
+                        'status' => $paymentStatus,
+                        'payment_method' => $data['payment_method'],
+                    ]);
 
-                $notifications->bookingStatusChanged($booking);
+                    $documentPaths = $detail['document_paths'] ?? $item['document_paths'] ?? [];
+                    foreach ($travellers as $travellerIndex => &$travellerDetails) {
+                        $stagedPath = $documentPaths[$travellerIndex] ?? null;
+                        if (! is_string($stagedPath)) {
+                            throw new \RuntimeException('A required traveller document is missing at checkout.');
+                        }
+                        $bookingPath = $documentStorage->moveToBooking(
+                            $stagedPath,
+                            $item['package'],
+                            $item['departure_date'],
+                            $bookingReference,
+                        );
+                        $movedDocuments[] = [$stagedPath, $bookingPath];
+                        $travellerDetails['document_path'] = $bookingPath;
+                    }
+                    unset($travellerDetails);
+                    $guestDetails = $booking->guest_details;
+                    $guestDetails['travellers'] = $travellers;
+                    $booking->guest_details = $guestDetails;
+                    $booking->save();
 
-                return $booking;
+                    $notifications->bookingStatusChanged($booking);
+
+                    return $booking;
+                });
             });
-        });
+        } catch (\Throwable $exception) {
+            foreach (array_reverse($movedDocuments) as [$stagedPath, $bookingPath]) {
+                if (! $documentStorage->restorePending($bookingPath, $stagedPath)) {
+                    Log::error('Unable to restore traveller document after booking creation failed.', [
+                        'staged_path' => $stagedPath,
+                        'booking_path' => $bookingPath,
+                    ]);
+                }
+            }
+
+            throw $exception;
+        }
         $request->session()->forget('cart');
         $request->session()->forget('promo_code');
         $request->session()->put('confirmation_order_reference', $orderReference);
@@ -1456,6 +1622,38 @@ class TravelController extends Controller
     private function cartTotals($items, Request $request): array
     {
         return Pricing::cartTotals($items, Pricing::promoForCode($request->session()->get('promo_code')));
+    }
+
+    private function cartItemNeedsBookingCompletion(array $item, TravellerDocumentStorage $documentStorage): bool
+    {
+        $travellers = data_get($item, 'detail.guests', []);
+        $documentPaths = data_get($item, 'detail.document_paths', []);
+        $guestCount = (int) ($item['guests'] ?? 0);
+        if ($guestCount < 1 || ! is_array($travellers) || count($travellers) !== $guestCount
+            || ! is_array($documentPaths) || count($documentPaths) !== $guestCount) {
+            return true;
+        }
+
+        for ($index = 0; $index < $guestCount; $index++) {
+            $path = $documentPaths[$index] ?? null;
+            if (! isset($travellers[$index]) || ! is_array($travellers[$index])) {
+                return true;
+            }
+            if (! is_string($path) || ! $documentStorage->exists($path)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function bookingUrlForCartItem(array $item): string
+    {
+        return route('booking', [
+            'id' => $item['package']->slug,
+            'date' => $item['departure_date'],
+            'cart_item' => $item['uid'],
+        ]);
     }
 
     private function cartItems(Request $request)

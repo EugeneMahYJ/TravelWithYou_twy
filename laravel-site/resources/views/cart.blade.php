@@ -86,6 +86,9 @@
                                     <button class="button button-ghost" type="submit">Update trip</button>
                                 </form>
                                 <p class="cart-unit">Price per pax · {{ fmt_rm(\App\Support\Pricing::unitPrice($package, $item['guests'], $item['departure_date'], $item['cabin'] ?? null)) }}</p>
+                                @if(\App\Support\Pricing::itemAvailable($item))
+                                    <a class="cart-traveller-details-link" href="{{ route('booking', ['id' => $package->slug, 'date' => $item['departure_date'], 'cart_item' => $item['uid']]) }}">Enter traveller details and upload documents</a>
+                                @endif
                             @endif
                             <strong class="cart-row-total">{{ fmt_rm(\App\Support\Pricing::itemTotal($item)) }}</strong>
                         </div>

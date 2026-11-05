@@ -31,7 +31,7 @@
             <h2><span>2.</span>Information We Collect</h2>
             <p>We collect information to provide better services to all our clients. This may include:</p>
             <ul>
-                <li><strong>Personal Information:</strong> Name, email address, phone number, passport details, account preferences, and other contact information.</li>
+                <li><strong>Personal Information:</strong> Name, email address, phone number, passport details, passport or identity-card images provided for each traveller, account preferences, and other contact information.</li>
                 <li><strong>MICE Enquiries:</strong> Company name and address, group size, contact-person details, preferred destination, and any budget range you provide for a meetings, incentives, conferences, or events enquiry.</li>
                 <li><strong>Account Notifications:</strong> In-site alerts about bookings, payments, account security, and deal preferences, including whether an alert has been read.</li>
                 <li><strong>Payment Information:</strong> Credit/debit card details or bank information used for processing transactions.</li>
@@ -43,6 +43,7 @@
             <p>We use the collected information for the following purposes:</p>
             <ul>
                 <li><strong>To Provide Services:</strong> Processing bookings, issuing tickets, arranging accommodations, and other travel-related services.</li>
+                <li><strong>Traveller Documents:</strong> Passport or identity-card images are stored privately and made available only to authorized staff for booking and travel arrangements. Staged uploads are deleted after 30 days; booked images are deleted 90 days after departure.</li>
                 <li><strong>Customer Support:</strong> Responding to inquiries, complaints, and providing assistance related to bookings or services.</li>
                 <li><strong>Enquiry Conversations:</strong> If you submit an enquiry while signed in, we link it to your account so you can view the conversation and send follow-up messages in your account inbox. Guest enquiries are handled by email and are not linked to an account solely by matching an email address.</li>
                 <li><strong>Account Notifications:</strong> Showing important booking, payment, and security updates, and promotional deal alerts when you have enabled deal notifications.</li>

@@ -125,6 +125,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
             ->middleware('throttle:10,1')
             ->name('enquiries.reply');
         Route::get('/bookings/{booking}', [AdminController::class, 'showBooking'])->name('bookings.show');
+        Route::get('/bookings/{booking}/travellers/{traveller}/document', [AdminController::class, 'downloadTravellerDocument'])
+            ->whereNumber('traveller')
+            ->name('bookings.traveller-document');
         Route::get('/guides/create', [AdminController::class, 'createGuide'])->name('guides.create');
         Route::post('/guides', [AdminController::class, 'storeGuide'])->name('guides.store');
         Route::get('/guides/{guide}/edit', [AdminController::class, 'editGuide'])->name('guides.edit');

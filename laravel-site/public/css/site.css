@@ -100,7 +100,7 @@ button { color: inherit; }
 .cart-row-total { display: block; margin-top: 12px; font: 500 20px var(--display); }
 .cart-detail { margin-block: 10px; padding: 12px; border: 1px solid var(--line); font-size: 13px; }
 .cart-detail p { margin: 4px 0; }
-.cart-detail a, .checkout-expired a { color: var(--accent-dark); font-weight: 700; }
+.cart-detail a, .cart-traveller-details-link, .checkout-expired a { color: var(--accent-dark); font-weight: 700; }
 .cart-expired { margin: 10px 0; padding: 9px 11px; border-left: 4px solid var(--accent); color: var(--accent-dark); background: #f7e3d8; font-size: 12px; }
 .cart-edit-form { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; margin-top: 12px; }
 .cart-edit-form > label { display: grid; gap: 4px; color: var(--muted); font: 10px var(--mono); letter-spacing: .08em; text-transform: uppercase; }
@@ -1450,8 +1450,39 @@ textarea.account-input { min-height: 100px; resize: vertical; }
 .booking-field { display: grid; min-width: 0; gap: 5px; }
 .booking-field > span { color: var(--muted); font: 9px var(--mono); letter-spacing: .12em; text-transform: uppercase; }
 .booking-field input { width: 100%; min-height: 42px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 0; color: var(--ink); background: var(--card); }
-.booking-field.has-error input { border-color: var(--accent); }
+.booking-nationality-picker { position: relative; min-width: 0; }
+.booking-nationality-trigger { display: flex; width: 100%; min-height: 42px; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 10px; border: 1px solid var(--line); color: var(--ink); background: var(--card); font: inherit; text-align: left; cursor: pointer; }
+.booking-nationality-trigger:hover, .booking-nationality-trigger[aria-expanded="true"] { border-color: var(--sea); }
+.booking-field.has-error .booking-nationality-trigger { border-color: var(--accent); }
+.booking-nationality-trigger:focus-visible { outline: 2px solid rgba(200, 93, 50, .2); border-color: var(--accent); }
+.booking-nationality-chevron { color: var(--ink); font-size: 16px; }
+.booking-nationality-menu { position: absolute; z-index: 20; top: calc(100% + 6px); right: 0; left: 0; overflow: hidden; border: 1px solid rgba(29, 41, 37, .16); background: var(--card); box-shadow: 0 12px 26px rgba(39, 34, 25, .15); }
+.booking-nationality-menu[hidden] { display: none; }
+.booking-nationality-search-wrap { padding: 9px; border-bottom: 1px solid var(--line); }
+.booking-field .booking-nationality-search { min-height: 40px; padding: 8px 10px; background: #fff; }
+.booking-field .booking-nationality-search:focus { outline: 2px solid rgba(49, 93, 80, .2); border-color: var(--sea); }
+.booking-nationality-options { max-height: 230px; overflow: auto; padding: 5px; overscroll-behavior: contain; }
+.booking-nationality-option { display: flex; width: 100%; min-height: 38px; align-items: center; justify-content: space-between; gap: 12px; padding: 0 10px; border: 0; color: var(--ink); background: transparent; font: inherit; text-align: left; cursor: pointer; }
+.booking-nationality-option:hover, .booking-nationality-option.is-active { background: rgba(49, 93, 80, .08); }
+.booking-nationality-option[aria-selected="true"] { color: var(--sea); font-weight: 600; }
+.booking-nationality-check { color: var(--sea); }
+.booking-nationality-empty { margin: 0; padding: 13px 10px; color: var(--muted); font-size: 12px; }
+.booking-field textarea { width: 100%; min-height: 86px; padding: 9px 10px; border: 1px solid var(--line); border-radius: 0; color: var(--ink); background: var(--card); resize: vertical; }
+.booking-field.has-error input, .booking-field.has-error textarea { border-color: var(--accent); }
 .booking-field > small { color: var(--accent-dark); font-size: 11px; }
+.booking-date-control { position: relative; display: flex; min-width: 0; gap: 7px; }
+.booking-date-control > input[type="text"] { min-width: 0; }
+.booking-date-picker-trigger { flex: 0 0 auto; padding: 0 10px; border: 1px solid var(--line); color: var(--ink); background: var(--card); font-size: 11px; cursor: pointer; }
+.booking-date-picker-trigger:hover, .booking-date-picker-trigger:focus-visible { border-color: var(--ink); }
+.booking-date-picker { position: absolute; right: 0; bottom: 0; width: 1px !important; height: 1px !important; min-height: 1px !important; padding: 0 !important; border: 0 !important; opacity: 0; pointer-events: none; }
+.booking-requests-field { margin-top: 15px; }
+.booking-document-field { display: grid; gap: 7px; padding: 13px; border: 1px solid var(--line); background: var(--card); }
+.booking-document-field.has-error { border-color: var(--accent); }
+.booking-document-field > label { color: var(--ink); font-size: 13px; font-weight: 600; }
+.booking-document-field > label small, .booking-document-field > p { color: var(--muted); font-size: 11px; font-weight: 400; }
+.booking-document-field input { width: 100%; }
+.booking-document-field > p { margin: 0; overflow-wrap: anywhere; }
+.booking-document-field > small { color: var(--accent-dark); font-size: 11px; }
 .booking-addon-list { border-top: 1px solid var(--line); }
 .booking-addon { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--line); cursor: pointer; }
 .booking-addon > span { display: flex; min-width: 0; align-items: center; gap: 10px; }

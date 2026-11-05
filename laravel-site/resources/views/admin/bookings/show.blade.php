@@ -26,7 +26,9 @@
         @php($travellers = data_get($booking->guest_details, 'travellers', []))
         @php($passports = $booking->traveller_passports ?? [])
         @if($booking->passport_number)<div class="admin-traveller-card"><strong>Lead booker</strong><dl><div><dt>Passport</dt><dd>{{ str_repeat('*', max(0, strlen($booking->passport_number) - 3)).substr($booking->passport_number, -3) }}</dd></div></dl></div>@endif
-        @forelse($travellers as $index => $traveller)<article class="admin-traveller-card"><strong>{{ $traveller['name'] ?? 'Guest '.($index + 1) }}</strong><dl><div><dt>Date of birth</dt><dd>{{ $traveller['dob'] ?? '—' }}</dd></div><div><dt>Nationality</dt><dd>{{ $traveller['nationality'] ?? '—' }}</dd></div><div><dt>Passport</dt><dd>@if(isset($passports[$index]) && $passports[$index] !== ''){{ str_repeat('*', max(0, strlen($passports[$index]) - 3)).substr($passports[$index], -3) }}@else—@endif</dd></div></dl></article>@empty
+        @forelse($travellers as $index => $traveller)<article class="admin-traveller-card"><strong>{{ $traveller['name'] ?? 'Guest '.($index + 1) }}</strong><dl><div><dt>Date of birth</dt><dd>{{ $traveller['dob'] ?? '—' }}</dd></div><div><dt>Nationality</dt><dd>{{ $traveller['nationality'] ?? $traveller['nation'] ?? '—' }}</dd></div><div><dt>Passport</dt><dd>@if(isset($passports[$index]) && $passports[$index] !== ''){{ str_repeat('*', max(0, strlen($passports[$index]) - 3)).substr($passports[$index], -3) }}@else—@endif</dd></div></dl>
+            @if(!empty($traveller['document_path']))<a class="text-link" href="{{ route('admin.bookings.traveller-document', ['booking' => $booking, 'traveller' => $index]) }}">Download passport or ID image</a>@else<p class="muted">No passport or ID image is attached.</p>@endif
+        </article>@empty
             @if(!$booking->passport_number)<p class="muted">No traveller details were provided.</p>@endif
         @endforelse
     </section>

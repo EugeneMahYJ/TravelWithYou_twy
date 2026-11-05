@@ -22,6 +22,7 @@ use App\Support\AdminNotifications;
 use App\Support\AssetLibrary;
 use App\Support\ClientNotifications;
 use App\Support\Pricing;
+use App\Support\TravellerDocumentStorage;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -34,6 +35,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AdminController extends Controller
 {
@@ -490,6 +492,24 @@ class AdminController extends Controller
     public function showBooking(Booking $booking): View
     {
         return view('admin.bookings.show', ['booking' => $booking->load(['package', 'user', 'cancelledBy'])]);
+    }
+
+    public function downloadTravellerDocument(
+        Booking $booking,
+        int $traveller,
+        TravellerDocumentStorage $documentStorage,
+    ): StreamedResponse {
+        $path = data_get($booking->guest_details, 'travellers.'.$traveller.'.document_path');
+        abort_unless(is_string($path) && $documentStorage->exists($path), 404);
+
+        return Storage::disk('local')->download(
+            $path,
+            'traveller-'.($traveller + 1).'.'.strtolower(pathinfo($path, PATHINFO_EXTENSION)),
+            [
+                'Cache-Control' => 'private, no-store, max-age=0',
+                'X-Content-Type-Options' => 'nosniff',
+            ],
+        );
     }
 
     public function createDeal(): View

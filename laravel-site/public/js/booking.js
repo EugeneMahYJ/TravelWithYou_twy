@@ -26,15 +26,21 @@ if (root) {
         roomTypes: Array.isArray(old.room_types) ? old.room_types : [],
         counts: initialCounts,
         guests: Array.isArray(old.guests) ? old.guests.map((guest) => ({ ...emptyGuest(), ...guest, passport: config.editing ? guest.passport || "" : "" })) : [],
+        requests: String(old.requests || ""),
         sameAsLead: {},
         openGuests: { 0: true },
         selectedAddons: Array.isArray(old.addons) ? old.addons : [],
+        documents: {},
+        documentErrors: {},
+        dateInputs: {},
+        nationalityOpen: null,
+        nationalitySearch: {},
+        nationalityActive: {},
         sheetOpen: false,
         busy: false,
         submitAction: "",
         tooltips: {},
         errors: config.errors || {},
-        dobTouched: {},
         dobAlerts: {},
     };
     const steps = config.cruise
@@ -63,6 +69,26 @@ if (root) {
         const [year, month, day] = isoDate.split("-").map(Number);
         return new Date(year, month - 1, day).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
     };
+    const parseDateInput = (value) => {
+        const text = String(value || "");
+        const displayMatch = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(text);
+        const isoMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(text);
+        if (!displayMatch && !isoMatch) return null;
+        const yearText = displayMatch ? displayMatch[3] : isoMatch[1];
+        const monthText = displayMatch ? displayMatch[2] : isoMatch[2];
+        const dayText = displayMatch ? displayMatch[1] : isoMatch[3];
+        const day = Number(dayText);
+        const month = Number(monthText);
+        const year = Number(yearText);
+        const date = new Date(Date.UTC(year, month - 1, day));
+        if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return null;
+        return `${yearText}-${monthText}-${dayText}`;
+    };
+    const formatDateInput = (value) => {
+        const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value || ""));
+        return match ? `${match[3]}/${match[2]}/${match[1]}` : String(value || "");
+    };
+    const dateInputValue = (index, field, value) => state.dateInputs[`${index}.${field}`] ?? formatDateInput(value);
     const plural = (number, singular, pluralForm = `${singular}s`) => `${number} ${number === 1 ? singular : pluralForm}`;
     const errorFor = (key) => state.errors[key]?.[0] || "";
     const adultCount = () => countRole(state.counts, "adult");
@@ -234,10 +260,11 @@ if (root) {
         const errors = {};
         const name = String(guest.name || "").trim();
         if (!/[A-Za-z]{2}/.test(name) || name.length < 3) errors.name = "Enter the full name as on the passport";
-        const dob = new Date(`${guest.dob || ""}T00:00:00`);
-        if (!guest.dob || Number.isNaN(+dob) || dob > new Date() || dob.getFullYear() < 1900) errors.dob = "Enter a valid date of birth";
+        const birthDate = parseDateInput(guest.dob);
+        const dob = new Date(`${birthDate || ""}T00:00:00`);
+        if (!birthDate || Number.isNaN(+dob) || dob > new Date() || dob.getFullYear() < 1900) errors.dob = "Enter a valid date of birth";
         else {
-            const age = ageOnDate(guest.dob, config.date);
+            const age = ageOnDate(birthDate, config.date);
             const kind = guestKindAt(index);
             if (age === null) errors.dob = "Enter a valid date of birth";
             else if (kind?.id === "single" && age < 18) errors.dob = "Single guests must be 18 or older on the departure date.";
@@ -246,8 +273,10 @@ if (root) {
         }
         if (!String(guest.nation || "").trim()) errors.nation = "Required";
         if (!/^[A-Za-z0-9]{6,12}$/.test(String(guest.passport || "").trim())) errors.passport = "6 to 12 letters or digits";
+        const passportExpiry = parseDateInput(guest.passportExpiry);
         if (!guest.passportExpiry) errors.passportExpiry = "Passport expiry date is required";
-        else if (guest.passportExpiry < earliestExpiry()) errors.passportExpiry = `Passport must be valid for 6 months after departure (on or after ${fmtDate(earliestExpiry())})`;
+        else if (!passportExpiry) errors.passportExpiry = "Enter a valid passport expiry date in DD/MM/YYYY format";
+        else if (passportExpiry < earliestExpiry()) errors.passportExpiry = `Passport must be valid for 6 months after departure (on or after ${fmtDate(earliestExpiry())})`;
         if ((lead || String(guest.email || "").trim()) && !/^\S+@\S+\.\S+$/.test(String(guest.email || "").trim())) errors.email = "Enter a valid email address";
         if ((lead || String(guest.phone || "").trim()) && String(guest.phone || "").replace(/\D/g, "").length < 7) errors.phone = "Enter a valid phone number";
         return errors;
@@ -270,12 +299,16 @@ if (root) {
     const infoError = () => allGuestErrors().some((errors) => Object.keys(errors).length > 0)
         ? "Please complete the highlighted guest details."
         : "";
+    const documentError = (index) => state.documentErrors[index]
+        || errorFor(`documents.${index}`)
+        || (state.documents[index] || config.existingDocuments[index] ? "" : "Upload one passport or ID image for this traveller.");
+    const allDocumentErrors = () => guestLabels().map((_, index) => documentError(index));
     const currentStepError = () => {
         const key = steps[state.step][0];
         if (key === "guests") return guestError();
         if (key === "rooms") return roomError();
         if (key === "types") return roomTypeError();
-        if (key === "details") return infoError();
+        if (key === "details") return infoError() || (allDocumentErrors().some(Boolean) ? "Upload one passport or ID image for each traveller." : "");
         return "";
     };
     const priceLines = () => {
@@ -373,16 +406,61 @@ if (root) {
         </div>`;
     const guestSubline = (kind) => kind.bed || kind.age || "";
     const serverGuestError = (index, field) => errorFor(`guests.${index}.${field}`);
+    const nationalityOptions = (index) => {
+        const query = String(state.nationalitySearch[index] || "").trim().toLocaleLowerCase();
+        const options = config.nations.filter((nation) => nation.toLocaleLowerCase().includes(query));
+        if (query) return options;
+        const priority = config.priorityNations.filter((nation) => options.includes(nation));
+        return [...priority, ...options.filter((nation) => !config.priorityNations.includes(nation))];
+    };
     const renderField = (index, guest, field, title, type = "text", extra = "") => {
-        const localError = state.showErrors || (field === "dob" && state.dobTouched[index])
+        const dateField = field === "dob" || field === "passportExpiry";
+        const localError = state.showErrors
             ? guestErrors(guest, index, index === 0)[field]
             : "";
         const error = serverGuestError(index, field) || localError;
         const label = `${title}${error ? `: ${error}` : ""}`;
-        const list = field === "nation" ? 'list="booking-nations"' : "";
+        if (field === "nation") {
+            const isOpen = state.nationalityOpen === index;
+            const options = isOpen ? nationalityOptions(index) : [];
+            const active = Math.max(0, Math.min(Number(state.nationalityActive[index] || 0), options.length - 1));
+            const pickerId = `booking-nationality-${index}`;
+            return `<div class="booking-field ${error ? "has-error" : ""}">
+                <span id="${pickerId}-label">${esc(title)}</span>
+                <div class="booking-nationality-picker">
+                    <button type="button" class="booking-nationality-trigger" data-nationality-toggle="${index}" aria-labelledby="${pickerId}-label ${pickerId}-value" aria-haspopup="listbox" aria-expanded="${isOpen}" aria-controls="${pickerId}-options">
+                        <span id="${pickerId}-value">${esc(guest[field] || "Select nationality")}</span>
+                        <span class="booking-nationality-chevron" aria-hidden="true">⌄</span>
+                    </button>
+                    <div class="booking-nationality-menu" ${isOpen ? "" : "hidden"}>
+                        <div class="booking-nationality-search-wrap">
+                            <input class="booking-nationality-search" type="search" data-nationality-search="${index}" value="${esc(state.nationalitySearch[index] || "")}" placeholder="Search nationality…" aria-label="Search nationality" autocomplete="off" ${options.length ? `aria-activedescendant="${pickerId}-option-${active}"` : ""}>
+                        </div>
+                        <div class="booking-nationality-options" id="${pickerId}-options" role="listbox" aria-labelledby="${pickerId}-label">
+                            ${options.length ? options.map((nation, optionIndex) => `<button type="button" class="booking-nationality-option${optionIndex === active ? " is-active" : ""}" id="${pickerId}-option-${optionIndex}" role="option" aria-selected="${nation === guest[field]}" data-nationality-value="${esc(nation)}" data-nationality-index="${optionIndex}">
+                                <span>${esc(nation)}</span>${nation === guest[field] ? '<span class="booking-nationality-check" aria-hidden="true">✓</span>' : ""}
+                            </button>`).join("") : '<p class="booking-nationality-empty">No matching nationality.</p>'}
+                        </div>
+                    </div>
+                </div>
+                ${error ? `<small>${esc(error)}</small>` : ""}
+            </div>`;
+        }
+        if (dateField) {
+            const pickerValue = parseDateInput(guest[field]) || "";
+            return `<label class="booking-field ${error ? "has-error" : ""}">
+                <span>${esc(title)}</span>
+                <div class="booking-date-control">
+                    <input type="text" name="booking-${field}-${index}" aria-label="${esc(label)}" data-guest-index="${index}" data-guest-field="${field}" data-date-text value="${esc(dateInputValue(index, field, guest[field]))}" placeholder="DD/MM/YYYY" maxlength="10" autocomplete="off">
+                    <button type="button" class="booking-date-picker-trigger" data-date-picker-trigger="${index}.${field}" aria-label="Choose ${esc(title.toLowerCase())} from calendar">Calendar</button>
+                    <input class="booking-date-picker" type="date" data-date-picker="${index}.${field}" value="${esc(pickerValue)}" ${extra} tabindex="-1" aria-hidden="true">
+                </div>
+                ${error ? `<small>${esc(error)}</small>` : ""}
+            </label>`;
+        }
         return `<label class="booking-field ${error ? "has-error" : ""}">
             <span>${esc(title)}</span>
-            <input type="${type}" name="booking-${field}-${index}" aria-label="${esc(label)}" data-guest-index="${index}" data-guest-field="${field}" value="${esc(guest[field] || "")}" ${list} ${extra} autocomplete="off">
+            <input type="${type}" name="booking-${field}-${index}" aria-label="${esc(label)}" data-guest-index="${index}" data-guest-field="${field}" value="${esc(guest[field] || "")}" ${extra} autocomplete="off">
             ${error ? `<small>${esc(error)}</small>` : ""}
         </label>`;
     };
@@ -484,7 +562,8 @@ if (root) {
             const guest = guestAt(index);
             const fieldErrors = errors[index];
             const serverHasErrors = ["name", "dob", "nation", "passport", "passportExpiry", "email", "phone"].some((field) => serverGuestError(index, field));
-            const bad = Object.keys(fieldErrors).length > 0 || serverHasErrors;
+            const fileError = documentError(index);
+            const bad = Object.keys(fieldErrors).length > 0 || serverHasErrors || !!fileError;
             const expanded = !!state.openGuests[index] || (state.showErrors && bad);
             const badge = state.showErrors && bad ? "Needs attention" : bad ? "Incomplete" : "Complete";
             const sharedFields = ["nation", "email", "phone"];
@@ -498,16 +577,30 @@ if (root) {
                     ${index > 0 ? `<label class="booking-same-lead"><input type="checkbox" data-same-lead="${index}" ${state.sameAsLead[index] ? "checked" : ""} ${canShare ? "" : "disabled"}> Same as lead booker <small>(nationality, phone, email)</small></label>` : ""}
                     ${renderField(index, guest, "name", "Full name as on passport")}
                     <div class="booking-field-grid">
-                        ${renderField(index, guest, "dob", "Date of birth", "date", `max="${esc(config.today)}"`)}
+                        ${renderField(index, guest, "dob", "Date of birth", "text", `max="${esc(config.today)}"`)}
                         ${renderField(index, guest, "nation", "Nationality")}
                         ${renderField(index, guest, "passport", "Passport number")}
-                        ${renderField(index, guest, "passportExpiry", "Passport Expiry Date", "date", `min="${esc(earliestExpiry())}"`)}
+                        ${renderField(index, guest, "passportExpiry", "Passport Expiry Date", "text", `min="${esc(earliestExpiry())}"`)}
                         ${renderField(index, guest, "email", index === 0 ? "Email" : "Email (optional)", "email")}
                         ${renderField(index, guest, "phone", index === 0 ? "Phone" : "Phone (optional)", "tel")}
+                    </div>
+                    <div class="booking-document-field ${fileError ? "has-error" : ""}">
+                        <label for="booking-document-${index}">Passport or ID photo <small>(JPG, JPEG, or PNG · max 5 MB)</small></label>
+                        <input id="booking-document-${index}" type="file" name="documents[${index}]" accept=".jpg,.jpeg,.png,image/jpeg,image/png" data-document-index="${index}" ${config.existingDocuments[index] ? "" : "required"}>
+                        <p>${state.documents[index]
+                            ? `${esc(state.documents[index].name)} · ${(state.documents[index].size / 1024 / 1024).toFixed(2)} MB`
+                            : config.existingDocuments[index] ? "A photo is saved for this traveller. Choose a file to replace it." : "Choose one clear image for this traveller."}</p>
+                        ${state.documents[index] ? `<button type="button" class="text-button" data-document-remove="${index}">Remove selected photo</button>` : ""}
+                        ${fileError ? `<small role="alert">${esc(fileError)}</small>` : ""}
                     </div>
                 </div>` : ""}
             </article>`;
         }).join("")}</div>
+        <label class="booking-field booking-requests-field ${errorFor("requests") ? "has-error" : ""}">
+            <span>Dietary, medical or accessibility requests</span>
+            <textarea rows="3" maxlength="2000" data-booking-requests>${esc(state.requests)}</textarea>
+            ${errorFor("requests") ? `<small>${esc(errorFor("requests"))}</small>` : ""}
+        </label>
         <datalist id="booking-nations">${config.nations.map((nation) => `<option value="${esc(nation)}"></option>`).join("")}</datalist>
         ${state.showErrors && (errorFor("guests") || invalid) ? errorBlock(errorFor("guests") || invalid) : ""}
         ${continueControl()}`;
@@ -600,7 +693,18 @@ if (root) {
         guestLabels().forEach((_, index) => {
             const guest = guestAt(index);
             Object.entries(guest).forEach(([field, value]) => add(`guests[${index}][${field}]`, value));
+            const file = state.documents[index];
+            if (file) {
+                const input = document.createElement("input");
+                input.type = "file";
+                input.name = `documents[${index}]`;
+                const transfer = new DataTransfer();
+                transfer.items.add(file);
+                input.files = transfer.files;
+                fields.append(input);
+            }
         });
+        add("requests", state.requests);
         state.selectedAddons.forEach((addon) => add("addons[]", addon));
         return fields;
     };
@@ -624,11 +728,29 @@ if (root) {
             </div>
             ${mobileTotal()}
             <div class="booking-live-region" aria-live="assertive" aria-atomic="true">${errorAnnounce ? esc(serverMessageForCurrentStep || stepErrors) : ""}</div>`;
+        app.querySelectorAll("[data-document-index]").forEach((input) => {
+            const file = state.documents[Number(input.dataset.documentIndex)];
+            if (file) {
+                const transfer = new DataTransfer();
+                transfer.items.add(file);
+                input.files = transfer.files;
+            }
+        });
         if (focus) {
             const target = app.querySelector(`[data-guest-index="${focus.index}"][data-guest-field="${focus.field}"]`);
             if (target) {
                 target.focus();
                 if (focus.start !== null && target.setSelectionRange) target.setSelectionRange(focus.start, focus.end);
+            }
+            if (focus.nationalitySearch !== undefined) {
+                const search = app.querySelector(`[data-nationality-search="${focus.nationalitySearch}"]`);
+                if (search) {
+                    search.focus();
+                    if (focus.start !== null) search.setSelectionRange(focus.start, focus.end);
+                }
+            }
+            if (focus.nationalityToggle !== undefined) {
+                app.querySelector(`[data-nationality-toggle="${focus.nationalityToggle}"]`)?.focus();
             }
         }
     };
@@ -674,12 +796,44 @@ if (root) {
     const initialErrors = Object.keys(state.errors);
     if (initialErrors.some((key) => key.startsWith("room_types"))) state.step = 2;
     else if (initialErrors.some((key) => key.startsWith("rooms"))) state.step = 1;
-    else if (initialErrors.some((key) => key.startsWith("guests." ) || key === "guests")) state.step = config.cruise ? 3 : 2;
+    else if (initialErrors.some((key) => key.startsWith("guests.") || key === "guests" || key === "requests" || key.startsWith("documents."))) state.step = config.cruise ? 3 : 2;
     render();
 
     root.addEventListener("click", (event) => {
         const target = event.target.closest("button");
         if (!target) return;
+        if (target.hasAttribute("data-nationality-toggle")) {
+            const index = Number(target.dataset.nationalityToggle);
+            if (state.nationalityOpen === index) {
+                state.nationalityOpen = null;
+                render({ nationalityToggle: index });
+            } else {
+                state.nationalityOpen = index;
+                state.nationalitySearch[index] = "";
+                state.nationalityActive[index] = 0;
+                render({ nationalitySearch: index, start: 0, end: 0 });
+            }
+            return;
+        }
+        if (target.hasAttribute("data-nationality-value")) {
+            const index = state.nationalityOpen;
+            if (index === null) return;
+            syncLeadDetails(index, "nation", target.dataset.nationalityValue);
+            clearServerError(`guests.${index}.nation`);
+            state.nationalitySearch[index] = "";
+            state.nationalityOpen = null;
+            render({ nationalityToggle: index });
+            return;
+        }
+        if (target.hasAttribute("data-date-picker-trigger")) {
+            const picker = app.querySelector(`[data-date-picker="${target.dataset.datePickerTrigger}"]`);
+            if (picker && typeof picker.showPicker === "function") picker.showPicker();
+            else if (picker) {
+                picker.focus();
+                picker.click();
+            }
+            return;
+        }
         if (target.hasAttribute("data-counter")) {
             const key = target.dataset.counter;
             const delta = Number(target.dataset.delta);
@@ -722,6 +876,14 @@ if (root) {
             render();
             return;
         }
+        if (target.hasAttribute("data-document-remove")) {
+            const index = Number(target.dataset.documentRemove);
+            delete state.documents[index];
+            delete state.documentErrors[index];
+            clearServerError(`documents.${index}`);
+            render();
+            return;
+        }
         if (target.hasAttribute("data-tooltip")) {
             const key = target.dataset.tooltip;
             state.tooltips[key] = !state.tooltips[key];
@@ -735,9 +897,24 @@ if (root) {
     });
     root.addEventListener("input", (event) => {
         const target = event.target;
+        if (target.matches("[data-nationality-search]")) {
+            const index = Number(target.dataset.nationalitySearch);
+            const start = target.selectionStart;
+            const end = target.selectionEnd;
+            state.nationalitySearch[index] = target.value;
+            state.nationalityActive[index] = 0;
+            render({ nationalitySearch: index, start, end });
+            return;
+        }
+        if (target.matches("[data-booking-requests]")) {
+            state.requests = target.value;
+            clearServerError("requests");
+            return;
+        }
         if (!target.matches("[data-guest-index][data-guest-field]")) return;
         const index = Number(target.dataset.guestIndex);
         const field = target.dataset.guestField;
+        const dateField = field === "dob" || field === "passportExpiry";
         const value = field === "passport" ? target.value.toUpperCase() : target.value;
         const supportsSelection = ["text", "search", "tel", "url", "password"].includes(target.type);
         const focus = {
@@ -746,16 +923,81 @@ if (root) {
             start: supportsSelection ? target.selectionStart : null,
             end: supportsSelection ? target.selectionEnd : null,
         };
-        syncLeadDetails(index, field, value);
+        if (dateField) {
+            state.dateInputs[`${index}.${field}`] = value;
+            syncLeadDetails(index, field, parseDateInput(value) || value);
+        } else {
+            syncLeadDetails(index, field, value);
+        }
         clearServerError(`guests.${index}.${field}`);
         render(focus);
     });
+    root.addEventListener("keydown", (event) => {
+        const target = event.target;
+        if (!target.matches("[data-nationality-search]")) return;
+        const index = Number(target.dataset.nationalitySearch);
+        const options = nationalityOptions(index);
+        if (event.key === "Escape") {
+            event.preventDefault();
+            state.nationalityOpen = null;
+            render({ nationalityToggle: index });
+        } else if (event.key === "ArrowDown" && options.length) {
+            event.preventDefault();
+            state.nationalityActive[index] = (Number(state.nationalityActive[index] || 0) + 1) % options.length;
+            render({ nationalitySearch: index, start: target.selectionStart, end: target.selectionEnd });
+        } else if (event.key === "ArrowUp" && options.length) {
+            event.preventDefault();
+            state.nationalityActive[index] = (Number(state.nationalityActive[index] || 0) - 1 + options.length) % options.length;
+            render({ nationalitySearch: index, start: target.selectionStart, end: target.selectionEnd });
+        } else if (event.key === "Enter" && options.length) {
+            event.preventDefault();
+            const active = Number(state.nationalityActive[index] || 0);
+            const nation = options[active];
+            syncLeadDetails(index, "nation", nation);
+            clearServerError(`guests.${index}.nation`);
+            state.nationalitySearch[index] = "";
+            state.nationalityOpen = null;
+            render({ nationalityToggle: index });
+        }
+    });
+    document.addEventListener("pointerdown", (event) => {
+        if (state.nationalityOpen === null) return;
+        const index = state.nationalityOpen;
+        const picker = app.querySelector(".booking-nationality-picker");
+        if (picker && !picker.contains(event.target)) {
+            state.nationalityOpen = null;
+            app.querySelector(`[data-nationality-toggle="${index}"]`)?.setAttribute("aria-expanded", "false");
+            app.querySelector(".booking-nationality-menu")?.setAttribute("hidden", "");
+        }
+    });
     root.addEventListener("change", (event) => {
         const target = event.target;
-        if (target.matches('[data-guest-index][data-guest-field="dob"]')) {
-            const index = Number(target.dataset.guestIndex);
-            state.dobTouched[index] = true;
-            reportDobError(index);
+        if (target.matches("[data-date-picker]")) {
+            const [indexText, field] = target.dataset.datePicker.split(".");
+            const index = Number(indexText);
+            delete state.dateInputs[`${index}.${field}`];
+            syncLeadDetails(index, field, target.value);
+            if (field === "dob") {
+                reportDobError(index);
+            }
+            clearServerError(`guests.${index}.${field}`);
+            render();
+        } else if (target.matches("[data-document-index]")) {
+            const index = Number(target.dataset.documentIndex);
+            const file = target.files?.[0] || null;
+            if (!file) return;
+            const extension = file.name.split(".").pop()?.toLowerCase();
+            if (!["jpg", "jpeg", "png"].includes(extension) || !["image/jpeg", "image/png"].includes(file.type)) {
+                delete state.documents[index];
+                state.documentErrors[index] = "Choose a JPG, JPEG, or PNG image.";
+            } else if (file.size > config.documentMaxBytes) {
+                delete state.documents[index];
+                state.documentErrors[index] = "Each traveller image must be 5 MB or less.";
+            } else {
+                state.documents[index] = file;
+                delete state.documentErrors[index];
+                clearServerError(`documents.${index}`);
+            }
             render();
         } else if (target.matches("[data-room-type]")) {
             state.roomTypes[Number(target.dataset.roomType)] = target.value;
@@ -775,14 +1017,6 @@ if (root) {
             }
             render();
         }
-    });
-    root.addEventListener("focusout", (event) => {
-        const target = event.target;
-        if (!target.matches('[data-guest-index][data-guest-field="dob"]')) return;
-        const index = Number(target.dataset.guestIndex);
-        state.dobTouched[index] = true;
-        reportDobError(index);
-        render();
     });
     form.addEventListener("submit", (event) => {
         const submitter = event.submitter;

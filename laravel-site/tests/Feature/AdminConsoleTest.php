@@ -486,6 +486,41 @@ class AdminConsoleTest extends TestCase
         $this->assertDatabaseHas('bookings', ['id' => $booking->id, 'status' => 'Confirmed']);
     }
 
+    public function test_only_admins_can_download_private_traveller_documents(): void
+    {
+        Storage::fake('local');
+        $path = 'Clients/Asia/Japan/sakura-rail_2027-03-27/TWY-DOCUMENT-01/traveller-01_'.str_repeat('a', 36).'.jpg';
+        Storage::disk('local')->put($path, 'private image bytes');
+        $booking = Booking::create([
+            'reference' => 'TWY-DOCUMENT-01',
+            'order_reference' => 'TWY-12345',
+            'package_id' => TravelPackage::where('slug', 'sakura-rail')->value('id'),
+            'departure_date' => '2027-03-27',
+            'guests' => 1,
+            'guest_details' => [
+                'travellers' => [[
+                    'name' => 'Casey Traveller',
+                    'document_path' => $path,
+                ]],
+            ],
+            'subtotal' => 1000,
+            'discount' => 0,
+            'taxes' => 70,
+            'total' => 1070,
+            'status' => 'Pending payment',
+        ]);
+        $route = route('admin.bookings.traveller-document', ['booking' => $booking, 'traveller' => 0]);
+
+        $this->actingAs(User::factory()->create())->get($route)->assertForbidden();
+
+        $this->actingAs($this->admin('document-admin@example.test'))->withSession($this->verifiedSession())
+            ->get($route)
+            ->assertOk()
+            ->assertHeader('Cache-Control', 'max-age=0, no-store, private')
+            ->assertHeader('X-Content-Type-Options', 'nosniff')
+            ->assertHeader('Content-Disposition', 'attachment; filename=traveller-1.jpg');
+    }
+
     public function test_notification_read_state_is_per_admin_and_unread_items_drive_the_badge(): void
     {
         $this->quietNotifications();

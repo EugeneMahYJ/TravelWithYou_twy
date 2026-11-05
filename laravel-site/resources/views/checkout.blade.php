@@ -35,18 +35,7 @@
                 </div>
             </section>
             <section class="checkout-card form-card">
-                <h2><span>02</span>Traveller details</h2>
-                <div class="checkout-fields">
-                    <label>Full name as per passport<input name="traveller_name" value="{{ old('traveller_name', $travellerDefaults['name'] ?? '') }}">@error('traveller_name')<small class="field-error" role="alert">{{ $message }}</small>@enderror</label>
-                    <label>Date of birth<input type="date" name="traveller_dob" value="{{ old('traveller_dob', $travellerDefaults['dob'] ?? '') }}">@error('traveller_dob')<small class="field-error" role="alert">{{ $message }}</small>@enderror</label>
-                    <label>Nationality<input name="nationality" list="checkout-nationalities" value="{{ old('nationality', $travellerDefaults['nationality'] ?? '') }}"><datalist id="checkout-nationalities">@foreach($nations as $nation)<option value="{{ $nation }}">@endforeach</datalist>@error('nationality')<small class="field-error" role="alert">{{ $message }}</small>@enderror</label>
-                    <label>Passport number<input name="passport_number" value="{{ old('passport_number', $travellerDefaults['passport_number'] ?? '') }}" autocomplete="off">@error('passport_number')<small class="field-error" role="alert">{{ $message }}</small>@enderror</label>
-                    <label>Passport expiry<input type="date" name="passport_expiry" value="{{ old('passport_expiry', $travellerDefaults['passport_expiry'] ?? '') }}">@error('passport_expiry')<small class="field-error" role="alert">{{ $message }}</small>@enderror</label>
-                    <label class="full-span">Dietary, medical or accessibility requests<textarea name="requests" rows="3">{{ old('requests', $travellerDefaults['requests'] ?? '') }}</textarea>@error('requests')<small class="field-error" role="alert">{{ $message }}</small>@enderror</label>
-                </div>
-            </section>
-            <section class="checkout-card form-card">
-                <h2><span>03</span>Payment</h2>
+                <h2><span>02</span>Payment</h2>
                 <div class="payment-tabs" role="tablist" aria-label="Payment method">
                     @foreach(['card' => 'Card', 'paypal' => 'PayPal', 'bank' => 'Bank transfer'] as $method => $label)
                         <button type="button" role="tab" aria-selected="{{ old('payment_method', 'card') === $method ? 'true' : 'false' }}" data-payment-tab="{{ $method }}">{{ $label }}</button>
@@ -79,7 +68,7 @@
                 <p class="checkout-help">Payments are encrypted and processed securely.</p>
             </section>
             <section class="checkout-card form-card">
-                <h2><span>04</span>Terms &amp; consent</h2>
+                <h2><span>03</span>Terms &amp; consent</h2>
                 @foreach([
                     'terms' => ['I accept the Terms & Conditions', route('terms'), 'Please accept the Terms & Conditions'],
                     'privacy' => ['I accept the Privacy Policy', route('privacy'), 'Please accept the Privacy Policy'],

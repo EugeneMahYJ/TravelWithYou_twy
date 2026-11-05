@@ -14,8 +14,10 @@ use Database\Seeders\ShipSeeder;
 use Database\Seeders\TravelDealSeeder;
 use Database\Seeders\TravelPackageSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class BookingWizardTest extends TestCase
@@ -25,6 +27,7 @@ class BookingWizardTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        Storage::fake('local');
         $this->seed([
             CountrySeeder::class,
             ShipSeeder::class,
@@ -57,6 +60,34 @@ class BookingWizardTest extends TestCase
             ->assertSee('Back to package');
     }
 
+    public function test_booking_requires_one_jpeg_or_png_image_per_traveller_and_rejects_invalid_files(): void
+    {
+        $payload = $this->landPayload(['single' => 1]);
+        unset($payload['documents']);
+
+        $this->from(route('booking', ['id' => 'sakura-rail', 'date' => '2027-03-27']))
+            ->post(route('booking.submit', ['id' => 'sakura-rail', 'date' => '2027-03-27']), $payload)
+            ->assertRedirect()
+            ->assertSessionHasErrors(['documents.0' => 'Upload one passport or ID image for this traveller.']);
+
+        $payload['documents'] = [UploadedFile::fake()->create('passport.gif', 20, 'image/gif')];
+        $this->from(route('booking', ['id' => 'sakura-rail', 'date' => '2027-03-27']))
+            ->post(route('booking.submit', ['id' => 'sakura-rail', 'date' => '2027-03-27']), $payload)
+            ->assertRedirect()
+            ->assertSessionHasErrors('documents.0');
+
+        $payload['documents'] = [UploadedFile::fake()->image('oversized.jpg')->size(5121)];
+        $this->from(route('booking', ['id' => 'sakura-rail', 'date' => '2027-03-27']))
+            ->post(route('booking.submit', ['id' => 'sakura-rail', 'date' => '2027-03-27']), $payload)
+            ->assertRedirect()
+            ->assertSessionHasErrors('documents.0');
+
+        $payload['documents'] = [UploadedFile::fake()->image('passport.jpg')->size(5120)];
+        $payload['action'] = 'cart';
+        $this->post(route('booking.submit', ['id' => 'sakura-rail', 'date' => '2027-03-27']), $payload)
+            ->assertRedirect(route('home'));
+    }
+
     public function test_booking_form_receives_departure_specific_passenger_price_bands(): void
     {
         $package = TravelPackage::where('slug', 'sakura-rail')->firstOrFail();
@@ -77,6 +108,23 @@ class BookingWizardTest extends TestCase
             ->assertOk()
             ->assertSee('"paxTiers":[{"from":1,"to":2,"prices":{"adult":4000}}', false)
             ->assertSee('"from":3,"to":5,"prices":{"adult":5000}', false);
+    }
+
+    public function test_booking_form_includes_the_full_nationality_list_and_priority_choices(): void
+    {
+        $response = $this->get(route('booking', ['id' => 'sakura-rail', 'date' => '2027-03-27']))
+            ->assertOk();
+
+        preg_match('/<script type="application\/json" data-booking-config>(.*?)<\/script>/s', $response->getContent(), $matches);
+        $config = json_decode($matches[1] ?? '', true, 512, JSON_THROW_ON_ERROR);
+
+        $this->assertCount(197, $config['nations']);
+        $this->assertSame(
+            ['Malaysian', 'Singaporean', 'Chinese', 'Indonesian', 'Thai'],
+            $config['priorityNations']
+        );
+        $this->assertContains('Congolese (DR Congo)', $config['nations']);
+        $this->assertContains('São Toméan', $config['nations']);
     }
 
     public function test_land_and_cruise_guest_limits_are_enforced_with_prototype_messages(): void
@@ -421,6 +469,7 @@ class BookingWizardTest extends TestCase
     {
         $payload = $this->landPayload(['adult' => 2], ['insurance']);
         $payload['action'] = 'cart';
+        $payload['requests'] = 'Vegetarian meals requested.';
         $payload['total'] = 1;
         $payload['unit_price'] = 1;
 
@@ -430,6 +479,7 @@ class BookingWizardTest extends TestCase
 
         $item = session('cart.0');
         $this->assertSame('fh', $item['detail']['kind']);
+        $this->assertSame('Vegetarian meals requested.', $item['detail']['requests']);
         $this->assertSame(2, $item['guests']);
         $this->assertEqualsWithDelta(
             array_sum(array_column(Pricing::bookingLines(
@@ -531,6 +581,7 @@ class BookingWizardTest extends TestCase
             'rooms' => 1,
             'addons' => ['guide'],
             'guests' => $this->guests(2),
+            'documents' => $this->documents(2),
         ];
         $payload['guests'][1]['dob'] = '2016-03-27';
         $this->post(route('booking.submit', ['id' => $package->slug, 'date' => '2027-03-27']), $payload)
@@ -540,6 +591,11 @@ class BookingWizardTest extends TestCase
         $this->assertSame(['standard' => 1, 'youth' => 1, 'single' => 0], $item['detail']['counts']);
         $this->assertEquals(2540, Pricing::itemTotal($item));
         $this->assertSame('A12345678', Crypt::decryptString($item['detail']['guests'][0]['passport']));
+        $this->assertCount(2, $item['detail']['document_paths']);
+        foreach ($item['detail']['document_paths'] as $path) {
+            $this->assertStringContainsString('Asia/Japan/custom-booking-test_2027-03-27/.pending/'.$item['uid'], $path);
+            Storage::disk('local')->assertExists($path);
+        }
     }
 
     public function test_proceed_action_enters_checkout_and_persists_encrypted_passports_and_server_totals(): void
@@ -583,6 +639,12 @@ class BookingWizardTest extends TestCase
         $this->assertNotSame('A12345678', DB::table('bookings')->where('id', $booking->id)->value('passport_number'));
         $this->assertNotSame('A12345678', DB::table('bookings')->where('id', $booking->id)->value('traveller_passports'));
         $this->assertArrayNotHasKey('passport', $booking->guest_details['travellers'][0]);
+        foreach ($booking->guest_details['travellers'] as $index => $traveller) {
+            $path = $traveller['document_path'];
+            $this->assertStringContainsString('Europe/Greece/med-grand_2027-06-03/'.$booking->reference, $path);
+            $this->assertStringStartsWith('traveller-'.sprintf('%02d', $index + 1).'_', basename($path));
+            Storage::disk('local')->assertExists($path);
+        }
     }
 
     private function landPayload(array $counts = ['adult' => 2], array $addons = []): array
@@ -607,6 +669,7 @@ class BookingWizardTest extends TestCase
             'rooms' => $rooms,
             'addons' => $addons,
             'guests' => $this->guests(array_sum($counts)),
+            'documents' => $this->documents(array_sum($counts)),
         ];
     }
 
@@ -628,6 +691,7 @@ class BookingWizardTest extends TestCase
             'room_types' => array_fill(0, $rooms, $ship->cabins->first()->type),
             'addons' => [],
             'guests' => $guests,
+            'documents' => $this->documents($adults + $children + $singles),
         ];
         if ($singles > 0) {
             $payload['counts'] = [
@@ -653,5 +717,13 @@ class BookingWizardTest extends TestCase
             'email' => $index === 0 ? 'taylor@example.test' : '',
             'phone' => $index === 0 ? '+60123456789' : '',
         ], range(0, max(0, $count - 1)));
+    }
+
+    private function documents(int $count): array
+    {
+        return array_map(
+            fn () => UploadedFile::fake()->image('passport.jpg', 10, 10),
+            $count > 0 ? range(0, $count - 1) : [],
+        );
     }
 }

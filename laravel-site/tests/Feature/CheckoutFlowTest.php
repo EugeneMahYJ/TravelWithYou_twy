@@ -17,9 +17,11 @@ use Database\Seeders\ShipSeeder;
 use Database\Seeders\TravelDealSeeder;
 use Database\Seeders\TravelPackageSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class CheckoutFlowTest extends TestCase
@@ -29,6 +31,7 @@ class CheckoutFlowTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        Storage::fake('local');
         $this->seed([
             CountrySeeder::class,
             ShipSeeder::class,
@@ -44,10 +47,16 @@ class CheckoutFlowTest extends TestCase
     public function test_valid_card_checkout_uses_pricing_and_keeps_card_data_out_of_storage_and_logs(): void
     {
         Log::spy();
-        $package = $this->addPackage('sakura-rail', 2);
+        $package = $this->addPackageWithDetails('sakura-rail', 2);
         $item = session('cart.0');
         $this->post(route('cart.promo'), ['code' => 'WELCOME10'])
             ->assertSessionHas('promo_code', 'WELCOME10');
+        $this->get(route('checkout'))
+            ->assertOk()
+            ->assertSee('Contact details')
+            ->assertSee('Payment')
+            ->assertDontSee('Traveller details')
+            ->assertDontSee('traveller_name');
         $expected = Pricing::cartTotals(
             [[...$item, 'package' => $package]],
             Pricing::promoForCode('WELCOME10'),
@@ -60,6 +69,7 @@ class CheckoutFlowTest extends TestCase
 
         $booking = Booking::firstOrFail();
         $this->assertSame('Paid', $booking->status);
+        $this->assertSame('Please note any special requirements.', $booking->guest_details['booking_detail']['requests']);
         $this->assertEqualsWithDelta($expected['total'], $booking->total, 0.01);
         $this->assertMatchesRegularExpression('/^TWY-\d{5}$/', $booking->order_reference);
         $this->actingAs(User::factory()->create())
@@ -84,7 +94,7 @@ class CheckoutFlowTest extends TestCase
 
     public function test_simulated_card_failure_keeps_cart_and_creates_no_booking(): void
     {
-        $this->addPackage('sakura-rail', 1);
+        $this->addPackageWithDetails('sakura-rail', 1);
         $input = $this->checkoutInput();
         $input['card_number'] = '4242424242420000';
 
@@ -130,7 +140,7 @@ class CheckoutFlowTest extends TestCase
 
     public function test_package_restricted_promo_is_rejected_without_an_eligible_trip_and_applies_to_one_when_added(): void
     {
-        $this->addPackage('kyoto-retreat', 1);
+        $this->addPackageWithDetails('kyoto-retreat', 1);
         $eligiblePackage = TravelPackage::where('slug', 'sakura-rail')->firstOrFail();
         $promo = PromoCode::create([
             'code' => 'ASIA500',
@@ -147,7 +157,7 @@ class CheckoutFlowTest extends TestCase
             ->assertSessionHas('error', 'This promo code does not apply to the packages in your cart.')
             ->assertSessionMissing('promo_code');
 
-        $this->addPackage($eligiblePackage->slug, 1);
+        $this->addPackageWithDetails($eligiblePackage->slug, 1);
         $this->post(route('cart.promo'), ['code' => 'ASIA500'])
             ->assertSessionHas('promo_code', 'ASIA500');
         $this->get(route('cart'))
@@ -214,7 +224,7 @@ class CheckoutFlowTest extends TestCase
 
     public function test_checkout_validation_never_flashes_card_fields(): void
     {
-        $this->addPackage('sakura-rail', 1);
+        $this->addPackageWithDetails('sakura-rail', 1);
         $input = $this->checkoutInput();
         unset($input['terms']);
 
@@ -226,41 +236,97 @@ class CheckoutFlowTest extends TestCase
             ->assertSessionMissing('_old_input.card_cvc');
     }
 
-    public function test_checkout_rejects_passports_expiring_within_six_months_of_departure(): void
+    public function test_checkout_redirects_quick_add_items_to_the_booking_wizard(): void
     {
         $package = $this->addPackage('sakura-rail', 1);
-        $input = $this->checkoutInput();
-        $input['passport_expiry'] = Carbon::parse($package->departures[0])
-            ->addMonthsNoOverflow(5)
-            ->toDateString();
+        $item = session('cart.0');
+        $bookingUrl = route('booking', [
+            'id' => $package->slug,
+            'date' => $item['departure_date'],
+            'cart_item' => $item['uid'],
+        ]);
 
-        $this->from(route('checkout'))->post(route('checkout.place'), $input)
-            ->assertRedirect(route('checkout'))
-            ->assertSessionHasErrors(['passport_expiry'])
-            ->assertSessionHas('errors', function ($errors) use ($package): bool {
-                $minimumDate = Carbon::parse($package->departures[0])
-                    ->addMonthsNoOverflow(6)
-                    ->format('j M Y');
+        $this->get(route('checkout'))
+            ->assertRedirect($bookingUrl)
+            ->assertSessionHas('success', 'Complete traveller details and upload the required documents for each trip before checkout.');
+        $this->post(route('checkout.place'), $this->checkoutInput())
+            ->assertRedirect($bookingUrl);
+    }
 
-                return str_contains($errors->first('passport_expiry'), 'on or after '.$minimumDate);
-            });
+    public function test_each_quick_added_package_in_a_multi_package_cart_must_be_completed(): void
+    {
+        $this->addPackageWithDetails('sakura-rail', 1);
+        $incompletePackage = $this->addPackage('amalfi-escape', 1);
+        $incompleteItem = collect(session('cart'))->last();
+
+        $this->get(route('checkout'))->assertRedirect(route('booking', [
+            'id' => $incompletePackage->slug,
+            'date' => $incompleteItem['departure_date'],
+            'cart_item' => $incompleteItem['uid'],
+        ]));
     }
 
     public function test_unconfigured_production_gateway_records_pending_payment(): void
     {
-        $this->addPackage('sakura-rail', 1);
+        $this->addPackageWithDetails('sakura-rail', 1);
         $this->app->offsetUnset(PaymentGateway::class);
 
         $this->post(route('checkout.place'), $this->checkoutInput())
             ->assertRedirect(route('confirmation'));
 
-        $this->assertSame('Pending payment', Booking::firstOrFail()->status);
+        $booking = Booking::firstOrFail();
+        $this->assertSame('Pending payment', $booking->status);
+        $path = $booking->guest_details['travellers'][0]['document_path'];
+        $this->assertStringContainsString('Asia/Japan/sakura-rail_2027-03-27/'.$booking->reference, $path);
+        Storage::disk('local')->assertExists($path);
+    }
+
+    public function test_quick_add_item_can_be_completed_in_the_booking_wizard(): void
+    {
+        $this->addPackage('sakura-rail', 1);
+        $uid = session('cart.0.uid');
+        $this->get(route('booking', [
+            'id' => 'sakura-rail',
+            'date' => session('cart.0.departure_date'),
+            'cart_item' => $uid,
+        ]))
+            ->assertOk()
+            ->assertSee('data-booking-config')
+            ->assertSee('"editing":true', false);
+    }
+
+    public function test_expired_staged_and_booked_documents_are_removed_by_cleanup_command(): void
+    {
+        $pendingPath = 'Clients/Asia/Japan/sakura-rail_2027-03-27/.pending/'.str_repeat('a', 36).'/traveller-01_'.str_repeat('b', 36).'.jpg';
+        Storage::disk('local')->put($pendingPath, 'old');
+        touch(Storage::disk('local')->path($pendingPath), now()->subDays(31)->timestamp);
+
+        $bookedPath = 'Clients/Asia/Japan/sakura-rail_2027-03-27/TWY-CLEANUP-01/traveller-01_'.str_repeat('c', 36).'.jpg';
+        Storage::disk('local')->put($bookedPath, 'old');
+        $booking = Booking::create([
+            'reference' => 'TWY-CLEANUP-01',
+            'order_reference' => 'TWY-54321',
+            'package_id' => TravelPackage::where('slug', 'sakura-rail')->value('id'),
+            'departure_date' => today()->subDays(91),
+            'guests' => 1,
+            'guest_details' => ['travellers' => [['name' => 'Taylor Traveller', 'document_path' => $bookedPath]]],
+            'subtotal' => 1000,
+            'taxes' => 70,
+            'total' => 1070,
+            'status' => 'Confirmed',
+        ]);
+
+        $this->artisan('traveller-documents:cleanup')->assertExitCode(0);
+
+        Storage::disk('local')->assertMissing($pendingPath);
+        Storage::disk('local')->assertMissing($bookedPath);
+        $this->assertArrayNotHasKey('document_path', $booking->fresh()->guest_details['travellers'][0]);
     }
 
     public function test_multiple_cart_items_share_one_order_reference_and_match_pricing_totals(): void
     {
-        $first = $this->addPackage('sakura-rail', 2);
-        $this->addPackage('amalfi-escape', 1);
+        $first = $this->addPackageWithDetails('sakura-rail', 2);
+        $this->addPackageWithDetails('amalfi-escape', 1);
         $items = collect(session('cart'))->map(function (array $item) {
             return [...$item, 'package' => TravelPackage::findOrFail($item['package_id'])];
         });
@@ -280,7 +346,7 @@ class CheckoutFlowTest extends TestCase
 
     public function test_confirmation_and_invoice_are_limited_to_the_order_session_or_owner(): void
     {
-        $this->addPackage('sakura-rail', 1);
+        $this->addPackageWithDetails('sakura-rail', 1);
         $user = User::factory()->create();
         $this->actingAs($user)->post(route('checkout.place'), $this->checkoutInput())
             ->assertRedirect(route('confirmation'));
@@ -309,7 +375,7 @@ class CheckoutFlowTest extends TestCase
 
     public function test_authenticated_checkout_records_the_account_owner_and_confirmation(): void
     {
-        $this->addPackage('sakura-rail', 1);
+        $this->addPackageWithDetails('sakura-rail', 1);
         $user = User::factory()->create();
 
         $this->actingAs($user)->post(route('checkout.place'), $this->checkoutInput())
@@ -331,6 +397,62 @@ class CheckoutFlowTest extends TestCase
         return $package;
     }
 
+    private function addPackageWithDetails(string $slug, int $guests): TravelPackage
+    {
+        $package = $this->addPackage($slug, $guests);
+        $item = collect(session('cart'))->last();
+        $date = $item['departure_date'];
+        $kinds = Pricing::guestKinds($package);
+        $counts = array_fill_keys(array_column($kinds, 'id'), 0);
+        $singleKind = collect($kinds)->first(fn (array $kind): bool => $kind['id'] === 'single');
+        $adultKind = collect($kinds)->first(fn (array $kind): bool => ($kind['role'] ?? 'adult') === 'adult' && $kind['id'] !== 'single');
+        $counts[$guests === 1 && $singleKind ? 'single' : $adultKind['id']] = $guests;
+        $roomCount = max(1, (int) ceil($guests / Pricing::MAX_PER_ROOM));
+        $isCruise = $package->type === TravelPackage::TYPE_CRUISE;
+        $rooms = $isCruise
+            ? \App\Models\Ship::where('name', $package->ship)->firstOrFail()->cabins()->get()->first()->type
+            : null;
+        $travellers = [];
+        $documents = [];
+        for ($index = 0; $index < $guests; $index++) {
+            $travellers[] = [
+                'name' => $index === 0 ? 'Taylor Traveller' : 'Guest Traveller '.$index,
+                'dob' => '1990-04-12',
+                'nation' => 'Malaysian',
+                'passport' => 'A1234567'.($index + 1),
+                'passportExpiry' => Carbon::parse($date)->addMonthsNoOverflow(12)->toDateString(),
+                'email' => $index === 0 ? 'taylor@example.test' : '',
+                'phone' => $index === 0 ? '+60123456789' : '',
+            ];
+            $documents[] = UploadedFile::fake()->image('passport-'.$index.'.jpg', 10, 10);
+        }
+        $adultCount = collect($kinds)->filter(fn (array $kind): bool => ($kind['role'] ?? 'adult') === 'adult')
+            ->sum(fn (array $kind): int => (int) $counts[$kind['id']]);
+        $childCount = collect($kinds)->filter(fn (array $kind): bool => ($kind['role'] ?? 'adult') === 'child')
+            ->sum(fn (array $kind): int => (int) $counts[$kind['id']]);
+        $payload = [
+            'action' => 'proceed',
+            'kind' => $isCruise ? 'cruise' : 'fh',
+            'counts' => $counts,
+            'adults' => $adultCount,
+            'children' => $childCount,
+            'rooms' => $roomCount,
+            'room_types' => $isCruise ? array_fill(0, $roomCount, $rooms) : [],
+            'addons' => [],
+            'guests' => $travellers,
+            'documents' => $documents,
+            'requests' => 'Please note any special requirements.',
+        ];
+
+        $this->post(route('booking.submit', [
+            'id' => $slug,
+            'date' => $date,
+            'cart_item' => $item['uid'],
+        ]), $payload)->assertRedirect(route('checkout'));
+
+        return $package;
+    }
+
     private function checkoutInput(): array
     {
         return [
@@ -338,11 +460,6 @@ class CheckoutFlowTest extends TestCase
             'email' => 'taylor@example.test',
             'phone' => '+60123456789',
             'contact_address' => '12 Jalan Example, Kuala Lumpur',
-            'traveller_name' => 'Taylor Traveller',
-            'traveller_dob' => '1990-04-12',
-            'nationality' => 'Malaysian',
-            'passport_number' => 'A12345678',
-            'passport_expiry' => '2030-01-01',
             'payment_method' => 'card',
             'billing_same' => '1',
             'terms' => '1',
