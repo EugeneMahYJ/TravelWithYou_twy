@@ -48,6 +48,7 @@ class TravelPackage extends Model
         'departures',
         'destinations',
         'itinerary',
+        'itinerary_pdf_path',
         'source_data',
         'pricing',
         'image',

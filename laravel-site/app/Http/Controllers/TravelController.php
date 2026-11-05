@@ -27,6 +27,7 @@ use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -194,12 +195,25 @@ class TravelController extends Controller
     public function packagePdf(Request $request, TravelPackage $package): Response
     {
         abort_unless($package->published, 404);
+        $filename = $package->slug.'-TravelWithYou.pdf';
+        if ($package->itinerary_pdf_path !== null) {
+            $disk = Storage::disk('local');
+            abort_unless($disk->exists($package->itinerary_pdf_path), 404);
+
+            $path = $disk->path($package->itinerary_pdf_path);
+
+            return $request->boolean('download')
+                ? response()->download($path, $filename, ['Content-Type' => 'application/pdf'])
+                : response()->file($path, [
+                    'Content-Type' => 'application/pdf',
+                    'Content-Disposition' => 'inline; filename="'.$filename.'"',
+                ]);
+        }
+
         $brochure = config('package_brochures.by_source_id.'.$package->source_id);
         if ($brochure !== null) {
             $path = public_path('assets/Package_Example/'.$brochure);
             abort_unless(is_file($path), 404);
-
-            $filename = $package->slug.'-TravelWithYou.pdf';
 
             return $request->boolean('download')
                 ? response()->download($path, $filename, ['Content-Type' => 'application/pdf'])

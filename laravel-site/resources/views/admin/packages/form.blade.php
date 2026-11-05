@@ -52,11 +52,23 @@
     }
 @endphp
 <div class="admin-heading"><div><p class="eyebrow accent">Package editor</p><h1>{{ $package->exists ? 'Edit package' : 'New package' }}</h1><p>Build the package shown to travellers.</p></div><a class="text-link" href="{{ route('admin.packages') }}">← Packages</a></div>
-<form class="admin-editor-form" method="post" action="{{ $package->exists ? route('admin.packages.update', $package) : route('admin.packages.store') }}">
+<form class="admin-editor-form" method="post" enctype="multipart/form-data" action="{{ $package->exists ? route('admin.packages.update', $package) : route('admin.packages.store') }}">
     @csrf @if($package->exists) @method('put') @endif
     <input type="hidden" name="builder_form" value="1">
     <section class="admin-editor-section"><h2>Cover image</h2>
         <label><span>Image URL or asset name</span><div class="admin-asset-field"><input id="package-cover-image" name="image" value="{{ old('image', $package->image) }}" placeholder="Image URL or public asset filename"><button class="button button-ghost" type="button" data-asset-picker-trigger data-asset-picker-kind="image" data-asset-picker-target="#package-cover-image">Browse library</button></div>@error('image')<small class="field-error">{{ $message }}</small>@enderror</label>
+    </section>
+    <section class="admin-editor-section">
+        <h2>Itinerary PDF</h2>
+        <p class="muted">Upload one PDF file up to 50 MB. Travellers can preview or download it from the package page. The file is stored privately and served through the published package page.</p>
+        @if($package->itinerary_pdf_path)
+            <p>Current file: <strong>{{ basename($package->itinerary_pdf_path) }}</strong></p>
+            @if($package->published)
+                <p><a class="text-link" href="{{ route('packages.pdf', ['package' => $package->slug]) }}" target="_blank" rel="noopener">Preview current PDF</a></p>
+            @endif
+            <label><input type="checkbox" name="remove_itinerary_pdf" value="1" @checked(old('remove_itinerary_pdf'))> Remove the current itinerary PDF</label>
+        @endif
+        <label><span>{{ $package->itinerary_pdf_path ? 'Replace itinerary PDF' : 'Upload itinerary PDF' }}</span><input type="file" name="itinerary_pdf" accept=".pdf,application/pdf">@error('itinerary_pdf')<small class="field-error">{{ $message }}</small>@enderror</label>
     </section>
     <section class="admin-editor-section"><h2>Package details</h2>
         <div class="form-grid">
@@ -213,7 +225,6 @@
         </div>
         <template data-package-addon-template><article class="admin-day-row" data-package-addon><div class="admin-day-row-heading"><strong>Add-on</strong><button type="button" class="text-button danger admin-remove-row">Remove add-on</button></div><input type="hidden" data-addon-id name="addons[__INDEX__][id]" value=""><div class="form-grid"><label><span>Name</span><input data-addon-label name="addons[__INDEX__][label]" required></label><label><span>Price per guest (RM)</span><input type="number" min="0" name="addons[__INDEX__][price]" required></label></div></article></template>
     </section>
-    <label class="form-wide"><span>Destinations (one per line)</span><textarea name="destinations_text" rows="3">{{ old('destinations_text', implode("\n", $package->destinations ?? [])) }}</textarea></label>
     <div class="form-actions"><button class="button button-primary" type="submit">Save package</button><a class="text-link" href="{{ route('admin.packages') }}">Cancel</a></div>
 </form>
 @include('admin.partials.asset-picker', ['mediaAssets' => $mediaAssets])

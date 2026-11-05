@@ -19,8 +19,10 @@ use Database\Seeders\ShipSeeder;
 use Database\Seeders\TravelDealSeeder;
 use Database\Seeders\TravelPackageSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class AdminConsoleTest extends TestCase
@@ -351,6 +353,80 @@ class AdminConsoleTest extends TestCase
         $this->get(route('packages.show', $package))->assertDontSee($defaultInclusion);
     }
 
+    public function test_admin_can_upload_replace_and_remove_a_package_itinerary_pdf(): void
+    {
+        Storage::fake('local');
+        $admin = $this->admin();
+        $package = TravelPackage::firstOrFail();
+        $payload = $this->packageEditPayload($package);
+        $this->actingAs($admin)->withSession($this->verifiedSession());
+
+        $firstPdf = UploadedFile::fake()->createWithContent('itinerary.pdf', "%PDF-1.4\nFirst itinerary\n%%EOF");
+        $this->put(route('admin.packages.update', $package), $payload + ['itinerary_pdf' => $firstPdf])
+            ->assertRedirect(route('admin.packages'))
+            ->assertSessionHas('success', 'Package saved.');
+
+        $package->refresh();
+        $firstPath = $package->itinerary_pdf_path;
+        $this->assertNotNull($firstPath);
+        Storage::disk('local')->assertExists($firstPath);
+        $this->get(route('admin.packages.edit', $package))
+            ->assertOk()
+            ->assertSee('Current file:')
+            ->assertSee('Preview current PDF');
+
+        $inline = $this->get(route('packages.pdf', $package))
+            ->assertOk()
+            ->assertHeader('Content-Type', 'application/pdf');
+        ob_start();
+        $inline->baseResponse->sendContent();
+        $this->assertSame("%PDF-1.4\nFirst itinerary\n%%EOF", ob_get_clean());
+        $this->assertStringContainsString('inline', $inline->headers->get('Content-Disposition'));
+
+        $download = $this->get(route('packages.pdf', ['package' => $package, 'download' => 1]))
+            ->assertOk()
+            ->assertHeader('Content-Type', 'application/pdf');
+        $this->assertStringContainsString('attachment', $download->headers->get('Content-Disposition'));
+
+        $this->put(route('admin.packages.update', $package), $payload)
+            ->assertRedirect(route('admin.packages'));
+        $this->assertSame($firstPath, $package->fresh()->itinerary_pdf_path);
+        Storage::disk('local')->assertExists($firstPath);
+
+        $secondPdf = UploadedFile::fake()->createWithContent('replacement.pdf', "%PDF-1.4\nReplacement itinerary\n%%EOF");
+        $this->put(route('admin.packages.update', $package), $payload + ['itinerary_pdf' => $secondPdf])
+            ->assertRedirect(route('admin.packages'));
+        $secondPath = $package->fresh()->itinerary_pdf_path;
+        $this->assertNotSame($firstPath, $secondPath);
+        Storage::disk('local')->assertMissing($firstPath);
+        Storage::disk('local')->assertExists($secondPath);
+
+        $this->put(route('admin.packages.update', $package), $payload + ['remove_itinerary_pdf' => '1'])
+            ->assertRedirect(route('admin.packages'));
+        $this->assertNull($package->fresh()->itinerary_pdf_path);
+        Storage::disk('local')->assertMissing($secondPath);
+    }
+
+    public function test_admin_package_itinerary_upload_rejects_non_pdf_and_files_over_50_mb(): void
+    {
+        Storage::fake('local');
+        $admin = $this->admin();
+        $package = TravelPackage::firstOrFail();
+        $payload = $this->packageEditPayload($package);
+        $this->actingAs($admin)->withSession($this->verifiedSession());
+
+        $this->put(route('admin.packages.update', $package), $payload + [
+            'itinerary_pdf' => UploadedFile::fake()->create('itinerary.txt', 10, 'text/plain'),
+        ])->assertSessionHasErrors('itinerary_pdf');
+
+        $this->put(route('admin.packages.update', $package), $payload + [
+            'itinerary_pdf' => UploadedFile::fake()->create('oversized.pdf', 51201, 'application/pdf'),
+        ])->assertSessionHasErrors('itinerary_pdf');
+
+        $this->assertNull($package->fresh()->itinerary_pdf_path);
+        $this->assertSame([], Storage::disk('local')->allFiles('package-itineraries'));
+    }
+
     public function test_admin_can_pause_deals_and_mark_enquiries_replied(): void
     {
         $admin = $this->admin();
@@ -531,6 +607,40 @@ class AdminConsoleTest extends TestCase
     {
         TravelPackage::query()->update(['published' => false]);
         TravelDeal::query()->update(['active' => false]);
+    }
+
+    private function packageEditPayload(TravelPackage $package): array
+    {
+        $tripPlan = array_fill(0, $package->days, [
+            'place' => 'On the journey',
+            'activities' => 'Explore the destination.',
+            'transport' => '',
+        ]);
+        $departure = Carbon::now()->addMonth()->toDateString();
+
+        return [
+            'builder_form' => '1',
+            'name' => $package->name,
+            'slug' => $package->slug,
+            'country' => $package->countryRecord->slug,
+            'type' => $package->type,
+            'ship' => $package->ship,
+            'days' => $package->days,
+            'nights' => $package->nights,
+            'description' => $package->description,
+            'long_description' => $package->long_description,
+            'price_from' => $package->price_from,
+            'price_to' => $package->price_to,
+            'image' => $package->image,
+            'departure_port' => $package->departure_port,
+            'destination_port' => $package->destination_port,
+            'departures' => [$departure],
+            'guest_types' => [['id' => 'adult', 'label' => 'Adult', 'age' => '', 'role' => 'adult']],
+            'departure_prices' => [['adult' => max(1, $package->price_from)]],
+            'highlights' => ['A memorable journey'],
+            'trip_plan' => $tripPlan,
+            'status' => 'Published',
+        ];
     }
 
     private function notificationEnquiry(string $email = 'notice@example.test'): Enquiry

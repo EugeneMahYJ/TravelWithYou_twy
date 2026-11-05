@@ -24,6 +24,7 @@ use Database\Seeders\TravelDealSeeder;
 use Database\Seeders\TravelPackageSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class TravelWebsiteTest extends TestCase
@@ -360,6 +361,24 @@ class TravelWebsiteTest extends TestCase
         $this->assertSame($expectedHash, hash('sha256', ob_get_clean()));
         $this->assertStringContainsString('attachment', $download->headers->get('Content-Disposition'));
         $this->assertStringContainsString($package->slug.'-TravelWithYou.pdf', $download->headers->get('Content-Disposition'));
+    }
+
+    public function test_uploaded_package_pdf_takes_precedence_over_a_legacy_brochure(): void
+    {
+        Storage::fake('local');
+        $this->seed(TourPackageSeeder::class);
+        $package = TravelPackage::where('source_id', 'SILV-ENDEAVOUR-JUL2027')->firstOrFail();
+        $path = 'package-itineraries/custom-brochure.pdf';
+        $content = "%PDF-1.4\nCustom itinerary\n%%EOF";
+        Storage::disk('local')->put($path, $content);
+        $package->update(['itinerary_pdf_path' => $path]);
+
+        $response = $this->get(route('packages.pdf', $package))
+            ->assertOk()
+            ->assertHeader('Content-Type', 'application/pdf');
+        ob_start();
+        $response->baseResponse->sendContent();
+        $this->assertSame($content, ob_get_clean());
     }
 
     public function test_guest_can_toggle_a_package_in_and_out_of_the_wishlist(): void
@@ -1223,6 +1242,8 @@ class TravelWebsiteTest extends TestCase
             ->assertSee('value="Flight + Hotel"', false)
             ->assertSee('value="Cruise"', false)
             ->assertDontSee('value="Wildlife"', false)
+            ->assertDontSee('Destinations (one per line)')
+            ->assertDontSee('name="destinations_text"', false)
             ->assertSee('data-guest-types', false)
             ->assertSee('data-departure-prices', false)
             ->assertSee('data-package-addons', false);
@@ -1255,6 +1276,8 @@ class TravelWebsiteTest extends TestCase
             ->assertOk()
             ->assertDontSee('Advanced · brochure data')
             ->assertDontSee('name="source_data_json"', false)
+            ->assertDontSee('Destinations (one per line)')
+            ->assertDontSee('name="destinations_text"', false)
             ->assertSee('data-guest-types', false)
             ->assertSee('data-departure-prices', false)
             ->assertSee('data-package-addons', false);
@@ -1323,6 +1346,7 @@ class TravelWebsiteTest extends TestCase
         ]);
         $admin->forceFill(['is_admin' => true, 'mfa_enabled' => true, 'mfa_secret' => Totp::generateSecret()])->save();
         $sourceData = $package->source_data;
+        $destinations = $package->destinations;
         $sourceData['itinerary'][1]['title'] = 'Updated itinerary title';
 
         $this->actingAs($admin)->withSession(['admin_mfa_verified' => true, 'admin_last_activity' => time()])
@@ -1345,7 +1369,6 @@ class TravelWebsiteTest extends TestCase
                 'departure_port' => $package->departure_port ?: 'Kuala Lumpur',
                 'destination_port' => $package->destination_port ?: 'Sapporo',
                 'departures_text' => implode("\n", $package->departures),
-                'destinations_text' => implode("\n", $package->destinations),
                 'source_data_json' => json_encode($sourceData, JSON_UNESCAPED_UNICODE),
                 'published' => '1',
             ])->assertRedirect(route('admin.packages'));
@@ -1353,6 +1376,7 @@ class TravelWebsiteTest extends TestCase
         $package->refresh();
         $this->assertSame('Updated Hokkaido Journey', $package->name);
         $this->assertSame('Updated itinerary title', $package->itinerary[1]['title']);
+        $this->assertSame($destinations, $package->destinations);
         $this->get(route('packages.show', ['package' => $package->slug]))
             ->assertOk()
             ->assertSee('Updated itinerary title');

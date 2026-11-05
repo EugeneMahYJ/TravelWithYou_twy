@@ -26,6 +26,8 @@ To fetch any missing self-hosted prototype photographs, run `scripts/fetch-asset
 
 Admin media uploads accept images and videos up to 500 MB. Configure PHP with `upload_max_filesize=500M` and `post_max_size=510M` (plus a request timeout long enough for large files), and ensure PHP's temporary upload directory and `public/assets/uploads` are writable. Restart the web server after changing PHP or server limits.
 
+Package itinerary PDFs can be uploaded from the package editor, up to 50 MB each. They are stored on Laravel's private local disk and served through the published package PDF route for preview and download. Apply the PHP upload settings above to the active web-server PHP runtime; the CLI runtime may use different limits.
+
 The configured tax rate is `TRAVEL_TAX_RATE` in `.env` (defaults to `0.07`); promo-code stacking on package deals is controlled by `TRAVEL_STACK_PROMO_ON_DEALS` (defaults to `true`).
 
 Cruise packages are linked to their prototype fleet ships, and guests can save journeys before signing in; saved guest journeys are added to the account when the guest logs in or registers.

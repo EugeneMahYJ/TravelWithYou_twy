@@ -30,6 +30,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -318,7 +319,6 @@ class AdminController extends Controller
             'price_to' => (int) ($data['price_to'] ?? $existing?->price_to ?? 1),
             'departure_port' => $data['departure_port'] ?? null,
             'destination_port' => $data['destination_port'] ?? null,
-            'destinations' => isset($data['destinations_text']) ? preg_split('/\r\n|\r|\n/', $data['destinations_text'], -1, PREG_SPLIT_NO_EMPTY) : ($existing?->destinations ?? []),
             'image' => $data['image'] ?? ($existing?->image ?? '1624253321171-1be53e12f5f4'),
             'source_data' => isset($data['source_data_json']) && $data['source_data_json'] !== ''
                 ? $sourceData
@@ -330,14 +330,50 @@ class AdminController extends Controller
         if (! $package) {
             $package = new TravelPackage;
         }
-        $package->fill($attributes)->save();
+        $previousItineraryPath = $package->itinerary_pdf_path;
+        $uploadedItineraryPath = null;
+        if ($request->hasFile('itinerary_pdf')) {
+            $uploadedItineraryPath = $request->file('itinerary_pdf')->store('package-itineraries', 'local');
+            if ($uploadedItineraryPath === false) {
+                throw new \RuntimeException('The itinerary PDF could not be stored.');
+            }
+        }
+        $attributes['itinerary_pdf_path'] = $uploadedItineraryPath
+            ?? ($request->boolean('remove_itinerary_pdf') ? null : $previousItineraryPath);
+
+        try {
+            DB::transaction(fn () => $package->fill($attributes)->save());
+        } catch (\Throwable $exception) {
+            if ($uploadedItineraryPath !== null && ! Storage::disk('local')->delete($uploadedItineraryPath)) {
+                Log::warning('Unable to remove a newly uploaded itinerary PDF after package save failed.', [
+                    'path' => $uploadedItineraryPath,
+                ]);
+            }
+
+            throw $exception;
+        }
+
+        if ($previousItineraryPath !== null && $previousItineraryPath !== $package->itinerary_pdf_path
+            && ! Storage::disk('local')->delete($previousItineraryPath)) {
+            Log::warning('Unable to delete replaced package itinerary PDF.', [
+                'package_id' => $package->id,
+                'path' => $previousItineraryPath,
+            ]);
+        }
 
         return redirect()->route('admin.packages')->with('success', 'Package saved.');
     }
 
     public function deletePackage(TravelPackage $package): RedirectResponse
     {
-        $package->delete();
+        $itineraryPath = $package->itinerary_pdf_path;
+        $deleted = $package->delete();
+        if ($deleted && $itineraryPath !== null && ! Storage::disk('local')->delete($itineraryPath)) {
+            Log::warning('Unable to delete itinerary PDF for a deleted package.', [
+                'package_id' => $package->id,
+                'path' => $itineraryPath,
+            ]);
+        }
 
         return redirect()->route('admin.packages')->with('success', 'Package deleted.');
     }
