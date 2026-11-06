@@ -21,6 +21,7 @@ use Database\Seeders\TravelPackageSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class ClientInboxNotificationTest extends TestCase
@@ -204,21 +205,37 @@ class ClientInboxNotificationTest extends TestCase
 
     public function test_failed_payment_notifies_signed_in_user_and_keeps_retry_target(): void
     {
+        Storage::fake('local');
         $package = TravelPackage::where('slug', 'sakura-rail')->firstOrFail();
         $this->post(route('cart.add', $package), [
             'departure_date' => $package->departures[0],
             'guests' => 1,
         ]);
+        $cart = session('cart');
+        $item = $cart[0];
+        $documentPath = 'Clients/test-package/test-departure/.pending/'.$item['uid'].'/traveller-1.jpg';
+        Storage::disk('local')->put($documentPath, 'test document');
+        $cart[0]['detail'] = [
+            'kind' => 'fh',
+            'counts' => ['adult' => 0, 'single' => 1],
+            'rooms' => 1,
+            'guests' => [[
+                'name' => 'Taylor Traveller',
+                'dob' => '1990-01-01',
+                'nation' => 'Malaysian',
+                'passport' => 'A1234567',
+                'passportExpiry' => Carbon::parse($package->departures[0])->addMonthsNoOverflow(7)->toDateString(),
+                'email' => 'taylor@example.test',
+                'phone' => '+60123456789',
+            ]],
+            'document_paths' => [$documentPath],
+        ];
+        $this->withSession(['cart' => $cart]);
         $input = [
             'name' => 'Taylor Traveller',
             'email' => 'taylor@example.test',
             'phone' => '+60123456789',
             'contact_address' => '12 Jalan Example',
-            'traveller_name' => 'Taylor Traveller',
-            'traveller_dob' => '1990-01-01',
-            'nationality' => 'Malaysian',
-            'passport_number' => 'A1234567',
-            'passport_expiry' => Carbon::parse($package->departures[0])->addMonthsNoOverflow(7)->toDateString(),
             'payment_method' => 'card',
             'card_number' => '4242424242420000',
             'card_expiry' => '08/29',

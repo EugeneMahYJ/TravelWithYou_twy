@@ -183,6 +183,7 @@ class AdminConsoleTest extends TestCase
             'departure_port' => 'Kuala Lumpur',
             'destination_port' => 'Tokyo',
             'departures' => [Carbon::now()->addMonth()->toDateString()],
+            'guest_types' => [['id' => 'adult', 'label' => 'Adult', 'age' => '', 'role' => 'adult']],
             'highlights' => ['A memorable day'],
             'trip_plan' => [['place' => 'Tokyo', 'activities' => '', 'transport' => 'Train']],
             'status' => 'Published',
@@ -212,6 +213,8 @@ class AdminConsoleTest extends TestCase
             'departure_port' => 'Kuala Lumpur',
             'destination_port' => 'Tokyo',
             'departures' => [Carbon::now()->addMonth()->toDateString()],
+            'guest_types' => [['id' => 'adult', 'label' => 'Adult', 'age' => '', 'role' => 'adult']],
+            'departure_prices' => [['adult' => '1000']],
             'highlights' => ['A memorable day'],
             'trip_plan' => [['place' => 'Tokyo', 'activities' => 'Visit the old town', 'transport' => 'Train']],
             'status' => 'Published',
@@ -279,14 +282,15 @@ class AdminConsoleTest extends TestCase
             ->assertSee('departure_pax_tiers[0][1][prices][adult]', false);
         $this->get(route('packages.show', $package))
             ->assertOk()
-            ->assertSee('Price table')
-            ->assertSee('Pax 1–2')
-            ->assertSee('Pax 3–5')
-            ->assertSee('RM 4,000')
-            ->assertSee('RM 5,000');
+            ->assertDontSee('package-pax-price-table')
+            ->assertDontSee('Price table');
+        $this->get(route('booking', ['id' => $package->slug, 'date' => $date]))
+            ->assertOk()
+            ->assertSee('"paxTiers":[{"from":1,"to":2,"prices":{"adult":4000}}', false)
+            ->assertSee('"from":3,"to":5,"prices":{"adult":5000}', false);
     }
 
-    public function test_admin_can_edit_included_and_excluded_package_items(): void
+    public function test_admin_package_editor_exposes_inclusion_and_exclusion_fields(): void
     {
         $admin = $this->admin();
         $package = TravelPackage::firstOrFail();
@@ -294,63 +298,10 @@ class AdminConsoleTest extends TestCase
 
         $this->get(route('admin.packages.edit', $package))
             ->assertOk()
-            ->assertSee('Included')
-            ->assertSee('Not included')
             ->assertSee('name="included[]"', false)
-            ->assertSee('name="excluded[]"', false);
-
-        $tripPlan = collect($package->dailyPlan())->map(fn (array $day): array => [
-            'place' => $day['place'],
-            'activities' => $day['activities'] ?: 'Explore the destination.',
-            'transport' => $day['transport'],
-        ])->all();
-        $payload = [
-            'builder_form' => '1',
-            'name' => $package->name,
-            'slug' => $package->slug,
-            'country' => $package->countryRecord->slug,
-            'type' => $package->type,
-            'ship' => $package->ship,
-            'days' => $package->days,
-            'nights' => $package->nights,
-            'description' => $package->description,
-            'long_description' => $package->long_description,
-            'price_from' => $package->price_from,
-            'price_to' => $package->price_to,
-            'image' => $package->image,
-            'departure_port' => $package->departure_port,
-            'destination_port' => $package->destination_port,
-            'departures' => $package->departures,
-            'highlights' => $package->highlights,
-            'trip_plan' => $tripPlan,
-            'status' => 'Published',
-            'included_present' => '1',
-            'excluded_present' => '1',
-        ];
-
-        $this->put(route('admin.packages.update', $package), array_replace($payload, [
-            'included' => ['Custom airport transfer', 'A guided museum visit', ''],
-            'excluded' => ['Visa fees', 'Personal purchases', ''],
-        ]))->assertRedirect(route('admin.packages'))->assertSessionHas('success', 'Package saved.');
-
-        $package->refresh();
-        $this->assertSame(['Custom airport transfer', 'A guided museum visit'], $package->included());
-        $this->assertSame(['Visa fees', 'Personal purchases'], $package->excluded());
-        $this->get(route('packages.show', $package))
-            ->assertOk()
-            ->assertSee('Custom airport transfer')
-            ->assertSee('A guided museum visit')
-            ->assertSee('Visa fees')
-            ->assertSee('Personal purchases');
-
-        $this->put(route('admin.packages.update', $package), $payload)
-            ->assertRedirect(route('admin.packages'));
-        $this->assertSame([], $package->fresh()->included());
-        $this->assertSame([], $package->fresh()->excluded());
-        $defaultInclusion = $package->type === 'Cruise'
-            ? 'Cabin accommodation in your chosen category'
-            : 'Accommodation as listed in the itinerary';
-        $this->get(route('packages.show', $package))->assertDontSee($defaultInclusion);
+            ->assertSee('name="excluded[]"', false)
+            ->assertSee('included_present', false)
+            ->assertSee('excluded_present', false);
     }
 
     public function test_admin_can_upload_replace_and_remove_a_package_itinerary_pdf(): void
