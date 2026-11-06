@@ -4,7 +4,7 @@
 @if($bookings->isEmpty())
     <section class="wrap confirmation-empty">
         <p class="font-display">No recent booking.</p>
-        <a class="button button-primary" href="{{ route('account') }}">View my bookings</a>
+        <a class="button button-primary" href="{{ route('account', ['tab' => 'bookings']) }}">View my bookings</a>
     </section>
 @else
     <section class="wrap confirmation-page">
@@ -56,7 +56,7 @@
         <div class="confirmation-actions">
             <a class="button button-primary" href="{{ route('confirmation.invoice', ['reference' => $orderReference]) }}">Download invoice</a>
             <a class="button button-ghost" href="{{ route('packages.pdf', ['package' => $bookings->first()->package->slug, 'download' => 1]) }}">Download brochure</a>
-            <a class="button button-ghost" href="{{ route('account') }}">My bookings</a>
+            <a class="button button-ghost" href="{{ route('account', ['tab' => 'bookings']) }}">My bookings</a>
         </div>
     </section>
 @endif

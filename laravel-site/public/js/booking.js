@@ -464,6 +464,43 @@ if (root) {
             ${error ? `<small>${esc(error)}</small>` : ""}
         </label>`;
     };
+    const refreshEmailField = (index) => {
+        const input = app.querySelector(`[data-guest-index="${index}"][data-guest-field="email"]`);
+        if (!input) return;
+        if (input !== document.activeElement) input.value = guestAt(index).email || "";
+        const title = index === 0 ? "Email" : "Email (optional)";
+        const error = serverGuestError(index, "email")
+            || (state.showErrors ? guestErrors(guestAt(index), index, index === 0).email : "");
+        const field = input.closest(".booking-field");
+        field?.classList.toggle("has-error", Boolean(error));
+        input.setAttribute("aria-label", error ? `${title}: ${error}` : title);
+        const message = field?.querySelector("small");
+        if (error) {
+            if (message) {
+                message.textContent = error;
+            } else {
+                const element = document.createElement("small");
+                element.textContent = error;
+                field?.append(element);
+            }
+        } else {
+            message?.remove();
+        }
+    };
+    const refreshGuestCard = (index) => {
+        const card = app.querySelectorAll(".booking-guest-card")[index];
+        if (!card) return;
+        const fieldErrors = guestErrors(guestAt(index), index, index === 0);
+        const serverHasErrors = ["name", "dob", "nation", "passport", "passportExpiry", "email", "phone"]
+            .some((field) => serverGuestError(index, field));
+        const bad = Object.keys(fieldErrors).length > 0 || serverHasErrors || !!documentError(index);
+        const status = card.querySelector(".booking-guest-state");
+        card.classList.toggle("needs-attention", state.showErrors && bad);
+        if (status) {
+            status.className = `booking-guest-state ${state.showErrors && bad ? "has-error" : bad ? "incomplete" : "complete"}`;
+            if (status.firstChild) status.firstChild.textContent = state.showErrors && bad ? "Needs attention" : bad ? "Incomplete" : "Complete";
+        }
+    };
     const summaryLines = (compact = false, totalLabel = "Total") => {
         const lines = priceLines();
         const groups = ["Rooms", "Guests", "Add-ons"];
@@ -590,7 +627,10 @@ if (root) {
                         <p>${state.documents[index]
                             ? `${esc(state.documents[index].name)} · ${(state.documents[index].size / 1024 / 1024).toFixed(2)} MB`
                             : config.existingDocuments[index] ? "A photo is saved for this traveller. Choose a file to replace it." : "Choose one clear image for this traveller."}</p>
-                        ${state.documents[index] ? `<button type="button" class="text-button" data-document-remove="${index}">Remove selected photo</button>` : ""}
+                        ${state.documents[index] ? `<button type="button" class="button button-small booking-document-remove" data-document-remove="${index}">
+                            <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3 4.5h10M6 4.5V3h4v1.5m2 0-.6 8H4.6L4 4.5m2.5 2v4m3-4v4" /></svg>
+                            Remove selected photo
+                        </button>` : ""}
                         ${fileError ? `<small role="alert">${esc(fileError)}</small>` : ""}
                     </div>
                 </div>` : ""}
@@ -930,6 +970,33 @@ if (root) {
             syncLeadDetails(index, field, value);
         }
         clearServerError(`guests.${index}.${field}`);
+        if (field === "email") {
+            const affected = index === 0
+                ? Object.entries(state.sameAsLead).flatMap(([guestIndex, sameAsLead]) => sameAsLead ? [Number(guestIndex)] : [])
+                : [];
+            [index, ...affected].forEach(refreshEmailField);
+            [index, ...affected].forEach(refreshGuestCard);
+            if (index === 0) {
+                const canShare = !!(guestAt(0).nation || guestAt(0).email || guestAt(0).phone);
+                app.querySelectorAll("[data-same-lead]").forEach((checkbox) => { checkbox.disabled = !canShare; });
+            }
+            const infoErrorMessage = errorFor("guests") || infoError();
+            const errorBlockElement = app.querySelector(".booking-error");
+            if (errorBlockElement) {
+                if (state.showErrors && infoErrorMessage) {
+                    errorBlockElement.querySelector("p").textContent = infoErrorMessage;
+                } else {
+                    errorBlockElement.remove();
+                }
+            }
+            const continueMessage = app.querySelector(".booking-continue span");
+            if (!state.showErrors || !currentStepError()) continueMessage?.remove();
+            const liveRegion = app.querySelector(".booking-live-region");
+            if (liveRegion && state.showErrors) {
+                liveRegion.textContent = serverMessage(["guests"]) || currentStepError();
+            }
+            return;
+        }
         render(focus);
     });
     root.addEventListener("keydown", (event) => {

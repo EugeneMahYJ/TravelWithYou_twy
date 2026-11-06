@@ -92,6 +92,42 @@ class CheckoutFlowTest extends TestCase
         });
     }
 
+    public function test_checkout_shows_new_payment_methods_and_marks_unintegrated_options_unavailable(): void
+    {
+        $this->addPackageWithDetails('sakura-rail', 1);
+
+        $this->get(route('checkout'))
+            ->assertOk()
+            ->assertSee('Online Banking')
+            ->assertSee('Touch ’n Go eWallet')
+            ->assertSee('DuitNow')
+            ->assertSee('Visa / Mastercard')
+            ->assertSee('Debit or credit card')
+            ->assertSee('Cash at our office')
+            ->assertSee('Payment held for 48 hours')
+            ->assertSee('Example banks for layout only.')
+            ->assertSee('Demo checkout only')
+            ->assertSee('data-payment-option="online_banking"', false)
+            ->assertSee('data-payment-option="tng"', false)
+            ->assertSee('data-payment-option="duitnow"', false)
+            ->assertSee('data-payment-option="cash"', false)
+            ->assertDontSee('PayPal')
+            ->assertDontSee('Bank transfer');
+    }
+
+    public function test_unintegrated_payment_methods_cannot_be_submitted_as_completed_payments(): void
+    {
+        $this->addPackageWithDetails('sakura-rail', 1);
+
+        $this->post(route('checkout.place'), [
+            ...$this->checkoutInput(),
+            'payment_method' => 'online_banking',
+        ])->assertSessionHasErrors('payment_method');
+
+        $this->assertSame(0, Booking::count());
+        $this->assertSame(1, count(session('cart')));
+    }
+
     public function test_simulated_card_failure_keeps_cart_and_creates_no_booking(): void
     {
         $this->addPackageWithDetails('sakura-rail', 1);
@@ -383,7 +419,10 @@ class CheckoutFlowTest extends TestCase
 
         $booking = Booking::firstOrFail();
         $this->assertSame($user->id, $booking->user_id);
-        $this->get(route('confirmation'))->assertOk()->assertSee($booking->order_reference);
+        $this->get(route('confirmation'))
+            ->assertOk()
+            ->assertSee($booking->order_reference)
+            ->assertSee('href="'.route('account', ['tab' => 'bookings']).'"', false);
     }
 
     private function addPackage(string $slug, int $guests): TravelPackage

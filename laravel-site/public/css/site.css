@@ -126,11 +126,31 @@ button { color: inherit; }
 .checkout-fields .full-span { grid-column: 1 / -1; }
 .checkout-fields input, .checkout-fields textarea, .billing-address-field input { width: 100%; min-height: 42px; padding: 9px 11px; border: 1px solid var(--line); color: var(--ink); background: var(--paper); font: 14px var(--sans); letter-spacing: normal; text-transform: none; }
 .checkout-fields textarea { resize: vertical; }
-.payment-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
-.payment-tabs button { min-height: 43px; padding: 8px; border: 1px solid var(--line); background: transparent; font-size: 13px; font-weight: 600; cursor: pointer; }
-.payment-tabs button[aria-selected="true"] { border-color: var(--ink); color: var(--paper); background: var(--ink); }
-.payment-panel { margin-top: 17px; }
-.payment-panel > p, .checkout-help { color: var(--muted); font-size: 12px; }
+.payment-intro { margin: -4px 0 15px; color: var(--muted); font-size: 12px; }
+.payment-method-list { display: grid; gap: 9px; }
+.payment-method-option { display: flex; width: 100%; min-height: 64px; align-items: center; gap: 12px; padding: 10px 13px; border: 1px solid var(--line); border-radius: 3px; background: var(--paper); color: var(--ink); cursor: pointer; text-align: left; }
+.payment-method-option:hover { border-color: color-mix(in srgb, var(--ink) 45%, var(--line)); }
+.payment-method-option[aria-checked="true"] { border-color: var(--ink); background: color-mix(in srgb, var(--paper) 75%, #e8edf2); box-shadow: inset 3px 0 var(--accent); }
+.payment-method-option:focus-visible, .payment-bank-select select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.payment-method-radio { display: grid; width: 18px; height: 18px; flex: 0 0 18px; place-items: center; border: 1.5px solid var(--muted); border-radius: 50%; background: var(--paper); }
+.payment-method-option[aria-checked="true"] .payment-method-radio { border-color: var(--ink); }
+.payment-method-option[aria-checked="true"] .payment-method-radio::after { width: 8px; height: 8px; border-radius: 50%; background: var(--ink); content: ""; }
+.payment-method-icon { display: grid; width: 36px; height: 36px; flex: 0 0 36px; place-items: center; border-radius: 3px; background: color-mix(in srgb, var(--paper) 70%, var(--line)); color: var(--ink); }
+.payment-method-icon svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; }
+.payment-method-copy { display: grid; min-width: 0; gap: 2px; }
+.payment-method-copy strong { font: 600 13px var(--sans); }
+.payment-method-copy small { color: var(--muted); font-size: 11px; }
+.payment-method-status { margin-left: auto; color: var(--muted); font: 9px var(--mono); text-align: right; text-transform: uppercase; }
+.payment-detail-panel { display: grid; gap: 9px; margin-top: 15px; padding: 15px; border: 1px solid var(--line); background: color-mix(in srgb, var(--paper) 74%, #e8edf2); }
+.payment-detail-panel h3 { margin: 0; font: 600 14px var(--sans); }
+.payment-detail-panel p, .payment-detail-panel > small { margin: 0; color: var(--muted); font-size: 12px; }
+.payment-bank-select { display: grid; gap: 6px; color: var(--muted); font: 10px var(--mono); letter-spacing: .06em; text-transform: uppercase; }
+.payment-bank-select select { width: 100%; min-height: 42px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 2px; background: var(--paper); color: var(--ink); font: 13px var(--sans); letter-spacing: normal; text-transform: none; }
+.payment-unavailable-note, .payment-selection-error { padding: 9px 10px; border-left: 3px solid var(--accent); background: color-mix(in srgb, var(--paper) 76%, #f5e1d8); color: var(--ink) !important; font-size: 11px !important; }
+.payment-selection-error { margin: 12px 0 0; }
+.payment-selection-error[hidden] { display: none; }
+.payment-detail-panel[hidden] { display: none; }
+.checkout-help { color: var(--muted); font-size: 12px; }
 .checkout-help { margin: 13px 0 0; }
 .checkout-checkbox, .form-card label.checkout-checkbox { display: flex; align-items: flex-start; gap: 9px; margin-top: 14px; font-size: 13px; }
 /* Keep consent/billing checkboxes compact even when they sit inside form-card, whose generic inputs are full-width fields. */
@@ -181,7 +201,7 @@ button { color: inherit; }
 .payment-failed-page h1 { margin-top: 22px; }
 .payment-failed-page > p { max-width: 540px; color: var(--muted); }
 .payment-failed-page > div { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 18px; }
-.billing-address-field[hidden], .payment-panel[hidden] { display: none !important; }
+.billing-address-field[hidden] { display: none !important; }
 
 @media (max-width: 1023px) {
     .checkout-form { grid-template-columns: 1fr; }
@@ -198,7 +218,8 @@ button { color: inherit; }
     .checkout-fields .full-span { grid-column: auto; }
     .checkout-form { gap: 20px; }
     .guest-checkout { align-items: flex-start; flex-direction: column; gap: 10px; }
-    .payment-tabs button { padding-inline: 4px; font-size: 11px; }
+    .payment-method-option { gap: 9px; padding-inline: 9px; }
+    .payment-method-status { max-width: 62px; font-size: 8px; }
     .confirmation-items li { flex-direction: column; }
     .confirmation-actions { display: grid; }
     .confirmation-actions .button { width: 100%; }
@@ -1482,6 +1503,9 @@ textarea.account-input { min-height: 100px; resize: vertical; }
 .booking-document-field > label small, .booking-document-field > p { color: var(--muted); font-size: 11px; font-weight: 400; }
 .booking-document-field input { width: 100%; }
 .booking-document-field > p { margin: 0; overflow-wrap: anywhere; }
+.booking-document-remove { justify-self: start; border-color: var(--accent); color: #fff; background: var(--accent); }
+.booking-document-remove:hover { border-color: var(--accent-dark); background: var(--accent-dark); }
+.booking-document-remove svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.5; }
 .booking-document-field > small { color: var(--accent-dark); font-size: 11px; }
 .booking-addon-list { border-top: 1px solid var(--line); }
 .booking-addon { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--line); cursor: pointer; }

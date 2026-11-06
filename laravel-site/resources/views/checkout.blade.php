@@ -36,17 +36,97 @@
             </section>
             <section class="checkout-card form-card">
                 <h2><span>02</span>Payment</h2>
-                <div class="payment-tabs" role="tablist" aria-label="Payment method">
-                    @foreach(['card' => 'Card', 'paypal' => 'PayPal', 'bank' => 'Bank transfer'] as $method => $label)
-                        <button type="button" role="tab" aria-selected="{{ old('payment_method', 'card') === $method ? 'true' : 'false' }}" data-payment-tab="{{ $method }}">{{ $label }}</button>
-                    @endforeach
+                <p class="payment-intro">Choose a payment method. Methods that need a payment provider will become available once a provider is connected.</p>
+                <div class="payment-method-list" role="radiogroup" aria-label="Payment method">
+                    <button class="payment-method-option" type="button" role="radio" aria-checked="false" data-payment-option="online_banking" data-payment-label="Online Banking" aria-controls="payment-details-online_banking" tabindex="-1">
+                        <span class="payment-method-radio" aria-hidden="true"></span>
+                        <span class="payment-method-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" focusable="false"><path d="m3 9 9-5 9 5M4 10h16M5 10v8m4-8v8m6-8v8m4-8v8M3 20h18"/></svg>
+                        </span>
+                        <span class="payment-method-copy"><strong>Online Banking</strong><small>FPX · select your bank</small></span>
+                        <span class="payment-method-status">Coming soon</span>
+                    </button>
+                    <button class="payment-method-option" type="button" role="radio" aria-checked="false" data-payment-option="tng" data-payment-label="Touch ’n Go" aria-controls="payment-details-tng" tabindex="-1">
+                        <span class="payment-method-radio" aria-hidden="true"></span>
+                        <span class="payment-method-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" focusable="false"><path d="M4 7.5h14a2 2 0 0 1 2 2v9H5a2 2 0 0 1-2-2v-11a2 2 0 0 1 2-2h13v4"/><path d="M15 12h6v4h-6a2 2 0 0 1 0-4Z"/><path d="M16.5 14h.01"/></svg>
+                        </span>
+                        <span class="payment-method-copy"><strong>Touch ’n Go eWallet</strong><small>Approve securely in the TNG app</small></span>
+                        <span class="payment-method-status">Coming soon</span>
+                    </button>
+                    <button class="payment-method-option" type="button" role="radio" aria-checked="false" data-payment-option="duitnow" data-payment-label="DuitNow" aria-controls="payment-details-duitnow" tabindex="-1">
+                        <span class="payment-method-radio" aria-hidden="true"></span>
+                        <span class="payment-method-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" focusable="false"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z"/><path d="M14 14h2v2h-2zm4 0h2v2h-2zm-4 4h2v2h-2zm4 0h2v2h-2zm2-2h2v4h-2z"/></svg>
+                        </span>
+                        <span class="payment-method-copy"><strong>DuitNow</strong><small>Scan a one-time QR code</small></span>
+                        <span class="payment-method-status">Coming soon</span>
+                    </button>
+                    <button class="payment-method-option" type="button" role="radio" aria-checked="true" data-payment-option="card" data-payment-label="Card" aria-controls="payment-details-card">
+                        <span class="payment-method-radio" aria-hidden="true"></span>
+                        <span class="payment-method-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" focusable="false"><rect x="2.5" y="5" width="19" height="14" rx="2"/><path d="M3 9h18M6 15h4"/></svg>
+                        </span>
+                        <span class="payment-method-copy"><strong>Visa / Mastercard</strong><small>Debit or credit card</small></span>
+                        <span class="payment-method-status">
+                            @if($paymentGateway instanceof \App\Payments\SimulatedPaymentGateway)
+                                Demo
+                            @elseif($paymentGateway)
+                                Available
+                            @else
+                                Pending
+                            @endif
+                        </span>
+                    </button>
+                    <button class="payment-method-option" type="button" role="radio" aria-checked="false" data-payment-option="cash" data-payment-label="Cash" aria-controls="payment-details-cash" tabindex="-1">
+                        <span class="payment-method-radio" aria-hidden="true"></span>
+                        <span class="payment-method-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" focusable="false"><rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M5.5 9a2 2 0 0 0 2-2m9 10a2 2 0 0 1 2-2"/></svg>
+                        </span>
+                        <span class="payment-method-copy"><strong>Cash at our office</strong><small>Payment held for 48 hours</small></span>
+                        <span class="payment-method-status">Coming soon</span>
+                    </button>
                 </div>
-                <input type="hidden" name="payment_method" value="{{ old('payment_method', 'card') }}" data-payment-method>
-                <div class="payment-panel" data-payment-panel="card">
+                <input type="hidden" name="payment_method" value="card" data-payment-method>
+                <div class="payment-detail-panel" id="payment-details-online_banking" data-payment-panel="online_banking" hidden>
+                    <h3>Pay through FPX online banking</h3>
+                    <p>Choose a participating bank and authorize payment through its secure online banking service. Payment confirmation will be provided by the payment provider.</p>
+                    <label class="payment-bank-select">Choose your bank
+                        <select data-payment-bank aria-describedby="payment-bank-note">
+                            <option value="">Choose your bank</option>
+                            <option value="maybank">Maybank</option>
+                            <option value="cimb">CIMB Bank</option>
+                            <option value="public-bank">Public Bank</option>
+                            <option value="rhb">RHB Bank</option>
+                            <option value="hong-leong">Hong Leong Bank</option>
+                            <option value="bank-islam">Bank Islam</option>
+                            <option value="ambank">AmBank</option>
+                            <option value="bank-rakyat">Bank Rakyat</option>
+                            <option value="bsn">BSN</option>
+                            <option value="uob">UOB Malaysia</option>
+                            <option value="ocbc">OCBC Bank</option>
+                        </select>
+                    </label>
+                    <small id="payment-bank-note">Example banks for layout only. The actual list depends on your payment provider.</small>
+                </div>
+                <div class="payment-detail-panel" id="payment-details-tng" data-payment-panel="tng" hidden>
+                    <h3>Pay with Touch ’n Go eWallet</h3>
+                    <p>Once connected, you’ll continue to the provider’s secure payment page and approve the request in your TNG eWallet app.</p>
+                    <p class="payment-unavailable-note">This method is not available yet. No payment will be taken.</p>
+                </div>
+                <div class="payment-detail-panel" id="payment-details-duitnow" data-payment-panel="duitnow" hidden>
+                    <h3>Pay with DuitNow QR</h3>
+                    <p>A one-time QR code will be created for this order after a provider is connected. Scan it with a supported banking or eWallet app.</p>
+                    <p class="payment-unavailable-note">This method is not available yet. No payment will be taken.</p>
+                </div>
+                <div class="payment-detail-panel" id="payment-details-card" data-payment-panel="card">
                     @if($paymentGateway && $paymentGateway->hostedFieldsView() !== null)
                         {!! $paymentGateway->hostedFieldsView() !!}
                         <input type="hidden" name="payment_token" value="">
                     @elseif($paymentGateway)
+                        @if($paymentGateway instanceof \App\Payments\SimulatedPaymentGateway)
+                            <p class="payment-unavailable-note">Demo checkout only — card payments are simulated and no real payment is processed.</p>
+                        @endif
                         <div class="checkout-fields">
                             <label class="full-span">Card number<input name="card_number" inputmode="numeric" maxlength="16" autocomplete="cc-number" placeholder="4242 4242 4242 4242">@error('card_number')<small class="field-error" role="alert">{{ $message }}</small>@enderror</label>
                             <label>Name on card<input name="card_name" autocomplete="cc-name">@error('card_name')<small class="field-error" role="alert">{{ $message }}</small>@enderror</label>
@@ -57,12 +137,12 @@
                         <p class="checkout-help">Card payments will be recorded as Pending payment until a payment gateway is configured.</p>
                     @endif
                 </div>
-                <div class="payment-panel" data-payment-panel="paypal" hidden>
-                    <p>You will be redirected to PayPal to authorise payment after you confirm.</p>
+                <div class="payment-detail-panel" id="payment-details-cash" data-payment-panel="cash" hidden>
+                    <h3>Pay cash at our office</h3>
+                    <p>Your booking would be held for 48 hours. It remains awaiting payment until staff confirm that cash has been received.</p>
+                    <p class="payment-unavailable-note">Cash-at-office checkout is not available yet.</p>
                 </div>
-                <div class="payment-panel" data-payment-panel="bank" hidden>
-                    <p>Bank details and your booking reference are emailed after you confirm. Your booking is held for 48 hours.</p>
-                </div>
+                <p class="payment-selection-error" data-payment-selection-error role="alert" hidden>Please select the available card demo checkout or return when your selected payment method is ready.</p>
                 <label class="checkout-checkbox"><input type="checkbox" name="billing_same" value="1" @checked(old('billing_same', '1') === '1') data-billing-same> Billing address same as contact</label>
                 <label class="billing-address-field" data-billing-address hidden>Billing address<input name="billing_address" value="{{ old('billing_address') }}">@error('billing_address')<small class="field-error" role="alert">{{ $message }}</small>@enderror</label>
                 <p class="checkout-help">Payments are encrypted and processed securely.</p>
@@ -110,7 +190,9 @@
             @if($unavailableItems->isNotEmpty())
                 <p class="notice notice-warn">Update your cart</p>
             @endif
-            <button class="button button-primary button-full" type="submit" data-confirm-button @disabled($unavailableItems->isNotEmpty())>Confirm Booking</button>
+            <button class="button button-primary button-full" type="submit" data-confirm-button data-card-label="{{ $paymentGateway instanceof \App\Payments\SimulatedPaymentGateway ? 'Confirm Booking (Demo)' : 'Confirm Booking' }}" data-cart-unavailable="{{ $unavailableItems->isNotEmpty() ? 'true' : 'false' }}" @disabled($unavailableItems->isNotEmpty())>
+                {{ $paymentGateway instanceof \App\Payments\SimulatedPaymentGateway ? 'Confirm Booking (Demo)' : 'Confirm Booking' }}
+            </button>
             <p class="checkout-help">You can apply a promo code and review everything once more at payment.</p>
         </aside>
     </form>

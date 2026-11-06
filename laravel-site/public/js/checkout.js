@@ -3,21 +3,29 @@
     if (!form) return;
 
     const methodInput = form.querySelector('[data-payment-method]');
-    const tabs = [...form.querySelectorAll('[data-payment-tab]')];
+    const options = [...form.querySelectorAll('[data-payment-option]')];
     const panels = [...form.querySelectorAll('[data-payment-panel]')];
     const sameBilling = form.querySelector('[data-billing-same]');
     const billingAddress = form.querySelector('[data-billing-address]');
     const button = form.querySelector('[data-confirm-button]');
+    const selectionError = form.querySelector('[data-payment-selection-error]');
 
     const selectMethod = (method) => {
         methodInput.value = method;
-        tabs.forEach((tab) => {
-            const selected = tab.dataset.paymentTab === method;
-            tab.setAttribute('aria-selected', String(selected));
+        options.forEach((option) => {
+            const selected = option.dataset.paymentOption === method;
+            option.setAttribute('aria-checked', String(selected));
+            option.tabIndex = selected ? 0 : -1;
         });
         panels.forEach((panel) => {
             panel.hidden = panel.dataset.paymentPanel !== method;
         });
+        selectionError.hidden = true;
+        const methodIsAvailable = method === 'card';
+        button.disabled = button.dataset.cartUnavailable === 'true' || !methodIsAvailable;
+        button.textContent = methodIsAvailable
+            ? button.dataset.cardLabel
+            : `${options.find((option) => option.dataset.paymentOption === method)?.dataset.paymentLabel || 'This method'} not available yet`;
     };
 
     const syncBilling = () => {
@@ -26,13 +34,43 @@
         billingAddress.querySelector('input').disabled = same;
     };
 
-    tabs.forEach((tab) => tab.addEventListener('click', () => selectMethod(tab.dataset.paymentTab)));
+    options.forEach((option, index) => {
+        option.addEventListener('click', () => selectMethod(option.dataset.paymentOption));
+        option.addEventListener('keydown', (event) => {
+            let nextIndex = index;
+            if (event.key === 'ArrowDown' || event.key === 'ArrowRight') {
+                nextIndex = (index + 1) % options.length;
+            } else if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') {
+                nextIndex = (index - 1 + options.length) % options.length;
+            } else if (event.key === 'Home') {
+                nextIndex = 0;
+            } else if (event.key === 'End') {
+                nextIndex = options.length - 1;
+            } else {
+                return;
+            }
+            event.preventDefault();
+            options[nextIndex].focus();
+            selectMethod(options[nextIndex].dataset.paymentOption);
+        });
+    });
     sameBilling.addEventListener('change', syncBilling);
-    selectMethod(methodInput.value || 'card');
+    const initialMethod = options.some((option) => option.dataset.paymentOption === methodInput.value)
+        ? methodInput.value
+        : 'card';
+    selectMethod(initialMethod);
     syncBilling();
 
     form.addEventListener('submit', (event) => {
         if (event.submitter?.name === 'apply_promo') return;
+
+        if (methodInput.value !== 'card') {
+            event.preventDefault();
+            selectionError.hidden = false;
+            selectionError.tabIndex = -1;
+            selectionError.focus();
+            return;
+        }
 
         form.querySelectorAll('[data-client-error]').forEach((node) => node.remove());
         const errors = [];
@@ -48,7 +86,7 @@
                 field.insertAdjacentElement('afterend', error);
             }
         };
-        ['name', 'phone', 'contact_address', 'traveller_name', 'traveller_dob', 'nationality', 'passport_number', 'passport_expiry']
+        ['name', 'phone', 'contact_address']
             .forEach((name) => check(name, 'Required', (field) => Boolean(field.value.trim())));
         check('email', 'Enter a valid email address', (field) => /^\S+@\S+\.\S+$/.test(field.value));
 
