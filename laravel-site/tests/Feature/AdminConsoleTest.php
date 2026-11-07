@@ -50,6 +50,20 @@ class AdminConsoleTest extends TestCase
         $this->actingAs($user)->get(route('admin.dashboard'))->assertForbidden();
     }
 
+    public function test_dashboard_month_selector_keeps_recent_months_when_an_older_month_is_selected(): void
+    {
+        $admin = $this->admin();
+        $this->actingAs($admin)->withSession($this->verifiedSession());
+        $currentMonth = now()->startOfMonth();
+        $selectedMonth = $currentMonth->copy()->subMonths(5);
+
+        $this->get(route('admin.dashboard', ['month' => $selectedMonth->format('Y-m')]))
+            ->assertOk()
+            ->assertSee('value="'.$selectedMonth->format('Y-m').'" selected', false)
+            ->assertSee('value="'.$currentMonth->format('Y-m').'"', false)
+            ->assertSee('Confirmed booking value · '.$selectedMonth->format('F Y'));
+    }
+
     public function test_admin_can_sign_in_with_username_and_sees_standalone_login(): void
     {
         $admin = $this->admin();

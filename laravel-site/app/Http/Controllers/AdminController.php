@@ -42,9 +42,15 @@ class AdminController extends Controller
     public function dashboard(Request $request, AdminNotifications $notifications): View
     {
         $filters = $request->validate(['month' => ['nullable', 'date_format:Y-m']]);
+        $currentMonth = now()->startOfMonth();
         $month = filled($filters['month'] ?? null)
             ? Carbon::createFromFormat('Y-m', $filters['month'])->startOfMonth()
-            : now()->startOfMonth();
+            : $currentMonth->copy();
+        $monthOptions = collect(range(5, 0))
+            ->map(fn (int $offset) => $currentMonth->copy()->subMonths($offset));
+        if (! $monthOptions->contains(fn (Carbon $option): bool => $option->isSameMonth($month))) {
+            $monthOptions = $monthOptions->push($month)->sortBy(fn (Carbon $option) => $option->timestamp)->values();
+        }
         $months = collect(range(5, 0))->map(fn (int $offset) => $month->copy()->subMonths($offset)->startOfMonth());
         $sales = $months->map(fn (Carbon $date) => [
             'date' => $date,
@@ -59,6 +65,7 @@ class AdminController extends Controller
 
         return view('admin.dashboard', [
             'selectedMonth' => $month,
+            'monthOptions' => $monthOptions,
             'months' => $months,
             'sales' => $sales,
             'salesChange' => $previousSales > 0 ? round((($selectedSales - $previousSales) / $previousSales) * 100) : null,

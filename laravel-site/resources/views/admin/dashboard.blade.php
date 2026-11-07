@@ -3,7 +3,7 @@
 @section('content')
 <div class="admin-heading">
     <div><p class="eyebrow accent">Dashboard</p><h1>Hello, {{ auth()->user()->name }}.</h1><p>A clear view of what is happening across your journeys.</p></div>
-    <form method="get" class="admin-month-select"><label for="dashboard-month">Month</label><select id="dashboard-month" name="month" onchange="this.form.submit()">@foreach($months as $month)<option value="{{ $month->format('Y-m') }}" @selected($month->isSameMonth($selectedMonth))>{{ $month->format('F Y') }}</option>@endforeach</select></form>
+    <form method="get" class="admin-month-select"><label for="dashboard-month">Month</label><select id="dashboard-month" name="month" onchange="this.form.submit()">@foreach($monthOptions as $month)<option value="{{ $month->format('Y-m') }}" @selected($month->isSameMonth($selectedMonth))>{{ $month->format('F Y') }}</option>@endforeach</select></form>
 </div>
 <div class="admin-dashboard-grid">
     <article class="admin-stat-card"><div class="admin-stat-top"><span>Users</span><span>♙</span></div><strong>{{ number_format($userTotal) }}</strong><p>+{{ number_format($newUsers) }} this month</p><a href="{{ route('admin.users') }}">View users →</a></article>
