@@ -489,9 +489,142 @@ class AdminController extends Controller
         abort(404);
     }
 
-    public function showBooking(Booking $booking): View
+    public function showBooking(Booking $booking, TravellerDocumentStorage $documentStorage): View
     {
-        return view('admin.bookings.show', ['booking' => $booking->load(['package', 'user', 'cancelledBy'])]);
+        $booking->load(['package', 'user', 'cancelledBy']);
+        $guestDetails = $booking->guest_details ?? [];
+        $rawTravellers = data_get($guestDetails, 'travellers', []);
+        $rawTravellers = is_array($rawTravellers) ? $rawTravellers : [];
+        $leadDetails = data_get($guestDetails, 'traveller', []);
+        $leadDetails = is_array($leadDetails) ? $leadDetails : [];
+        $passportNumbers = $booking->traveller_passports ?? [];
+        $passportNumbers = is_array($passportNumbers) ? $passportNumbers : [];
+        $departureDate = $booking->departure_date;
+        $minimumPassportExpiry = $departureDate->copy()->addMonths(6);
+        $travellerCount = max((int) $booking->guests, count($rawTravellers));
+
+        $travellers = collect($travellerCount > 0 ? range(0, $travellerCount - 1) : [])
+            ->map(function (int $index) use (
+                $booking,
+                $documentStorage,
+                $guestDetails,
+                $leadDetails,
+                $passportNumbers,
+                $rawTravellers,
+                $departureDate,
+                $minimumPassportExpiry,
+                $travellerCount,
+            ): array {
+                $traveller = $rawTravellers[$index] ?? [];
+                $traveller = is_array($traveller) ? $traveller : [];
+                $dob = $traveller['dob'] ?? ($index === 0 ? ($leadDetails['dob'] ?? null) : null);
+                $birthDate = $this->parseBookingDate($dob);
+                $passportExpiry = $traveller['passportExpiry']
+                    ?? $traveller['passport_expiry']
+                    ?? ($index === 0 ? ($leadDetails['passport_expiry'] ?? null) : null);
+                $expiryDate = $this->parseBookingDate($passportExpiry);
+                $travellerPassport = $passportNumbers[$index] ?? ($traveller['passport'] ?? null);
+                $passport = $travellerPassport ?? ($index === 0 ? $booking->passport_number : null);
+                $passport = is_string($passport) ? $passport : '';
+                $leadPassport = $index === 0 && is_string($booking->passport_number)
+                    ? $booking->passport_number
+                    : '';
+                $documentPath = $traveller['document_path'] ?? null;
+                $hasDocument = is_string($documentPath) && $documentStorage->exists($documentPath);
+
+                return [
+                    'name' => $traveller['name']
+                        ?? ($index === 0
+                            ? ($leadDetails['name'] ?? data_get($guestDetails, 'name'))
+                            : null)
+                        ?? 'Guest '.($index + 1),
+                    'number' => $index + 1,
+                    'total' => $travellerCount,
+                    'isLead' => $index === 0,
+                    'dob' => $birthDate?->format('j M Y'),
+                    'age' => $birthDate ? (int) $birthDate->diffInYears($departureDate) : null,
+                    'nationality' => $traveller['nationality']
+                        ?? $traveller['nation']
+                        ?? ($index === 0 ? ($leadDetails['nationality'] ?? null) : null),
+                    'passport' => $passport === ''
+                        ? null
+                        : (strlen($passport) <= 3
+                            ? str_repeat('*', strlen($passport))
+                            : str_repeat('*', strlen($passport) - 3).substr($passport, -3)),
+                    'additionalLeadPassport' => $leadPassport !== ''
+                        && $leadPassport !== $passport
+                        ? (strlen($leadPassport) <= 3
+                            ? str_repeat('*', strlen($leadPassport))
+                            : str_repeat('*', strlen($leadPassport) - 3).substr($leadPassport, -3))
+                        : null,
+                    'passportExpiry' => $expiryDate?->format('j M Y'),
+                    'expiryConcern' => $expiryDate !== null && $expiryDate->lt($minimumPassportExpiry),
+                    'expiryMissing' => $expiryDate === null,
+                    'hasDocument' => $hasDocument,
+                    'documentUrl' => $hasDocument
+                        ? route('admin.bookings.traveller-document', [
+                            'booking' => $booking,
+                            'traveller' => $index,
+                        ])
+                        : null,
+                ];
+            });
+
+        $rooms = data_get($guestDetails, 'booking_detail.rooms', []);
+        $rooms = is_array($rooms) ? $rooms : [];
+        $roomTypes = collect($rooms)->pluck('type')->filter(fn ($type) => is_string($type) && $type !== '');
+        if ($roomTypes->isEmpty()) {
+            $storedRoomTypes = data_get($guestDetails, 'booking_detail.room_types', []);
+            $roomTypes = collect(is_array($storedRoomTypes) ? $storedRoomTypes : [])
+                ->filter(fn ($type) => is_string($type) && $type !== '');
+        }
+
+        $configuredAddons = $booking->package
+            ? Pricing::addons($booking->package)
+            : Pricing::ADDONS;
+        $addonNames = collect($configuredAddons)->keyBy('id');
+        $addons = collect(data_get($guestDetails, 'addons', []))
+            ->map(function ($addon) use ($addonNames): ?string {
+                if (is_array($addon)) {
+                    return $addon['label'] ?? $addon['name'] ?? null;
+                }
+                if (! is_string($addon) || $addon === '') {
+                    return null;
+                }
+
+                return data_get($addonNames->get($addon), 'label', $addon);
+            })
+            ->filter(fn ($addon) => is_string($addon) && $addon !== '')
+            ->values();
+
+        return view('admin.bookings.show', [
+            'booking' => $booking,
+            'bookedBy' => $booking->user?->name ?? data_get($guestDetails, 'name', 'Guest'),
+            'bookerEmail' => $booking->user?->email ?? data_get($guestDetails, 'email'),
+            'bookerPhone' => $booking->user?->phone ?? data_get($guestDetails, 'phone'),
+            'leadTraveller' => data_get($guestDetails, 'travellers.0.name')
+                ?? data_get($leadDetails, 'name')
+                ?? data_get($guestDetails, 'name'),
+            'contactAddress' => data_get($guestDetails, 'contact_address'),
+            'billingAddress' => data_get($guestDetails, 'billing_address'),
+            'roomCount' => count($rooms),
+            'roomTypes' => $roomTypes->unique()->values(),
+            'addons' => $addons,
+            'travellers' => $travellers,
+            'receivedDocumentCount' => $travellers->where('hasDocument', true)->count(),
+            'travellerCount' => $travellerCount,
+        ]);
+    }
+
+    private function parseBookingDate(mixed $value): ?Carbon
+    {
+        if (! is_string($value)
+            || preg_match('/\A(\d{4})-(\d{2})-(\d{2})\z/', $value, $matches) !== 1
+            || ! checkdate((int) $matches[2], (int) $matches[3], (int) $matches[1])) {
+            return null;
+        }
+
+        return Carbon::parse($value);
     }
 
     public function downloadTravellerDocument(

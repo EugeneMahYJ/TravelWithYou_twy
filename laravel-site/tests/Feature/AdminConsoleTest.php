@@ -437,6 +437,85 @@ class AdminConsoleTest extends TestCase
         $this->assertDatabaseHas('bookings', ['id' => $booking->id, 'status' => 'Confirmed']);
     }
 
+    public function test_booking_detail_shows_saved_summary_traveller_readiness_and_expiry_warning(): void
+    {
+        Storage::fake('local');
+        $admin = $this->admin();
+        $package = TravelPackage::firstOrFail();
+        $documentPath = 'Clients/Asia/Japan/sakura-rail_2027-03-27/TWY-DETAIL-01/traveller-01_'.str_repeat('a', 36).'.jpg';
+        Storage::disk('local')->put($documentPath, 'private image bytes');
+        $booking = Booking::create([
+            'reference' => 'TWY-DETAIL-01',
+            'order_reference' => 'ORD-8F3K2Q',
+            'package_id' => $package->id,
+            'departure_date' => '2027-03-27',
+            'guests' => 2,
+            'guest_details' => [
+                'name' => 'Casey Traveller',
+                'email' => 'casey@example.test',
+                'phone' => '+60 12-345 6789',
+                'contact_address' => '12 Jalan Contoh, Puchong',
+                'billing_address' => '88 Jalan Bayar, Puchong',
+                'booking_detail' => [
+                    'rooms' => [['type' => 'Twin'], ['type' => 'Twin']],
+                ],
+                'addons' => ['insurance'],
+                'travellers' => [
+                    [
+                        'name' => 'Casey Traveller',
+                        'dob' => '1990-01-01',
+                        'nationality' => 'Malaysian',
+                        'passportExpiry' => '2030-08-14',
+                        'document_path' => $documentPath,
+                    ],
+                    [
+                        'name' => 'Taylor Traveller',
+                        'dob' => '1960-04-04',
+                        'nationality' => 'Malaysian',
+                        'passportExpiry' => '2027-09-26',
+                    ],
+                ],
+            ],
+            'traveller_passports' => ['ZXCVBN123', 'QWERTY128'],
+            'passport_number' => 'ZXCVBN123',
+            'subtotal' => 10438,
+            'discount' => 100,
+            'taxes' => 731,
+            'total' => 11069,
+            'status' => 'Confirmed',
+            'payment_method' => 'bank',
+        ]);
+        $this->actingAs($admin)->withSession($this->verifiedSession());
+
+        $this->get(route('admin.bookings.show', $booking))
+            ->assertOk()
+            ->assertSee('Booked by')
+            ->assertSee('Casey Traveller')
+            ->assertSee('casey@example.test')
+            ->assertSee('+60 12-345 6789')
+            ->assertSee('Lead traveller')
+            ->assertSee('12 Jalan Contoh, Puchong')
+            ->assertSee('88 Jalan Bayar, Puchong')
+            ->assertSee('2 of 2 guests')
+            ->assertSee('Twin')
+            ->assertSee('Discount')
+            ->assertSee('ORD-8F3K2Q')
+            ->assertSee('Traveller 1 of 2')
+            ->assertSee('Traveller 2 of 2')
+            ->assertSee('age 37')
+            ->assertSee('age 66')
+            ->assertSee('******123')
+            ->assertSee('******128')
+            ->assertSee('Documents: 1 of 2 received')
+            ->assertSee('Document received')
+            ->assertSee('Document missing')
+            ->assertSee('Passport is valid for less than 6 months after departure.')
+            ->assertSee(route('admin.bookings.traveller-document', ['booking' => $booking, 'traveller' => 0]), false)
+            ->assertDontSee(route('admin.bookings.traveller-document', ['booking' => $booking, 'traveller' => 1]), false)
+            ->assertDontSee('ZXCVBN123')
+            ->assertDontSee('QWERTY128');
+    }
+
     public function test_only_admins_can_download_private_traveller_documents(): void
     {
         Storage::fake('local');

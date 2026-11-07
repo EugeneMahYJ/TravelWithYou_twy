@@ -2334,13 +2334,33 @@ textarea.account-input { min-height: 100px; resize: vertical; }
 .admin-user-detail dl > div, .admin-detail-list > div, .admin-traveller-card dl > div { display: flex; justify-content: space-between; gap: 15px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 12px; }
 .admin-user-detail dt, .admin-detail-list dt, .admin-traveller-card dt { color: var(--muted); }
 .admin-user-detail dd, .admin-detail-list dd, .admin-traveller-card dd { margin: 0; text-align: right; overflow-wrap: anywhere; }
-.admin-booking-detail-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); align-items: start; gap: 18px; }
+.admin-booking-detail-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); align-items: start; gap: 18px; }
 .admin-detail-list { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 0 18px; }
 .admin-status-update { display: flex; align-items: end; gap: 10px; margin-top: 20px; }
 .admin-status-update label { display: grid; gap: 6px; font-size: 12px; }
 .admin-status-update select { min-height: 40px; padding: 8px; border: 1px solid var(--line); background: var(--paper); }
 .admin-traveller-card { margin: 10px 0; padding: 13px; border: 1px solid var(--line); background: var(--paper); }
 .admin-traveller-card dl { margin: 7px 0 0; }
+.admin-booking-column { display: grid; align-content: start; gap: 18px; min-width: 0; }
+.admin-booking-column > .admin-panel, .admin-booking-detail-grid > .admin-panel { min-width: 0; margin: 0; }
+.admin-payment-total { font-weight: 700; }
+.admin-travellers-panel > .admin-panel-heading { margin-bottom: 5px; }
+.admin-travellers-panel > .admin-panel-heading h2 { color: var(--ink); }
+.admin-guest-count, .admin-traveller-tag, .admin-expiry-badge, .admin-document-status { display: inline-block; padding: 4px 9px; border-radius: 999px; background: #e9e3d8; color: var(--ink); font-size: 11px; font-weight: 700; white-space: nowrap; }
+.admin-document-readiness { margin: 0 0 10px; color: var(--muted); font-size: 12px; }
+.admin-traveller-card { margin: 10px 0 0; padding: 15px; border-radius: 5px; }
+.admin-traveller-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.admin-traveller-heading strong { color: var(--ink); font-size: 13px; }
+.admin-traveller-heading > div > span { color: var(--muted); font-size: 11px; }
+.admin-traveller-tag, .admin-expiry-badge.is-valid, .admin-document-status.is-received { background: #dcebd8; color: #1c6037; }
+.admin-expiry-badge.is-warning, .admin-document-status.is-missing { background: #f4d8d2; color: #8e2f26; }
+.admin-traveller-card dl { margin: 7px 0 10px; }
+.admin-traveller-card dl > div { font-size: 13px; }
+.admin-traveller-warning { margin: 8px 0; color: #8e2f26; font-size: 12px; line-height: 1.5; }
+.admin-document-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; margin-top: 10px; font-size: 12px; }
+.admin-document-row .text-link { color: var(--ink); text-decoration: underline; }
+.admin-document-row .muted { margin: 0; }
+.admin-cancellation-details { margin-top: 14px; }
 .admin-auth-body { display: grid; min-height: 100svh; place-items: center; padding: 24px; background: var(--paper); }
 .admin-auth-card { width: min(100%, 440px); padding: clamp(25px, 6vw, 42px); border: 1px solid var(--ink); background: var(--card); box-shadow: 8px 8px 0 var(--ink); }
 .admin-auth-brand { display: flex; align-items: center; gap: 13px; margin-bottom: 28px; color: var(--ink); font: 11px var(--mono); letter-spacing: .12em; text-decoration: none; text-transform: uppercase; }
