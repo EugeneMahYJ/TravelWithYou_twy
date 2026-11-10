@@ -28,8 +28,9 @@ class AuthController extends Controller
 
     public function adminLoginForm(Request $request): View|RedirectResponse
     {
-        if (Auth::check() && Auth::user()->is_admin) {
-            return redirect()->route(Auth::user()->mfa_enabled ? 'admin.mfa' : 'admin.mfa.setup');
+        $admin = Auth::guard('admin')->user();
+        if ($admin?->is_admin) {
+            return redirect()->route($admin->mfa_enabled ? 'admin.mfa' : 'admin.mfa.setup');
         }
 
         return view('admin.auth.login', [
@@ -63,18 +64,15 @@ class AuthController extends Controller
             return back()->withErrors([$identityField => 'The username or password is incorrect.'])->onlyInput($identityField);
         }
 
-        Auth::login($user, $request->boolean('remember'));
-        $request->session()->regenerate();
-        if ($adminLogin && ! Auth::user()->is_admin) {
-            Auth::logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
-
+        if ($adminLogin && ! $user->is_admin) {
             return back()->withErrors([$identityField => 'This account does not have administrator access.'])->onlyInput($identityField);
         }
 
+        $guard = Auth::guard($adminLogin ? 'admin' : 'web');
+        $guard->login($user, $request->boolean('remember'));
+        $request->session()->regenerate();
+
         if ($adminLogin) {
-            $user = Auth::user();
             if (! $user->mfa_secret) {
                 $user->forceFill(['mfa_secret' => Totp::generateSecret()])->save();
             }
@@ -106,7 +104,7 @@ class AuthController extends Controller
 
         $data['email'] = Str::lower($data['email']);
         $user = User::create($data);
-        Auth::login($user);
+        Auth::guard('web')->login($user);
         $request->session()->regenerate();
         $this->syncGuestWishlist($request);
 
@@ -120,8 +118,9 @@ class AuthController extends Controller
             ->unique()
             ->all();
 
-        if ($ids) {
-            Auth::user()->favorites()->syncWithoutDetaching(
+        $user = Auth::guard('web')->user();
+        if ($ids && $user) {
+            $user->favorites()->syncWithoutDetaching(
                 TravelPackage::where('published', true)->whereIn('id', $ids)->pluck('id')
             );
         }
@@ -132,9 +131,11 @@ class AuthController extends Controller
     public function logout(Request $request): RedirectResponse
     {
         $adminLogout = $request->routeIs('admin.logout');
-        Auth::logout();
-        $request->session()->forget(['admin_mfa_verified', 'admin_last_activity']);
-        $request->session()->invalidate();
+        Auth::guard($adminLogout ? 'admin' : 'web')->logout();
+        if ($adminLogout) {
+            $request->session()->forget(['admin_mfa_verified', 'admin_last_activity']);
+        }
+        $request->session()->regenerate();
         $request->session()->regenerateToken();
 
         return redirect()->route($adminLogout ? 'admin.login' : 'home');
@@ -179,7 +180,7 @@ class AuthController extends Controller
 
     public function adminMfaSetup(): View|RedirectResponse
     {
-        $user = Auth::user();
+        $user = Auth::guard('admin')->user();
         abort_unless($user?->is_admin, 403);
         if ($user->mfa_enabled) {
             return redirect()->route('admin.mfa');
@@ -196,7 +197,7 @@ class AuthController extends Controller
 
     public function adminMfaForm(): View|RedirectResponse
     {
-        $user = Auth::user();
+        $user = Auth::guard('admin')->user();
         abort_unless($user?->is_admin, 403);
         if (! $user->mfa_enabled) {
             return redirect()->route('admin.mfa.setup');
@@ -208,7 +209,7 @@ class AuthController extends Controller
     public function verifyAdminMfa(Request $request): RedirectResponse
     {
         $data = $request->validate(['code' => ['required', 'digits:6']]);
-        $user = Auth::user();
+        $user = Auth::guard('admin')->user();
         abort_unless($user?->is_admin && $user->mfa_secret, 403);
 
         if (! Totp::verify($user->mfa_secret, $data['code'])) {

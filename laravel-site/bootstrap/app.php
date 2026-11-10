@@ -17,6 +17,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias(['admin' => EnsureAdmin::class]);
+        $middleware->redirectGuestsTo(fn (Request $request) => $request->is('admin', 'admin/*')
+            ? route('admin.login')
+            : route('login'));
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->render(function (Throwable $exception, Request $request) {
@@ -27,9 +30,10 @@ return Application::configure(basePath: dirname(__DIR__))
             $tokenMismatch = $exception instanceof TokenMismatchException
                 || ($exception instanceof HttpExceptionInterface && $exception->getStatusCode() === 419);
             if ($tokenMismatch) {
-                Auth::logout();
+                Auth::guard('admin')->logout();
                 if ($request->hasSession()) {
-                    $request->session()->invalidate();
+                    $request->session()->forget(['admin_mfa_verified', 'admin_last_activity']);
+                    $request->session()->regenerate();
                     $request->session()->regenerateToken();
                 }
 

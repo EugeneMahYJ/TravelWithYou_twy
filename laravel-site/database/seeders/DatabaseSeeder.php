@@ -24,7 +24,6 @@ class DatabaseSeeder extends Seeder
             FaqSeeder::class,
             TourPackageSeeder::class,
             PackagePhotoSeeder::class,
-            PackageContentSeeder::class,
         ]);
 
         $email = env('ADMIN_EMAIL');

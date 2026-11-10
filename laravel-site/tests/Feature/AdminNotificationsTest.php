@@ -90,7 +90,7 @@ class AdminNotificationsTest extends TestCase
         $this->assertSame(14, $notifications->attentionCount());
 
         $admin = $this->admin();
-        $this->actingAs($admin)->withSession($this->verifiedSession())
+        $this->actingAs($admin, 'admin')->withSession($this->verifiedSession())
             ->get(route('admin.dashboard'))
             ->assertOk()
             ->assertSee('2 packages have expired')
@@ -109,7 +109,7 @@ class AdminNotificationsTest extends TestCase
         TravelDeal::query()->update(['active' => false]);
         $admin = $this->admin();
 
-        $this->actingAs($admin)->withSession($this->verifiedSession())
+        $this->actingAs($admin, 'admin')->withSession($this->verifiedSession())
             ->get(route('admin.dashboard'))
             ->assertOk()
             ->assertSee("You're all caught up.", false);
@@ -126,7 +126,7 @@ class AdminNotificationsTest extends TestCase
 
     public function test_admin_errors_are_scoped_to_admin_paths_and_idle_message_is_whitelisted(): void
     {
-        $this->actingAs($this->admin())->withSession($this->verifiedSession())
+        $this->actingAs($this->admin(), 'admin')->withSession($this->verifiedSession())
             ->get('/admin/does-not-exist')
             ->assertNotFound()
             ->assertSee('Back to dashboard')
@@ -158,13 +158,13 @@ class AdminNotificationsTest extends TestCase
             };
         });
         $admin = $this->admin();
-        $this->actingAs($admin)->withSession($this->verifiedSession())
+        $this->actingAs($admin, 'admin')->withSession($this->verifiedSession())
             ->post(route('admin.logout'), ['_token' => 'invalid-token'])
             ->assertRedirect(route('admin.login'))
             ->assertSessionHas('error', 'Your session expired. Please sign in again.');
         $this->assertGuest();
 
-        $this->actingAs($admin)->withSession($this->verifiedSession())
+        $this->actingAs($admin, 'admin')->withSession($this->verifiedSession())
             ->post(route('admin.activity'), ['_token' => 'invalid-token'])
             ->assertRedirect(route('admin.login'))
             ->assertSessionHas('error', 'Your session expired. Please sign in again.');

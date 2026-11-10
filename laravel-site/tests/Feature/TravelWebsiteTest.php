@@ -1148,7 +1148,7 @@ class TravelWebsiteTest extends TestCase
 
     public function test_admin_area_requires_an_administrator_account(): void
     {
-        $this->get(route('admin.dashboard'))->assertRedirect(route('login'));
+        $this->get(route('admin.dashboard'))->assertRedirect(route('admin.login'));
 
         $admin = User::create([
             'name' => 'Site Admin',
@@ -1157,7 +1157,7 @@ class TravelWebsiteTest extends TestCase
         ]);
         $admin->forceFill(['is_admin' => true, 'mfa_enabled' => true, 'mfa_secret' => Totp::generateSecret()])->save();
 
-        $this->actingAs($admin)->withSession(['admin_mfa_verified' => true, 'admin_last_activity' => time()])
+        $this->actingAs($admin, 'admin')->withSession(['admin_mfa_verified' => true, 'admin_last_activity' => time()])
             ->get(route('admin.dashboard'))->assertOk()->assertSee('Users');
     }
 
@@ -1169,7 +1169,7 @@ class TravelWebsiteTest extends TestCase
             'password' => 'SafePass1234',
         ]);
         $admin->forceFill(['is_admin' => true, 'mfa_enabled' => true, 'mfa_secret' => Totp::generateSecret()])->save();
-        $this->actingAs($admin)->withSession(['admin_mfa_verified' => true, 'admin_last_activity' => time()]);
+        $this->actingAs($admin, 'admin')->withSession(['admin_mfa_verified' => true, 'admin_last_activity' => time()]);
 
         foreach (['packages', 'deals', 'bookings', 'enquiries', 'guides', 'media', 'users', 'company'] as $section) {
             $this->get(route('admin.'.$section))->assertOk()->assertDontSee('@if');
@@ -1231,7 +1231,7 @@ class TravelWebsiteTest extends TestCase
         ]);
         $admin->forceFill(['is_admin' => true, 'mfa_enabled' => true, 'mfa_secret' => Totp::generateSecret()])->save();
 
-        $this->actingAs($admin)->withSession(['admin_mfa_verified' => true, 'admin_last_activity' => time()])
+        $this->actingAs($admin, 'admin')->withSession(['admin_mfa_verified' => true, 'admin_last_activity' => time()])
             ->post(route('admin.packages.store'), [
                 'name' => 'Highlands Weekend',
                 'country' => 'Malaysia',
@@ -1288,7 +1288,7 @@ class TravelWebsiteTest extends TestCase
         $destinations = $package->destinations;
         $sourceData['itinerary'][1]['title'] = 'Updated itinerary title';
 
-        $this->actingAs($admin)->withSession(['admin_mfa_verified' => true, 'admin_last_activity' => time()])
+        $this->actingAs($admin, 'admin')->withSession(['admin_mfa_verified' => true, 'admin_last_activity' => time()])
             ->put(route('admin.packages.update', $package), [
                 'name' => 'Updated Hokkaido Journey',
                 'slug' => $package->slug,
@@ -1352,7 +1352,7 @@ class TravelWebsiteTest extends TestCase
         ]);
         $admin->forceFill(['is_admin' => true])->save();
 
-        $this->actingAs($admin)->withSession(['admin_mfa_verified' => false])
+        $this->actingAs($admin, 'admin')->withSession(['admin_mfa_verified' => false])
             ->get(route('admin.mfa.setup'))
             ->assertOk()
             ->assertSee('Setup key')
@@ -1368,7 +1368,7 @@ class TravelWebsiteTest extends TestCase
         ]);
         $admin->forceFill(['is_admin' => true, 'mfa_enabled' => true, 'mfa_secret' => Totp::generateSecret()])->save();
 
-        $this->actingAs($admin)
+        $this->actingAs($admin, 'admin')
             ->withSession(['admin_mfa_verified' => true, 'admin_last_activity' => time() - 901])
             ->get(route('admin.dashboard'))
             ->assertRedirect(route('admin.login'))

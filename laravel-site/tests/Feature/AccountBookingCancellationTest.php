@@ -73,7 +73,7 @@ class AccountBookingCancellationTest extends TestCase
 
         $admin = User::factory()->create(['email' => 'booking-admin@example.test']);
         $admin->forceFill(['is_admin' => true, 'mfa_enabled' => true, 'mfa_secret' => 'test-secret'])->save();
-        $this->actingAs($admin)->withSession([
+        $this->actingAs($admin, 'admin')->withSession([
             'admin_mfa_verified' => true,
             'admin_last_activity' => time(),
         ])->get(route('admin.bookings'))

@@ -70,7 +70,7 @@ class MiceEnquiryTest extends TestCase
         $this->assertSame('Kyoto, Japan', $enquiry->destination);
         $this->assertSame('group', $enquiry->budget_basis);
 
-        $this->actingAs($this->admin())->withSession([
+        $this->actingAs($this->admin(), 'admin')->withSession([
             'admin_mfa_verified' => true,
             'admin_last_activity' => time(),
         ]);

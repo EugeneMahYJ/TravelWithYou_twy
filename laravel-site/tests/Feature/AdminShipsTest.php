@@ -26,7 +26,7 @@ class AdminShipsTest extends TestCase
     {
         $admin = $this->admin();
         $ship = $this->ship();
-        $this->actingAs($admin)->withSession($this->verifiedSession());
+        $this->actingAs($admin, 'admin')->withSession($this->verifiedSession());
 
         $this->get(route('admin.ships'))->assertOk()->assertSee('Ships')->assertSee($ship->name);
         $this->get(route('admin.ships', ['q' => $ship->name]))->assertOk()->assertSee($ship->name);
@@ -44,7 +44,7 @@ class AdminShipsTest extends TestCase
     public function test_admin_can_create_a_ship_and_the_client_site_reflects_it(): void
     {
         $admin = $this->admin();
-        $this->actingAs($admin)->withSession($this->verifiedSession());
+        $this->actingAs($admin, 'admin')->withSession($this->verifiedSession());
 
         $this->post(route('admin.ships.store'), $this->payload())->assertRedirect(route('admin.ships'));
 
@@ -72,7 +72,7 @@ class AdminShipsTest extends TestCase
     {
         $admin = $this->admin();
         $ship = $this->ship();
-        $this->actingAs($admin)->withSession($this->verifiedSession());
+        $this->actingAs($admin, 'admin')->withSession($this->verifiedSession());
 
         $this->put(route('admin.ships.update', $ship), $this->payload([
             'name' => 'Aurora Pearl II',
@@ -101,7 +101,7 @@ class AdminShipsTest extends TestCase
         $admin = $this->admin();
         $ship = $this->ship();
         $package = $this->package(['ship' => $ship->name]);
-        $this->actingAs($admin)->withSession($this->verifiedSession());
+        $this->actingAs($admin, 'admin')->withSession($this->verifiedSession());
 
         $this->put(route('admin.ships.update', $ship), $this->payload(['name' => 'Aurora Pearl II']))
             ->assertRedirect(route('admin.ships'));
@@ -117,7 +117,7 @@ class AdminShipsTest extends TestCase
         $admin = $this->admin();
         $ship = $this->ship();
         $package = $this->package(['ship' => $ship->name]);
-        $this->actingAs($admin)->withSession($this->verifiedSession());
+        $this->actingAs($admin, 'admin')->withSession($this->verifiedSession());
 
         $this->delete(route('admin.ships.delete', $ship))->assertRedirect(route('admin.ships'));
 
@@ -132,7 +132,7 @@ class AdminShipsTest extends TestCase
     public function test_ship_validation_rejects_bad_input_and_duplicate_cabin_types(): void
     {
         $admin = $this->admin();
-        $this->actingAs($admin)->withSession($this->verifiedSession());
+        $this->actingAs($admin, 'admin')->withSession($this->verifiedSession());
 
         $this->post(route('admin.ships.store'), $this->payload([
             'name' => '',
@@ -155,7 +155,7 @@ class AdminShipsTest extends TestCase
     public function test_blank_gallery_and_deck_rows_are_dropped_before_validation(): void
     {
         $admin = $this->admin();
-        $this->actingAs($admin)->withSession($this->verifiedSession());
+        $this->actingAs($admin, 'admin')->withSession($this->verifiedSession());
 
         $this->post(route('admin.ships.store'), $this->payload([
             'gallery' => ['1614095557130-2f4a9e1da57d', '  ', ''],

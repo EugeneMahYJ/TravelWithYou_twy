@@ -97,7 +97,7 @@ class AdminController extends Controller
         ]);
 
         AdminNotificationRead::updateOrCreate(
-            ['user_id' => $request->user()->id, 'key' => $key],
+            ['user_id' => $request->user('admin')->id, 'key' => $key],
             ['fingerprint' => $data['fingerprint'], 'read_at' => now()],
         );
         $notifications->forgetCachedData();
@@ -115,7 +115,7 @@ class AdminController extends Controller
         foreach ($data['items'] as $item) {
             abort_unless(in_array($item['key'], AdminNotifications::knownKeys(), true), 404);
             AdminNotificationRead::updateOrCreate(
-                ['user_id' => $request->user()->id, 'key' => $item['key']],
+                ['user_id' => $request->user('admin')->id, 'key' => $item['key']],
                 ['fingerprint' => $item['fingerprint'], 'read_at' => now()],
             );
         }
@@ -131,8 +131,8 @@ class AdminController extends Controller
     ): JsonResponse|RedirectResponse {
         if ($request->expectsJson()) {
             return response()->json([
-                'unread_badge' => $notifications->unreadBadgeCount($request->user()->id),
-                'items' => collect($notifications->itemsForAdmin($request->user()->id))
+                'unread_badge' => $notifications->unreadBadgeCount($request->user('admin')->id),
+                'items' => collect($notifications->itemsForAdmin($request->user('admin')->id))
                     ->map(fn (array $item): array => ['key' => $item['key'], 'is_read' => $item['is_read']])
                     ->values(),
             ]);
@@ -827,7 +827,7 @@ class AdminController extends Controller
             'subject' => ['required', 'string', 'max:255'],
             'message' => ['required', 'string', 'min:5', 'max:5000'],
         ]);
-        $admin = $request->user();
+        $admin = $request->user('admin');
         $reply = new EnquiryReply([
             'enquiry_id' => $enquiry->id,
             'admin_id' => $admin->id,

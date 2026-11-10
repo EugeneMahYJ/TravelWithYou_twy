@@ -53,7 +53,7 @@ class AdminConsoleTest extends TestCase
     public function test_dashboard_month_selector_keeps_recent_months_when_an_older_month_is_selected(): void
     {
         $admin = $this->admin();
-        $this->actingAs($admin)->withSession($this->verifiedSession());
+        $this->actingAs($admin, 'admin')->withSession($this->verifiedSession());
         $currentMonth = now()->startOfMonth();
         $selectedMonth = $currentMonth->copy()->subMonths(5);
 
@@ -73,6 +73,47 @@ class AdminConsoleTest extends TestCase
             'username' => $admin->username,
             'password' => 'SafePass1234',
         ])->assertRedirect(route('admin.mfa'));
+    }
+
+    public function test_admin_and_client_logins_and_logouts_are_independent(): void
+    {
+        $client = User::create([
+            'name' => 'Client Traveller',
+            'email' => 'client@example.test',
+            'password' => 'SafePass1234',
+        ]);
+        $admin = $this->admin();
+
+        $this->post(route('login.submit'), [
+            'email' => $client->email,
+            'password' => 'SafePass1234',
+        ])->assertRedirect(route('account'));
+        $this->get(route('account'))->assertOk();
+
+        $this->post(route('admin.login.submit'), [
+            'username' => $admin->username,
+            'password' => 'SafePass1234',
+        ])->assertRedirect(route('admin.mfa'));
+        $this->post(route('admin.mfa.verify'), [
+            'code' => Totp::codeForTime($admin->mfa_secret, time()),
+        ])->assertRedirect(route('admin.dashboard'));
+        $this->get(route('admin.dashboard'))->assertOk();
+        $this->get(route('account'))->assertOk();
+
+        $this->post(route('admin.logout'))->assertRedirect(route('admin.login'));
+        $this->get(route('admin.dashboard'))->assertForbidden();
+        $this->get(route('account'))->assertOk();
+
+        $this->post(route('admin.login.submit'), [
+            'username' => $admin->username,
+            'password' => 'SafePass1234',
+        ])->assertRedirect(route('admin.mfa'));
+        $this->post(route('admin.mfa.verify'), [
+            'code' => Totp::codeForTime($admin->mfa_secret, time()),
+        ])->assertRedirect(route('admin.dashboard'));
+        $this->post(route('logout'))->assertRedirect(route('home'));
+        $this->get(route('login'))->assertOk();
+        $this->get(route('admin.dashboard'))->assertOk();
     }
 
     public function test_admin_can_remember_a_device_after_mfa_verification(): void
@@ -175,7 +216,7 @@ class AdminConsoleTest extends TestCase
         $admin = $this->admin();
         $draft = TravelPackage::firstOrFail();
         $draft->update(['published' => false]);
-        $this->actingAs($admin)->withSession($this->verifiedSession());
+        $this->actingAs($admin, 'admin')->withSession($this->verifiedSession());
 
         $this->get(route('admin.packages', ['status' => 'Draft', 'q' => $draft->name]))
             ->assertOk()->assertSee($draft->name)->assertSee('Draft');
@@ -213,7 +254,7 @@ class AdminConsoleTest extends TestCase
     {
         $admin = $this->admin();
         $country = Country::firstOrFail();
-        $this->actingAs($admin)->withSession($this->verifiedSession())->post(route('admin.packages.store'), [
+        $this->actingAs($admin, 'admin')->withSession($this->verifiedSession())->post(route('admin.packages.store'), [
             'builder_form' => '1',
             'name' => 'Builder Test Journey',
             'country' => $country->slug,
@@ -269,7 +310,7 @@ class AdminConsoleTest extends TestCase
             'status' => 'Published',
         ];
 
-        $this->actingAs($admin)->withSession($this->verifiedSession())
+        $this->actingAs($admin, 'admin')->withSession($this->verifiedSession())
             ->from(route('admin.packages.create'))
             ->post(route('admin.packages.store'), array_replace($payload, [
                 'departure_pax_tiers' => [[
@@ -308,7 +349,7 @@ class AdminConsoleTest extends TestCase
     {
         $admin = $this->admin();
         $package = TravelPackage::firstOrFail();
-        $this->actingAs($admin)->withSession($this->verifiedSession());
+        $this->actingAs($admin, 'admin')->withSession($this->verifiedSession());
 
         $this->get(route('admin.packages.edit', $package))
             ->assertOk()
@@ -324,7 +365,7 @@ class AdminConsoleTest extends TestCase
         $admin = $this->admin();
         $package = TravelPackage::firstOrFail();
         $payload = $this->packageEditPayload($package);
-        $this->actingAs($admin)->withSession($this->verifiedSession());
+        $this->actingAs($admin, 'admin')->withSession($this->verifiedSession());
 
         $firstPdf = UploadedFile::fake()->createWithContent('itinerary.pdf', "%PDF-1.4\nFirst itinerary\n%%EOF");
         $this->put(route('admin.packages.update', $package), $payload + ['itinerary_pdf' => $firstPdf])
@@ -378,7 +419,7 @@ class AdminConsoleTest extends TestCase
         $admin = $this->admin();
         $package = TravelPackage::firstOrFail();
         $payload = $this->packageEditPayload($package);
-        $this->actingAs($admin)->withSession($this->verifiedSession());
+        $this->actingAs($admin, 'admin')->withSession($this->verifiedSession());
 
         $this->put(route('admin.packages.update', $package), $payload + [
             'itinerary_pdf' => UploadedFile::fake()->create('itinerary.txt', 10, 'text/plain'),
@@ -403,7 +444,7 @@ class AdminConsoleTest extends TestCase
             'message' => 'Could you help me with this trip?',
             'status' => 'New',
         ]);
-        $this->actingAs($admin)->withSession($this->verifiedSession());
+        $this->actingAs($admin, 'admin')->withSession($this->verifiedSession());
 
         $this->patch(route('admin.deals.toggle', $deal))->assertRedirect();
         $this->assertDatabaseHas('travel_deals', ['id' => $deal->id, 'active' => false]);
@@ -436,7 +477,7 @@ class AdminConsoleTest extends TestCase
             'status' => 'Pending payment',
             'payment_method' => 'card',
         ]);
-        $this->actingAs($admin)->withSession($this->verifiedSession());
+        $this->actingAs($admin, 'admin')->withSession($this->verifiedSession());
 
         $this->get(route('admin.bookings.show', $booking))
             ->assertOk()
@@ -499,7 +540,7 @@ class AdminConsoleTest extends TestCase
             'status' => 'Confirmed',
             'payment_method' => 'bank',
         ]);
-        $this->actingAs($admin)->withSession($this->verifiedSession());
+        $this->actingAs($admin, 'admin')->withSession($this->verifiedSession());
 
         $this->get(route('admin.bookings.show', $booking))
             ->assertOk()
@@ -557,7 +598,7 @@ class AdminConsoleTest extends TestCase
 
         $this->actingAs(User::factory()->create())->get($route)->assertForbidden();
 
-        $this->actingAs($this->admin('document-admin@example.test'))->withSession($this->verifiedSession())
+        $this->actingAs($this->admin('document-admin@example.test'), 'admin')->withSession($this->verifiedSession())
             ->get($route)
             ->assertOk()
             ->assertHeader('Cache-Control', 'max-age=0, no-store, private')
@@ -572,7 +613,7 @@ class AdminConsoleTest extends TestCase
         $pendingBooking = $this->notificationBooking('TWY-READ-1', 'Pending payment');
         $infoBooking = $this->notificationBooking('TWY-READ-2', 'Confirmed');
         $admin = $this->admin();
-        $this->actingAs($admin)->withSession($this->verifiedSession());
+        $this->actingAs($admin, 'admin')->withSession($this->verifiedSession());
         $service = app(AdminNotifications::class);
         $items = collect($service->itemsForAdmin($admin->id))->keyBy('key');
         $this->assertFalse($items['enquiries.unanswered']['is_read']);
@@ -607,7 +648,7 @@ class AdminConsoleTest extends TestCase
         $this->quietNotifications();
         $this->notificationEnquiry();
         $admin = $this->admin();
-        $this->actingAs($admin)->withSession($this->verifiedSession());
+        $this->actingAs($admin, 'admin')->withSession($this->verifiedSession());
         $items = (new AdminNotifications)->items();
         $payload = collect($items)->map(fn (array $item): array => [
             'key' => $item['key'],
@@ -630,7 +671,7 @@ class AdminConsoleTest extends TestCase
         $this->quietNotifications();
         $enquiry = $this->notificationEnquiry();
         $admin = $this->admin();
-        $this->actingAs($admin)->withSession($this->verifiedSession());
+        $this->actingAs($admin, 'admin')->withSession($this->verifiedSession());
         $first = collect((new AdminNotifications)->items())->firstWhere('key', 'enquiries.unanswered');
 
         $this->postJson(route('admin.notifications.read', ['key' => 'enquiries.unanswered']), [
@@ -664,7 +705,7 @@ class AdminConsoleTest extends TestCase
     {
         $this->quietNotifications();
         $admin = $this->admin();
-        $this->actingAs($admin)->withSession($this->verifiedSession());
+        $this->actingAs($admin, 'admin')->withSession($this->verifiedSession());
         $url = route('admin.notifications.read', ['key' => 'enquiries.unanswered']);
 
         $this->postJson($url, ['fingerprint' => 'not-a-fingerprint'])->assertUnprocessable();
@@ -675,7 +716,7 @@ class AdminConsoleTest extends TestCase
             'fingerprint' => str_repeat('a', 40),
         ]]])->assertNotFound();
 
-        auth()->logout();
+        auth('admin')->logout();
         $this->postJson($url, ['fingerprint' => str_repeat('a', 40)])->assertUnauthorized();
         $traveller = User::create(['name' => 'Traveller', 'email' => 'notice-traveller@example.test', 'password' => 'SafePass1234']);
         $this->actingAs($traveller)->withSession($this->verifiedSession())

@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
 use App\Models\TravelPackage;
+use App\Models\User;
 use App\Support\Totp;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -20,7 +20,7 @@ class AdminMediaTest extends TestCase
         Storage::disk('assets')->put('sample-photo.jpg', 'image');
         Storage::disk('assets')->put('video/sample-video.mp4', 'video');
 
-        $this->actingAs($this->admin())->withSession($this->verifiedSession());
+        $this->actingAs($this->admin(), 'admin')->withSession($this->verifiedSession());
 
         $this->get(route('admin.media'))
             ->assertOk()
@@ -39,7 +39,7 @@ class AdminMediaTest extends TestCase
     public function test_admin_can_upload_an_image_into_the_assets_folder(): void
     {
         Storage::fake('assets');
-        $this->actingAs($this->admin())->withSession($this->verifiedSession());
+        $this->actingAs($this->admin(), 'admin')->withSession($this->verifiedSession());
 
         $response = $this->post(route('admin.media.upload'), [
             'file' => UploadedFile::fake()->create('new-photo.jpg', 100, 'image/jpeg'),
@@ -55,7 +55,7 @@ class AdminMediaTest extends TestCase
     public function test_admin_can_upload_a_video_into_the_assets_folder(): void
     {
         Storage::fake('assets');
-        $this->actingAs($this->admin())->withSession($this->verifiedSession());
+        $this->actingAs($this->admin(), 'admin')->withSession($this->verifiedSession());
 
         $response = $this->post(route('admin.media.upload'), [
             'file' => UploadedFile::fake()->create('new-clip.mp4', 1024, 'video/mp4'),
@@ -71,7 +71,7 @@ class AdminMediaTest extends TestCase
     public function test_admin_can_create_open_rename_move_and_delete_empty_media_folders(): void
     {
         Storage::fake('assets');
-        $this->actingAs($this->admin())->withSession($this->verifiedSession());
+        $this->actingAs($this->admin(), 'admin')->withSession($this->verifiedSession());
 
         $this->post(route('admin.media.folders.create'), ['name' => 'Europe'])
             ->assertRedirect(route('admin.media'));
@@ -112,7 +112,7 @@ class AdminMediaTest extends TestCase
     {
         Storage::fake('assets');
         Storage::disk('assets')->put('uploads/photo.jpg', 'image');
-        $this->actingAs($this->admin())->withSession($this->verifiedSession());
+        $this->actingAs($this->admin(), 'admin')->withSession($this->verifiedSession());
 
         $this->delete(route('admin.media.folders.delete'), ['path' => 'uploads'])
             ->assertRedirect(route('admin.media'))
@@ -142,7 +142,7 @@ class AdminMediaTest extends TestCase
             'gallery' => ['assets/europe/switzerland/photo.jpg'],
             'published' => false,
         ]);
-        $this->actingAs($this->admin())->withSession($this->verifiedSession());
+        $this->actingAs($this->admin(), 'admin')->withSession($this->verifiedSession());
 
         $this->post(route('admin.media.folders.rename'), [
             'path' => 'europe/switzerland',
@@ -178,7 +178,7 @@ class AdminMediaTest extends TestCase
             'gallery' => [],
             'published' => false,
         ]);
-        $this->actingAs($this->admin())->withSession($this->verifiedSession());
+        $this->actingAs($this->admin(), 'admin')->withSession($this->verifiedSession());
 
         $response = $this->post(route('admin.media.upload'), [
             'file' => UploadedFile::fake()->create('trip-photo.jpg', 100, 'image/jpeg'),
@@ -212,7 +212,7 @@ class AdminMediaTest extends TestCase
     {
         Storage::fake('assets');
         Storage::disk('assets')->put('ships/star-voyager/photo.png', 'image');
-        $this->actingAs($this->admin())->withSession($this->verifiedSession());
+        $this->actingAs($this->admin(), 'admin')->withSession($this->verifiedSession());
 
         $this->delete(route('admin.media.delete'), ['path' => 'ships/star-voyager/photo.png'], ['Accept' => 'application/json'])
             ->assertOk()
@@ -225,7 +225,7 @@ class AdminMediaTest extends TestCase
     {
         Storage::fake('assets');
         Storage::disk('assets')->put('ships/star-voyager/photo.png', 'image');
-        $this->actingAs($this->admin())->withSession($this->verifiedSession());
+        $this->actingAs($this->admin(), 'admin')->withSession($this->verifiedSession());
 
         $this->post(route('admin.media.rename'), [
             'path' => 'ships/star-voyager/photo.png',
@@ -244,7 +244,7 @@ class AdminMediaTest extends TestCase
         Storage::fake('assets');
         Storage::disk('assets')->put('uploads/photo.jpg', 'image');
         Storage::disk('assets')->put('uploads/other.jpg', 'image');
-        $this->actingAs($this->admin())->withSession($this->verifiedSession());
+        $this->actingAs($this->admin(), 'admin')->withSession($this->verifiedSession());
 
         $this->post(route('admin.media.rename'), [
             'path' => 'uploads/photo.jpg',
@@ -264,7 +264,7 @@ class AdminMediaTest extends TestCase
     {
         Storage::fake('assets');
         Storage::disk('assets')->put('safe/photo.jpg', 'image');
-        $this->actingAs($this->admin())->withSession($this->verifiedSession());
+        $this->actingAs($this->admin(), 'admin')->withSession($this->verifiedSession());
 
         $this->delete(route('admin.media.delete'), ['path' => '../outside.jpg'], ['Accept' => 'application/json'])
             ->assertNotFound();
@@ -277,7 +277,7 @@ class AdminMediaTest extends TestCase
         Storage::fake('assets');
         Storage::disk('assets')->put('sample-photo.jpg', 'image');
         Storage::disk('assets')->put('video/sample-video.mp4', 'video');
-        $this->actingAs($this->admin())->withSession($this->verifiedSession());
+        $this->actingAs($this->admin(), 'admin')->withSession($this->verifiedSession());
 
         $this->get(route('admin.packages.create'))
             ->assertOk()
@@ -303,7 +303,7 @@ class AdminMediaTest extends TestCase
     public function test_media_upload_rejects_non_image_and_non_video_files(): void
     {
         Storage::fake('assets');
-        $this->actingAs($this->admin())->withSession($this->verifiedSession());
+        $this->actingAs($this->admin(), 'admin')->withSession($this->verifiedSession());
 
         $this->post(route('admin.media.upload'), [
             'file' => UploadedFile::fake()->create('notes.pdf', 10, 'application/pdf'),

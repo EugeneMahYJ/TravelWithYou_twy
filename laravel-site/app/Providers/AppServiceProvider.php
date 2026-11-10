@@ -38,9 +38,9 @@ class AppServiceProvider extends ServiceProvider
             $notifications = app(AdminNotifications::class);
             $view->with([
                 'adminAlertCount' => $notifications->countFor('enquiries.unanswered'),
-                'adminNotifications' => $notifications->itemsForAdmin(),
-                'adminNotificationCount' => $notifications->unreadBadgeCount(),
-                'adminNotificationUnreadCount' => $notifications->unreadItemCount(),
+                'adminNotifications' => $notifications->itemsForAdmin(auth('admin')->id()),
+                'adminNotificationCount' => $notifications->unreadBadgeCount(auth('admin')->id()),
+                'adminNotificationUnreadCount' => $notifications->unreadItemCount(auth('admin')->id()),
             ]);
         });
     }

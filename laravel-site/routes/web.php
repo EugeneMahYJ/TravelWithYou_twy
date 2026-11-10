@@ -42,8 +42,8 @@ Route::get('/forgot', [AuthController::class, 'forgotPassword'])->name('password
 Route::post('/forgot', [AuthController::class, 'sendResetLink'])->middleware('throttle:6,1')->name('password.email');
 Route::get('/reset/{token}', [AuthController::class, 'resetPasswordForm'])->name('password.reset');
 Route::post('/reset', [AuthController::class, 'resetPassword'])->name('password.update');
-Route::get('/account', [AccountController::class, 'show'])->middleware('auth')->name('account');
-Route::middleware('auth')->prefix('account')->name('account.')->group(function () {
+Route::get('/account', [AccountController::class, 'show'])->middleware('auth:web')->name('account');
+Route::middleware('auth:web')->prefix('account')->name('account.')->group(function () {
     Route::get('/notifications/{notificationId}', [AccountController::class, 'openNotification'])
         ->whereNumber('notificationId')
         ->middleware('throttle:60,1')
@@ -79,7 +79,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:6,1')->defaults('admin', true)->name('login.submit');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-    Route::middleware(['auth', 'admin'])->group(function () {
+    Route::middleware('admin')->group(function () {
         Route::get('/mfa/setup', [AuthController::class, 'adminMfaSetup'])->name('mfa.setup');
         Route::post('/mfa/setup', [AuthController::class, 'verifyAdminMfa'])->middleware('throttle:6,1')->name('mfa.setup.verify');
         Route::get('/mfa', [AuthController::class, 'adminMfaForm'])->name('mfa');

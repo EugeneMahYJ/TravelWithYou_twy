@@ -208,7 +208,7 @@ class AdminNotifications
 
     public function itemsForAdmin(?int $userId = null): array
     {
-        $userId ??= auth()->id();
+        $userId ??= auth('admin')->id();
         $readRows = $this->readRowsFor($userId);
         $items = array_map(function (array $item) use ($readRows): array {
             $item['is_read'] = isset($readRows[$item['key']])

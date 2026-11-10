@@ -11,7 +11,17 @@ class EnsureAdmin
 {
     public function handle(Request $request, Closure $next): Response
     {
-        $user = $request->user();
+        $user = $request->user('admin');
+        if (! $user) {
+            $webUser = $request->user('web');
+            abort_if($webUser && ! $webUser->is_admin, 403);
+
+            if ($request->expectsJson()) {
+                abort(401);
+            }
+
+            return redirect()->guest(route('admin.login'));
+        }
         abort_unless($user?->is_admin, 403);
 
         $routeName = (string) $request->route()?->getName();
@@ -28,8 +38,9 @@ class EnsureAdmin
 
         $lastActivity = (int) $request->session()->get('admin_last_activity', time());
         if (time() - $lastActivity >= 900) {
-            Auth::logout();
-            $request->session()->invalidate();
+            Auth::guard('admin')->logout();
+            $request->session()->forget(['admin_mfa_verified', 'admin_last_activity']);
+            $request->session()->regenerate();
             $request->session()->regenerateToken();
 
             return redirect()->route('admin.login')->with('error', 'You were signed out after 15 minutes of inactivity.');

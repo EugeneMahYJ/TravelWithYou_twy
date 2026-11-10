@@ -11,7 +11,7 @@
             <h1>Verify it's you</h1>
             <p>Enter the 6-digit code from your authenticator app.</p>
         </div>
-        <div class="admin-mfa-secret"><span>Account</span><strong>{{ auth()->user()->email }}</strong><span>Setup key</span><div class="admin-mfa-secret-row"><code>{{ $secret }}</code><button type="button" class="admin-mfa-copy" data-copy-secret="{{ $secret }}">Copy</button></div><span class="admin-mfa-copy-status" role="status" data-copy-status></span></div>
+        <div class="admin-mfa-secret"><span>Account</span><strong>{{ auth('admin')->user()->email }}</strong><span>Setup key</span><div class="admin-mfa-secret-row"><code>{{ $secret }}</code><button type="button" class="admin-mfa-copy" data-copy-secret="{{ $secret }}">Copy</button></div><span class="admin-mfa-copy-status" role="status" data-copy-status></span></div>
         <p class="fine-print">Add this setup key to your authenticator app as a time-based one-time password. Keep it private.</p>
         <a class="text-link" href="{{ $uri }}">Open authenticator setup link</a>
         <form method="post" action="{{ route('admin.mfa.setup.verify') }}" data-admin-code-form>@csrf

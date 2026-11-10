@@ -65,7 +65,7 @@ class ClientInboxNotificationTest extends TestCase
         $this->assertSame($user->id, $enquiry->user_id);
 
         $admin = $this->admin();
-        $this->actingAs($admin)->withSession($this->verifiedSession())
+        $this->actingAs($admin, 'admin')->withSession($this->verifiedSession())
             ->post(route('admin.enquiries.reply', $enquiry), [
                 'subject' => 'Re: MICE enquiry',
                 'message' => 'We would be happy to help plan your group trip.',
@@ -191,7 +191,7 @@ class ClientInboxNotificationTest extends TestCase
         ]);
         $admin = $this->admin();
 
-        $this->actingAs($admin)->withSession($this->verifiedSession())
+        $this->actingAs($admin, 'admin')->withSession($this->verifiedSession())
             ->patch(route('admin.status', ['resource' => 'bookings', 'id' => $booking->id]), [
                 'status' => 'Confirmed',
             ])->assertRedirect();

@@ -32,7 +32,7 @@ class AdminDealsAndEnquiriesTest extends TestCase
         $admin = $this->admin();
         $deal = TravelDeal::firstOrFail();
         $deal->update(['active' => true]);
-        $this->actingAs($admin)->withSession($this->verifiedSession());
+        $this->actingAs($admin, 'admin')->withSession($this->verifiedSession());
 
         $list = $this->get(route('admin.deals'))->assertOk()->getContent();
         $this->assertSame(1, substr_count($list, '>New deal</a>'));
@@ -69,7 +69,7 @@ class AdminDealsAndEnquiriesTest extends TestCase
         $deal = TravelDeal::firstOrFail();
         $past = now()->subDays(3)->startOfMinute();
         $deal->update(['expires_at' => $past]);
-        $this->actingAs($admin)->withSession($this->verifiedSession());
+        $this->actingAs($admin, 'admin')->withSession($this->verifiedSession());
 
         $this->get(route('admin.deals.create'))->assertOk()->assertSee('New deal')->assertSee('Save deal');
         $this->post(route('admin.deals.store'), [
@@ -113,7 +113,7 @@ class AdminDealsAndEnquiriesTest extends TestCase
     {
         $admin = $this->admin();
         $package = TravelPackage::where('slug', 'sakura-rail')->firstOrFail();
-        $this->actingAs($admin)->withSession($this->verifiedSession());
+        $this->actingAs($admin, 'admin')->withSession($this->verifiedSession());
 
         $this->get(route('admin.deals'))->assertOk()
             ->assertSee('New Promo')
@@ -176,7 +176,7 @@ class AdminDealsAndEnquiriesTest extends TestCase
     public function test_promo_code_requires_eligible_package_selection_and_unique_codes(): void
     {
         $admin = $this->admin();
-        $this->actingAs($admin)->withSession($this->verifiedSession());
+        $this->actingAs($admin, 'admin')->withSession($this->verifiedSession());
 
         $this->from(route('admin.promos.create'))->post(route('admin.promos.store'), [
             'code' => TravelDeal::firstOrFail()->promo_code,
@@ -213,7 +213,7 @@ class AdminDealsAndEnquiriesTest extends TestCase
         $admin = $this->admin();
         $deal = TravelDeal::firstOrFail();
         $deal->update(['active' => true, 'terms' => 'Unique deal removal marker.']);
-        $this->actingAs($admin)->withSession($this->verifiedSession());
+        $this->actingAs($admin, 'admin')->withSession($this->verifiedSession());
 
         $this->get(route('admin.deals'))->assertOk()->assertSee(route('admin.deals.delete', $deal));
         $this->get(route('deals'))->assertOk()->assertSee('Unique deal removal marker.');
@@ -243,7 +243,7 @@ class AdminDealsAndEnquiriesTest extends TestCase
         Mail::fake();
         $admin = $this->admin();
         $enquiry = $this->enquiry();
-        $this->actingAs($admin)->withSession($this->verifiedSession());
+        $this->actingAs($admin, 'admin')->withSession($this->verifiedSession());
 
         $this->get(route('admin.enquiries.show', $enquiry))->assertOk()
             ->assertSee('Original enquiry')->assertSee('Conversation history')->assertSee('data-character-count');
@@ -278,7 +278,7 @@ class AdminDealsAndEnquiriesTest extends TestCase
         Mail::fake();
         $admin = $this->admin();
         $enquiry = $this->enquiry();
-        $this->actingAs($admin)->withSession($this->verifiedSession());
+        $this->actingAs($admin, 'admin')->withSession($this->verifiedSession());
 
         foreach (['', 'four'] as $message) {
             $this->post(route('admin.enquiries.reply', $enquiry), [
@@ -319,7 +319,7 @@ class AdminDealsAndEnquiriesTest extends TestCase
             ->assertForbidden();
 
         Mail::fake();
-        $this->actingAs($this->admin())->withSession($this->verifiedSession());
+        $this->actingAs($this->admin(), 'admin')->withSession($this->verifiedSession());
         for ($attempt = 0; $attempt < 10; $attempt++) {
             $this->post(route('admin.enquiries.reply', $enquiry), [
                 'subject' => 'Re: question',

@@ -36,7 +36,7 @@ class EnquiryConversationTest extends TestCase
 
         $admin = $this->admin();
         $this->travelTo(Carbon::parse('2026-11-01 10:01:00'));
-        $this->actingAs($admin)->withSession($this->verifiedSession())
+        $this->actingAs($admin, 'admin')->withSession($this->verifiedSession())
             ->post(route('admin.enquiries.reply', $enquiry), [
                 'subject' => 'Re: Booking question',
                 'message' => 'Admin response',
@@ -49,7 +49,7 @@ class EnquiryConversationTest extends TestCase
 
         $this->assertDatabaseHas('enquiries', ['id' => $enquiry->id, 'status' => 'New']);
 
-        $this->actingAs($admin)->withSession($this->verifiedSession())
+        $this->actingAs($admin, 'admin')->withSession($this->verifiedSession())
             ->get(route('admin.enquiries.show', $enquiry))
             ->assertOk()
             ->assertSeeInOrder(['First user follow-up', 'Admin response', 'Second user follow-up']);
@@ -91,7 +91,7 @@ class EnquiryConversationTest extends TestCase
             'message' => 'Original enquiry message',
         ]);
 
-        $this->actingAs($admin)->withSession($this->verifiedSession())
+        $this->actingAs($admin, 'admin')->withSession($this->verifiedSession())
             ->get(route('admin.enquiries.show', $enquiry))
             ->assertOk()
             ->assertSee('Reply by email')
