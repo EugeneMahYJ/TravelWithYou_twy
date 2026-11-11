@@ -7498,6 +7498,10 @@ textarea.account-input {
     border-top: 1px solid var(--line);
 }
 
+.booking-use-saved {
+    justify-self: start;
+}
+
 .booking-same-lead {
     display: flex;
     flex-wrap: wrap;

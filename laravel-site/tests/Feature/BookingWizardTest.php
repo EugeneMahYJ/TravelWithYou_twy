@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Booking;
 use App\Models\Ship;
 use App\Models\TravelPackage;
+use App\Models\User;
 use App\Support\Pricing;
 use Database\Seeders\CountrySeeder;
 use Database\Seeders\FaqSeeder;
@@ -125,6 +126,39 @@ class BookingWizardTest extends TestCase
         );
         $this->assertContains('Congolese (DR Congo)', $config['nations']);
         $this->assertContains('São Toméan', $config['nations']);
+    }
+
+    public function test_authenticated_booking_form_receives_saved_lead_traveller_details(): void
+    {
+        $user = User::factory()->create([
+            'name' => 'Taylor Traveller',
+            'email' => 'taylor@example.test',
+            'phone' => '+60123456789',
+        ]);
+        $user->forceFill(['traveller_details' => [
+            'name_as_per_ic' => 'Taylor A Traveller',
+            'date_of_birth' => '1990-01-02',
+            'nationality' => 'Malaysian',
+            'passport_number' => 'A12345678',
+            'passport_expiry' => '2030-08-01',
+        ]])->save();
+
+        $response = $this->actingAs($user)
+            ->get(route('booking', ['id' => 'sakura-rail', 'date' => '2027-03-27']))
+            ->assertOk();
+
+        preg_match('/<script type="application\/json" data-booking-config>(.*?)<\/script>/s', $response->getContent(), $matches);
+        $config = json_decode($matches[1] ?? '', true, 512, JSON_THROW_ON_ERROR);
+
+        $this->assertSame([
+            'name' => 'Taylor A Traveller',
+            'dob' => '1990-01-02',
+            'nation' => 'Malaysian',
+            'passport' => 'A12345678',
+            'passportExpiry' => '2030-08-01',
+            'email' => 'taylor@example.test',
+            'phone' => '+60123456789',
+        ], $config['savedTravellerDetails']);
     }
 
     public function test_land_and_cruise_guest_limits_are_enforced_with_prototype_messages(): void

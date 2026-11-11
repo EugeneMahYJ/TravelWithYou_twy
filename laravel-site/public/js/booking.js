@@ -15,6 +15,7 @@ if (root) {
         if (adultKind) initialCounts[adultKind.id] = Number(old.adults ?? 2);
         if (childKind) initialCounts[childKind.id] = Number(old.children ?? 0);
     }
+    const initialRooms = Math.max(1, Math.min(8, Math.trunc(Number(old.rooms) || 1)));
     const countRole = (counts, role) => kinds.reduce((sum, kind) => sum + ((kind.role || "adult") === role ? Number(counts[kind.id] || 0) : 0), 0);
     const state = {
         step: 0,
@@ -22,8 +23,8 @@ if (root) {
         roomTouched: false,
         adults: Number(old.adults ?? 2),
         children: Number(old.children ?? 0),
-        rooms: Math.max(1, Math.min(8, Math.trunc(Number(old.rooms) || 1))),
-        roomTypes: Array.isArray(old.room_types) ? old.room_types : [],
+        rooms: initialRooms,
+        roomTypes: Array.from({ length: initialRooms }, (_, index) => old.room_types?.[index] || ""),
         counts: initialCounts,
         guests: Array.isArray(old.guests) ? old.guests.map((guest) => ({ ...emptyGuest(), ...guest, passport: config.editing ? guest.passport || "" : "" })) : [],
         requests: String(old.requests || ""),
@@ -101,6 +102,9 @@ if (root) {
     const totalAdults = () => adultCount();
     const guestLabels = () => kinds.flatMap((kind) => Array.from({ length: Number(state.counts[kind.id] || 0) }, (_, index) => `${kind.label} ${index + 1}`));
     const guestAt = (index) => state.guests[index] || emptyGuest();
+    const normalizeRoomTypes = () => {
+        state.roomTypes = Array.from({ length: state.rooms }, (_, index) => state.roomTypes[index] || "");
+    };
     const guestKindAt = (index) => {
         let offset = 0;
         for (const kind of kinds) {
@@ -612,6 +616,7 @@ if (root) {
                 </button>
                 ${expanded ? `<div class="booking-guest-fields">
                     ${index > 0 ? `<label class="booking-same-lead"><input type="checkbox" data-same-lead="${index}" ${state.sameAsLead[index] ? "checked" : ""} ${canShare ? "" : "disabled"}> Same as lead booker <small>(nationality, phone, email)</small></label>` : ""}
+                    ${index === 0 && config.savedTravellerDetails ? '<button type="button" class="button button-ghost booking-use-saved" data-use-saved-traveller>Use Saved Traveller Details</button>' : ""}
                     ${renderField(index, guest, "name", "Full name as on passport")}
                     <div class="booking-field-grid">
                         ${renderField(index, guest, "dob", "Date of birth", "text", `max="${esc(config.today)}"`)}
@@ -729,7 +734,9 @@ if (root) {
         add("children", childCount());
         add("rooms", state.rooms);
         kinds.forEach((kind) => add(`counts[${kind.id}]`, Number(state.counts[kind.id] || 0)));
-        state.roomTypes.forEach((type) => add("room_types[]", type));
+        for (let index = 0; index < state.rooms; index++) {
+            add(`room_types[${index}]`, state.roomTypes[index] || "");
+        }
         guestLabels().forEach((_, index) => {
             const guest = guestAt(index);
             Object.entries(guest).forEach(([field, value]) => add(`guests[${index}][${field}]`, value));
@@ -842,6 +849,18 @@ if (root) {
     root.addEventListener("click", (event) => {
         const target = event.target.closest("button");
         if (!target) return;
+        if (target.hasAttribute("data-use-saved-traveller")) {
+            const saved = config.savedTravellerDetails;
+            ["name", "dob", "nation", "passport", "passportExpiry", "email", "phone"].forEach((field) => {
+                const value = saved?.[field];
+                if (typeof value !== "string" || !value.trim()) return;
+                if (field === "dob" || field === "passportExpiry") delete state.dateInputs[`0.${field}`];
+                syncLeadDetails(0, field, field === "passport" ? value.toUpperCase() : value);
+                clearServerError(`guests.0.${field}`);
+            });
+            render();
+            return;
+        }
         if (target.hasAttribute("data-nationality-toggle")) {
             const index = Number(target.dataset.nationalityToggle);
             if (state.nationalityOpen === index) {
@@ -879,6 +898,7 @@ if (root) {
             const delta = Number(target.dataset.delta);
             if (key === "rooms") {
                 state.rooms = Math.max(1, Math.min(8, state.rooms + delta));
+                normalizeRoomTypes();
                 clearServerError("rooms");
                 clearServerError("room_types");
                 state.roomTouched = true;
@@ -902,7 +922,10 @@ if (root) {
                 render();
                 return;
             }
-            if (activeKey() === "guests") state.rooms = Math.max(state.rooms, minRooms());
+            if (activeKey() === "guests") {
+                state.rooms = Math.max(state.rooms, minRooms());
+                normalizeRoomTypes();
+            }
             moveToStep(Math.min(state.step + 1, steps.length - 1));
             return;
         }

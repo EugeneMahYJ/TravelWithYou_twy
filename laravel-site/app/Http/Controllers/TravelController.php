@@ -279,6 +279,8 @@ class TravelController extends Controller
             $travellerDetails = Auth::user()?->traveller_details ?? [];
             $oldInput['requests'] = $travellerDetails['dietary_needs'] ?? ($travellerDetails['requests'] ?? '');
         }
+        $user = Auth::user();
+        $savedTravellerDetails = $user?->traveller_details ?? [];
         $submitParameters = ['id' => $package->slug, 'date' => $date];
         if ($editCartItem !== null) {
             $submitParameters['cart_item'] = $request->query('cart_item');
@@ -310,6 +312,15 @@ class TravelController extends Controller
             'editing' => $editCartItem !== null,
             'oldInput' => $oldInput,
             'errors' => $errorBag?->getBag('default')->messages() ?? [],
+            'savedTravellerDetails' => $user ? [
+                'name' => data_get($savedTravellerDetails, 'name_as_per_ic') ?: $user->name,
+                'dob' => data_get($savedTravellerDetails, 'date_of_birth'),
+                'nation' => data_get($savedTravellerDetails, 'nationality'),
+                'passport' => data_get($savedTravellerDetails, 'passport_number'),
+                'passportExpiry' => data_get($savedTravellerDetails, 'passport_expiry'),
+                'email' => $user->email,
+                'phone' => $user->phone,
+            ] : null,
             'existingDocuments' => collect($editCartItem['item']['detail']['document_paths'] ?? $editCartItem['item']['document_paths'] ?? [])
                 ->map(fn ($path): bool => is_string($path) && app(TravellerDocumentStorage::class)->exists($path))
                 ->values()

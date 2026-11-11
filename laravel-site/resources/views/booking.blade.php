@@ -65,6 +65,7 @@
             'today' => today()->toDateString(),
             'oldInput' => $oldInput,
             'errors' => $errors,
+            'savedTravellerDetails' => $savedTravellerDetails,
         ];
     @endphp
     <section class="wrap booking-page" data-booking-root>
