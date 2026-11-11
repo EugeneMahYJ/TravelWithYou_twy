@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Contracts\PaymentGateway;
+use App\Mail\BookingConfirmationMail;
 use App\Models\Booking;
 use App\Models\Country;
 use App\Models\Enquiry;
@@ -1639,13 +1640,14 @@ class TravelController extends Controller
         $request->session()->forget('promo_code');
         $request->session()->put('confirmation_order_reference', $orderReference);
         $recipient = $data['email'];
-        $itinerary = $bookings->map(fn (Booking $booking) => $booking->package->name.' — '.fmt_date($booking->departure_date).' · '.$booking->guests.' guests')->implode("\n");
+        $bookings->each(fn (Booking $booking) => $booking->load('package'));
         if (config('mail.default') !== 'log') {
             try {
-                Mail::raw(
-                    "Your TravelWithYou booking {$orderReference} has been received.\n\n{$itinerary}",
-                    fn ($message) => $message->to($recipient)->subject('Your TravelWithYou booking'),
-                );
+                Mail::to($recipient)->send(new BookingConfirmationMail(
+                    $orderReference,
+                    $bookings,
+                    $paymentStatus,
+                ));
             } catch (\Throwable $exception) {
                 Log::error('Booking confirmation email could not be sent.', [
                     'order_reference' => $orderReference,

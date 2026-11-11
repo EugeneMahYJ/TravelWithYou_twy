@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Mail\BookingConfirmationMail;
 use App\Models\Booking;
 use App\Models\Ship;
 use App\Models\TravelPackage;
@@ -18,6 +19,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -634,6 +636,9 @@ class BookingWizardTest extends TestCase
 
     public function test_proceed_action_enters_checkout_and_persists_encrypted_passports_and_server_totals(): void
     {
+        Mail::fake();
+        config(['mail.default' => 'smtp']);
+
         $payload = $this->cruisePayload(adults: 2, children: 1, rooms: 1);
         $payload['action'] = 'proceed';
         $payload['addons'] = ['insurance'];
@@ -664,6 +669,20 @@ class BookingWizardTest extends TestCase
             'card_expiry' => '08/29',
             'card_cvc' => '123',
         ])->assertRedirect(route('confirmation'));
+
+        Mail::assertSent(
+            BookingConfirmationMail::class,
+            fn (BookingConfirmationMail $mail): bool => $mail->hasTo('taylor@example.test'),
+        );
+        $confirmationMail = Mail::sent(BookingConfirmationMail::class)->first();
+        $emailHtml = $confirmationMail->render();
+        $this->assertStringContainsString($confirmationMail->orderReference, $emailHtml);
+        $this->assertStringContainsString('Payment status', $emailHtml);
+        $this->assertStringContainsString('Mediterranean Grand Cruise', $emailHtml);
+        $this->assertStringContainsString('Athens', $emailHtml);
+        $this->assertStringContainsString('Embarkation and welcome dinner', $emailHtml);
+        $this->assertStringContainsString('Aurelia Voyager', $emailHtml);
+        $this->assertStringNotContainsString('A12345678', $emailHtml);
 
         $booking = Booking::firstOrFail();
         $this->assertEqualsWithDelta($expectedSubtotal, $booking->subtotal, 0.01);

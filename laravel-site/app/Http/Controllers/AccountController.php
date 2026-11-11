@@ -263,7 +263,7 @@ class AccountController extends Controller
     {
         $request->user()->siteNotifications()->whereNull('read_at')->update(['read_at' => now()]);
 
-        return redirect()->route('account', ['tab' => 'inbox'])->with('success', 'All notifications marked as read.');
+        return redirect()->back()->with('success', 'All notifications marked as read.');
     }
 
     public function placeholderAction(Request $request): RedirectResponse

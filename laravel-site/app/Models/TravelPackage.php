@@ -129,9 +129,9 @@ class TravelPackage extends Model
     {
         if ($this->trip_plan) {
             return array_map(fn (array $day) => [
-                'place' => $day[0] ?? 'On the journey',
-                'activities' => $day[1] ?? '',
-                'transport' => $day[2] ?? '',
+                'place' => $day['place'] ?? $day[0] ?? 'On the journey',
+                'activities' => $day['activities'] ?? $day[1] ?? '',
+                'transport' => $day['transport'] ?? $day[2] ?? '',
             ], $this->trip_plan);
         }
 

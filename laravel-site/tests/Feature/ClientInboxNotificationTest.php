@@ -142,8 +142,9 @@ class ClientInboxNotificationTest extends TestCase
         $unowned = $this->notification($anotherUser);
 
         $this->actingAs($owner)
+            ->from(route('home'))
             ->post(route('account.notifications.read-all'))
-            ->assertRedirect(route('account', ['tab' => 'inbox']));
+            ->assertRedirect(route('home'));
 
         $this->assertNotNull($owned->fresh()->read_at);
         $this->assertNull($unowned->fresh()->read_at);
