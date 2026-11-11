@@ -54,7 +54,7 @@ class AdminController extends Controller
         $months = collect(range(5, 0))->map(fn (int $offset) => $month->copy()->subMonths($offset)->startOfMonth());
         $sales = $months->map(fn (Carbon $date) => [
             'date' => $date,
-            'amount' => (float) Booking::query()->where('status', 'Confirmed')
+            'amount' => (float) Booking::query()->whereIn('status', Booking::CONFIRMED_STATUSES)
                 ->whereBetween('created_at', [$date, $date->copy()->endOfMonth()])->sum('total'),
         ]);
         $previousSales = $sales->get(4)['amount'] ?? 0;
@@ -402,7 +402,11 @@ class AdminController extends Controller
                     ->orWhereHas('package', fn ($pkg) => $pkg->where('name', 'like', $term)));
             }
             if ($request->filled('status') && $request->query('status') !== 'All') {
-                $query->where('status', $request->query('status'));
+                if ($request->query('status') === 'Confirmed') {
+                    $query->whereIn('status', Booking::CONFIRMED_STATUSES);
+                } else {
+                    $query->where('status', $request->query('status'));
+                }
             }
 
             return view('admin.resource', ['title' => 'Bookings', 'resource' => $resource, 'rows' => $query->paginate(20)->withQueryString()]);
@@ -489,7 +493,7 @@ class AdminController extends Controller
                 'selectedUser' => $selectedUser,
                 'selectedLastActive' => $lastActive ? Carbon::createFromTimestamp((int) $lastActive) : null,
                 'selectedBookings' => $selectedUser?->bookings()->count() ?? 0,
-                'selectedSpend' => $selectedUser?->bookings()->where('status', 'Confirmed')->sum('total') ?? 0,
+                'selectedSpend' => $selectedUser?->bookings()->whereIn('status', Booking::CONFIRMED_STATUSES)->sum('total') ?? 0,
             ]);
         }
 

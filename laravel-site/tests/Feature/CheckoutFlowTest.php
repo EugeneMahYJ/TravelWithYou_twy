@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Contracts\PaymentGateway;
+use App\Mail\BookingConfirmationMail;
 use App\Models\Booking;
 use App\Models\PromoCode;
 use App\Models\TravelDeal;
@@ -18,6 +19,7 @@ use Database\Seeders\TravelDealSeeder;
 use Database\Seeders\TravelPackageSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Mail\PendingMail;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -70,7 +72,7 @@ class CheckoutFlowTest extends TestCase
             ->assertSessionMissing('promo_code');
 
         $booking = Booking::firstOrFail();
-        $this->assertSame('Paid', $booking->status);
+        $this->assertSame('Confirmed', $booking->status);
         $this->assertSame('Please note any special requirements.', $booking->guest_details['booking_detail']['requests']);
         $this->assertEqualsWithDelta($expected['total'], $booking->total, 0.01);
         $this->assertMatchesRegularExpression('/^TWY-\d{5}$/', $booking->order_reference);
@@ -467,7 +469,7 @@ class CheckoutFlowTest extends TestCase
         $this->post(route('checkout.place'), $this->checkoutInput())->assertRedirect(route('confirmation'));
 
         $this->assertSame(['Pending payment'], $seenDuringCharge);
-        $this->assertSame(['Paid'], Booking::pluck('status')->all());
+        $this->assertSame(['Confirmed'], Booking::pluck('status')->all());
     }
 
     public function test_gateway_exception_keeps_the_booking_pending_instead_of_losing_the_order(): void
@@ -521,7 +523,12 @@ class CheckoutFlowTest extends TestCase
     public function test_confirmation_email_failure_does_not_break_a_placed_order(): void
     {
         config(['mail.default' => 'array']);
-        Mail::shouldReceive('raw')->once()->andThrow(new \RuntimeException('smtp down'));
+        $pendingMail = \Mockery::mock(PendingMail::class);
+        $pendingMail->shouldReceive('send')
+            ->once()
+            ->with(\Mockery::type(BookingConfirmationMail::class))
+            ->andThrow(new \RuntimeException('smtp down'));
+        Mail::shouldReceive('to')->once()->with('taylor@example.test')->andReturn($pendingMail);
         $this->addPackageWithDetails('sakura-rail', 1);
 
         $this->post(route('checkout.place'), $this->checkoutInput())->assertRedirect(route('confirmation'));

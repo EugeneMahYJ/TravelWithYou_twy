@@ -1620,7 +1620,9 @@ class TravelController extends Controller
 
                 return redirect()->route('payment.failed');
             }
-            $paymentStatus = $result['status'] ?? 'Pending payment';
+            $paymentStatus = ($result['status'] ?? 'Pending payment') === 'Paid'
+                ? 'Confirmed'
+                : ($result['status'] ?? 'Pending payment');
         }
 
         if ($paymentStatus !== 'Pending payment') {

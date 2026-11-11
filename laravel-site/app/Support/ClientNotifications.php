@@ -28,11 +28,6 @@ class ClientNotifications
                 'Booking confirmed',
                 'Booking '.$booking->reference.' is confirmed.',
             ],
-            'Paid' => [
-                'payment_updates',
-                'Payment confirmed',
-                'Payment for booking '.$booking->reference.' is confirmed.',
-            ],
             'Cancelled' => [
                 'booking_changes',
                 'Booking update',

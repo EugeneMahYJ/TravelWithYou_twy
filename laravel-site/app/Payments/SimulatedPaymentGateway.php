@@ -17,7 +17,7 @@ final class SimulatedPaymentGateway implements PaymentGateway
             return ['success' => false, 'status' => 'Payment failed'];
         }
 
-        return ['success' => true, 'status' => 'Paid'];
+        return ['success' => true, 'status' => 'Confirmed'];
     }
 
     public function hostedFieldsView(): ?string

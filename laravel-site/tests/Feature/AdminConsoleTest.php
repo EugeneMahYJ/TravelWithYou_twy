@@ -64,6 +64,46 @@ class AdminConsoleTest extends TestCase
             ->assertSee('Confirmed booking value · '.$selectedMonth->format('F Y'));
     }
 
+    public function test_paid_legacy_bookings_are_counted_and_displayed_as_confirmed(): void
+    {
+        $admin = $this->admin();
+        $this->actingAs($admin, 'admin')->withSession($this->verifiedSession());
+        $package = TravelPackage::firstOrFail();
+        $month = now()->startOfMonth();
+
+        foreach ([
+            ['reference' => 'TWY-LEGACY-PAID', 'order_reference' => 'ORD-LEGACY-PAID', 'status' => 'Paid', 'total' => 1200],
+            ['reference' => 'TWY-CONFIRMED', 'order_reference' => 'ORD-TEST-CONFIRMED', 'status' => 'Confirmed', 'total' => 800],
+            ['reference' => 'TWY-PENDING', 'order_reference' => 'ORD-TEST-PENDING', 'status' => 'Pending payment', 'total' => 400],
+        ] as $bookingData) {
+            Booking::create([
+                'reference' => $bookingData['reference'],
+                'order_reference' => $bookingData['order_reference'],
+                'package_id' => $package->id,
+                'departure_date' => $month->copy()->addMonths(3)->toDateString(),
+                'guests' => 1,
+                'guest_details' => ['name' => 'Test Traveller'],
+                'subtotal' => $bookingData['total'],
+                'discount' => 0,
+                'taxes' => 0,
+                'total' => $bookingData['total'],
+                'status' => $bookingData['status'],
+                'payment_method' => 'card',
+            ])->forceFill(['created_at' => $month->copy()->addDay()])->save();
+        }
+
+        $dashboard = $this->get(route('admin.dashboard'))->assertOk();
+        $this->assertSame(2000.0, $dashboard->viewData('sales')->last()['amount']);
+
+        $this->get(route('admin.bookings', ['status' => 'Confirmed']))
+            ->assertOk()
+            ->assertSee('TWY-LEGACY-PAID')
+            ->assertSee('TWY-CONFIRMED')
+            ->assertDontSee('TWY-PENDING')
+            ->assertSee('Confirmed')
+            ->assertDontSee('Paid');
+    }
+
     public function test_admin_can_sign_in_with_username_and_sees_standalone_login(): void
     {
         $admin = $this->admin();

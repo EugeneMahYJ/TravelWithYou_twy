@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Booking extends Model
 {
+    public const CONFIRMED_STATUSES = ['Confirmed', 'Paid'];
+
     protected $fillable = [
         'reference',
         'order_reference',
@@ -40,6 +42,11 @@ class Booking extends Model
             'total' => 'float',
             'passport_number' => 'encrypted',
         ];
+    }
+
+    public function getStatusAttribute(?string $value): ?string
+    {
+        return $value === 'Paid' ? 'Confirmed' : $value;
     }
 
     public function package(): BelongsTo
