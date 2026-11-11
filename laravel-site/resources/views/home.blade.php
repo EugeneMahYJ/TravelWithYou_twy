@@ -74,10 +74,14 @@
 <section class="fleet-band">
     <div class="wrap fleet-inner">
         <div class="fleet-intro">
-            <p class="eyebrow">The fleet</p>
-            <h2>Different cruises, Different characters.</h2>
-            <p>From a 780-guest expedition vessel to a 2,400-guest Mediterranean flagship, there is a deck plan for every kind of traveller.</p>
-            <a class="button button-outline-light" href="{{ route('ships') }}">Explore Cruise <span aria-hidden="true">→</span></a>
+            <div class="fleet-copy">
+                <p class="eyebrow">The fleet</p>
+                <h2>Different cruises,<br>Different characters.</h2>
+            </div>
+            <div class="fleet-summary">
+                <p>From a 780-guest expedition vessel to a 2,400-guest Mediterranean flagship, there is a deck plan for every kind of traveller.</p>
+                <a class="button button-outline-light" href="{{ route('ships') }}">Explore Cruise <span aria-hidden="true">→</span></a>
+            </div>
         </div>
         <div class="fleet-grid">
             @foreach($ships as $ship)

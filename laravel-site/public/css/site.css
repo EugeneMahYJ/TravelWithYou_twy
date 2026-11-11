@@ -1787,7 +1787,13 @@ p {
 
 .fleet-inner {
     display: grid;
-    grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr);
+    grid-template-columns: minmax(0, 1fr);
+    gap: 38px;
+}
+
+.fleet-intro {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(260px, .7fr);
     align-items: end;
     gap: 48px;
 }
@@ -1797,6 +1803,7 @@ p {
 }
 
 .fleet-intro h2 {
+    max-width: 700px;
     margin: 12px 0;
     font: 500 clamp(36px, 5vw, 58px)/1.04 var(--display);
 }
@@ -1807,7 +1814,7 @@ p {
     font: 500 clamp(24px, 3vw, 36px)/1.1 var(--display);
 }
 
-.fleet-intro>p:not(.eyebrow) {
+.fleet-summary>p {
     max-width: 460px;
     margin: 0 0 24px;
     color: rgba(244, 236, 220, .74);
@@ -1815,8 +1822,8 @@ p {
 
 .fleet-grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 18px;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 20px;
 }
 
 .fleet-card {
@@ -1829,7 +1836,7 @@ p {
 
 .fleet-image {
     display: block;
-    aspect-ratio: 4/3;
+    aspect-ratio: 1.35;
     overflow: hidden;
     background: var(--sea);
 }
@@ -1847,7 +1854,7 @@ p {
 
 .fleet-name {
     margin-top: 9px;
-    font: 500 22px/1.1 var(--display);
+    font: 500 clamp(17px, 1.8vw, 22px)/1.1 var(--display);
 }
 
 .fleet-class {
@@ -2036,6 +2043,16 @@ p {
 .empty-state h2 {
     margin: 0;
     font: 500 32px var(--display);
+}
+
+.account-wishlist-empty {
+    display: grid;
+    justify-items: center;
+    gap: 14px;
+}
+
+.account-wishlist-empty h2 {
+    margin: 0;
 }
 
 .empty-state p {
@@ -3122,9 +3139,8 @@ p {
         grid-template-columns: repeat(2, 1fr);
     }
 
-    .fleet-inner {
-        grid-template-columns: 1fr;
-        gap: 30px;
+    .fleet-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 }
 
@@ -3367,6 +3383,16 @@ p {
         padding: 55px 0;
     }
 
+    .fleet-intro {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .fleet-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+    }
+
     .fleet-grid-light {
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 12px;
@@ -3593,7 +3619,10 @@ p {
         min-height: 240px;
     }
 
-    .fleet-grid,
+    .fleet-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
     .fleet-grid-light {
         grid-template-columns: 1fr;
     }

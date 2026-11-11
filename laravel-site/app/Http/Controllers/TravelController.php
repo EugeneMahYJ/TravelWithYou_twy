@@ -46,7 +46,7 @@ class TravelController extends Controller
         return response()->view('home', [
             'featured' => TravelPackage::where('published', true)->orderByDesc('reviews')->take(6)->get(),
             'destinations' => $destinations,
-            'ships' => Ship::query()->orderBy('id')->get(),
+            'ships' => Ship::query()->inRandomOrder()->limit(5)->get(),
             'journalPosts' => Guide::where('published', true)->orderBy('sort_order')->take(3)->get(),
             'searchOptions' => $this->searchOptions(),
             'slides' => [

@@ -174,6 +174,13 @@ class TravelWebsiteTest extends TestCase
         $this->assertStringContainsString('destination-tile-medium', $sectionMatch[1]);
     }
 
+    public function test_homepage_fleet_shows_at_most_five_ships(): void
+    {
+        $response = $this->get(route('home'))->assertOk();
+        $this->assertSame(1, preg_match('/<div class="fleet-grid">(.*?)<\/div>/s', $response->getContent(), $fleet));
+        $this->assertSame(min(5, Ship::query()->count()), substr_count($fleet[1], 'class="fleet-card"'));
+    }
+
     public function test_home_slideshow_includes_the_navigator_video_slide(): void
     {
         $response = $this->get(route('home'))

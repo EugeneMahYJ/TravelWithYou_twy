@@ -163,7 +163,7 @@
         <section class="account-panel" id="account-panel-wishlist" role="tabpanel" aria-labelledby="account-tab-wishlist" data-account-panel="wishlist" @if($activeTab !== 'wishlist') hidden @endif>
             <div class="account-panel-heading"><p class="eyebrow">Saved for later</p><h2>Wishlist</h2></div>
             @if($favorites->isEmpty())
-                <div class="empty-state"><h2>No saved packages yet.</h2><a class="button button-primary" href="{{ route('search') }}">Explore journeys</a></div>
+                <div class="empty-state account-wishlist-empty"><h2>No saved packages yet.</h2><a class="button button-primary" href="{{ route('search') }}">Explore journeys</a></div>
             @else
                 <div class="account-wishlist-grid">
                     @foreach($favorites as $package)
