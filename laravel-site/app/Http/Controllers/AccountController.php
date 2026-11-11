@@ -5,12 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\Booking;
 use App\Models\Enquiry;
 use App\Models\EnquiryMessage;
+use App\Support\AccountSessions;
 use App\Support\ClientNotifications;
 use App\Support\CredentialRules;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -140,20 +142,33 @@ class AccountController extends Controller
         ]);
 
         $emailChanged = Str::lower($user->email) !== Str::lower($data['email']);
-        $user->forceFill([
+        $twoFactorReset = $emailChanged && $user->account_mfa_enabled;
+        $attributes = [
             'username' => Str::lower($data['username']),
             'email' => Str::lower($data['email']),
             'phone' => $data['phone'] ?? null,
-        ])->save();
+        ];
+        if ($emailChanged) {
+            // The new address has not been verified yet, so sign-in codes must not go to it.
+            $attributes['email_verified_at'] = null;
+            $attributes['account_mfa_enabled'] = false;
+        }
+        $user->forceFill($attributes)->save();
         if ($emailChanged) {
             $notifications->accountSecurityChanged(
                 $user,
                 'Account email updated',
                 'The email address on your account has changed.',
             );
+            $this->sendVerificationEmail($user);
         }
 
-        return redirect()->route('account', ['tab' => 'profile'])->with('success', 'Profile updated');
+        return redirect()->route('account', ['tab' => 'profile'])->with(
+            'success',
+            $twoFactorReset
+                ? 'Profile updated. Two-factor sign-in was turned off because your email changed; verify the new address, then turn it on again.'
+                : 'Profile updated',
+        );
     }
 
     public function updateTravellers(Request $request): RedirectResponse
@@ -196,6 +211,8 @@ class AccountController extends Controller
 
         $user = $request->user();
         $user->forceFill(['password' => Hash::make($data['new_password'])])->save();
+        AccountSessions::endOtherSessions($user, $request->session()->getId());
+        AccountSessions::revokeTrustedAdminDevices($user);
         $notifications->accountSecurityChanged(
             $user,
             'Password changed',
@@ -209,6 +226,10 @@ class AccountController extends Controller
     {
         $enabled = $request->boolean('enabled');
         $user = $request->user();
+        if ($enabled && ! $user->hasVerifiedEmail()) {
+            return redirect()->route('account', ['tab' => 'security'])
+                ->with('error', 'Verify your email address before turning on two-factor sign-in. We email the sign-in codes to it.');
+        }
         $changed = $user->account_mfa_enabled !== $enabled;
         $user->forceFill(['account_mfa_enabled' => $enabled])->save();
         if ($changed) {
@@ -248,11 +269,61 @@ class AccountController extends Controller
     public function placeholderAction(Request $request): RedirectResponse
     {
         $data = $request->validate(['action' => ['required', 'in:add-payment,logout-devices']]);
-        $message = $data['action'] === 'add-payment'
-            ? 'Card form would open here'
-            : 'Logged out from all devices';
 
-        return redirect()->route('account', ['tab' => $data['action'] === 'add-payment' ? 'payments' : 'security'])
-            ->with('success', $message);
+        if ($data['action'] === 'logout-devices') {
+            AccountSessions::endOtherSessions($request->user(), $request->session()->getId());
+
+            return redirect()->route('account', ['tab' => 'security'])
+                ->with('success', 'Logged out from all other devices');
+        }
+
+        return redirect()->route('account', ['tab' => 'payments'])
+            ->with('success', 'Saving payment methods is not available yet. You can pay securely at checkout.');
+    }
+
+    public function verifyEmail(Request $request, string $id, string $hash): RedirectResponse
+    {
+        $user = $request->user();
+        abort_unless(
+            hash_equals((string) $user->getKey(), $id)
+                && hash_equals(sha1($user->getEmailForVerification()), $hash),
+            403,
+        );
+
+        if (! $user->hasVerifiedEmail()) {
+            $user->markEmailAsVerified();
+        }
+
+        return redirect()->route('account', ['tab' => 'profile'])->with('success', 'Your email address is verified.');
+    }
+
+    public function resendVerification(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+        if ($user->hasVerifiedEmail()) {
+            return back()->with('success', 'Your email address is already verified.');
+        }
+
+        if (! $this->sendVerificationEmail($user)) {
+            return back()->with('error', 'We could not send the verification email. Please try again later.');
+        }
+
+        return back()->with('success', 'Verification email sent. Check your inbox.');
+    }
+
+    private function sendVerificationEmail(\App\Models\User $user): bool
+    {
+        try {
+            $user->sendEmailVerificationNotification();
+
+            return true;
+        } catch (\Throwable $exception) {
+            Log::warning('Verification email could not be sent.', [
+                'user_id' => $user->id,
+                'exception' => $exception::class,
+            ]);
+
+            return false;
+        }
     }
 }

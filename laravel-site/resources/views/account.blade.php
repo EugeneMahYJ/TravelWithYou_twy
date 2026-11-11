@@ -103,13 +103,29 @@
 
         <section class="account-panel" id="account-panel-profile" role="tabpanel" aria-labelledby="account-tab-profile" data-account-panel="profile" @if($activeTab !== 'profile') hidden @endif>
             <div class="account-panel-heading"><p class="eyebrow">Your details</p><h2>Profile</h2><p>Keep your account information up to date.</p></div>
+            @unless($user->hasVerifiedEmail())
+                <form id="resend-verification-email" class="visually-hidden" method="post" action="{{ route('verification.send') }}">@csrf
+                </form>
+            @endunless
             <form class="account-form account-profile-form" method="post" action="{{ route('account.profile.update') }}">@csrf @method('put')
                 <x-field name="username" label="Username" hint="Your username is unique and is used to log in.">
                     <x-text-input name="username" :value="$user->username" autocomplete="username" required data-credential-username />
                 </x-field>
-                <x-field name="email" label="Email">
-                    <x-text-input name="email" type="email" :value="$user->email" autocomplete="email" required />
-                </x-field>
+                <div class="account-field account-email-field">
+                    <label for="email"><span>Email</span></label>
+                    <div class="account-email-control">
+                        <x-text-input name="email" type="email" :value="$user->email" autocomplete="email" required />
+                        @unless($user->hasVerifiedEmail())
+                            <button class="button button-ghost account-email-resend" type="submit" form="resend-verification-email" aria-label="Resend verification email">Resend</button>
+                        @endunless
+                    </div>
+                    @unless($user->hasVerifiedEmail())
+                        <small class="account-field-hint">Please verify your email address.</small>
+                    @endunless
+                    @foreach($errors->get('email') as $message)
+                        <small class="field-error">{{ $message }}</small>
+                    @endforeach
+                </div>
                 <x-field name="phone" label="Phone">
                     <x-text-input name="phone" type="tel" :value="$user->phone" autocomplete="tel" />
                 </x-field>
@@ -205,7 +221,7 @@
                 <div class="account-form-actions"><button class="button button-primary" type="submit">Update password</button></div>
             </form>
             <div class="account-security-setting">
-                <div><strong>Two-factor authentication</strong><p>{{ $user->account_mfa_enabled ? 'Enabled via authenticator app' : 'Add an extra layer of security' }}</p></div>
+                <div><strong>Two-factor authentication</strong><p>{{ $user->account_mfa_enabled ? 'Enabled — we email a sign-in code each time you log in' : 'Add an extra layer of security' }}</p></div>
                 <form method="post" action="{{ route('account.two-factor.update') }}">@csrf @method('put')
                     <input type="hidden" name="enabled" value="0">
                     <label class="account-switch"><input type="checkbox" name="enabled" value="1" @checked($user->account_mfa_enabled) onchange="this.form.submit()"><span class="account-switch-track"></span><span class="visually-hidden">Toggle two-factor authentication</span></label>

@@ -21,6 +21,7 @@ use Database\Seeders\TravelPackageSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -223,7 +224,7 @@ class ClientInboxNotificationTest extends TestCase
                 'name' => 'Taylor Traveller',
                 'dob' => '1990-01-01',
                 'nation' => 'Malaysian',
-                'passport' => 'A1234567',
+                'passport' => Crypt::encryptString('A1234567'),
                 'passportExpiry' => Carbon::parse($package->departures[0])->addMonthsNoOverflow(7)->toDateString(),
                 'email' => 'taylor@example.test',
                 'phone' => '+60123456789',

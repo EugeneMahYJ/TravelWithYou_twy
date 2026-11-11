@@ -11,13 +11,13 @@ Route::get('/', [TravelController::class, 'home'])->name('home');
 Route::get('/destinations', [TravelController::class, 'destinations'])->name('destinations');
 Route::get('/destinations/region/{region}', [TravelController::class, 'destinations'])->name('destinations.region');
 Route::get('/destinations/{country}', [TravelController::class, 'country'])->name('destinations.country');
-Route::get('/packages', fn () => redirect()->route('search', request()->query(), 301))->name('packages.index');
+Route::get('/packages', [TravelController::class, 'packagesRedirect'])->name('packages.index');
 Route::get('/package/{package:slug}/pdf', [TravelController::class, 'packagePdf'])->name('packages.pdf');
 Route::get('/package/{package:slug}', [TravelController::class, 'package'])->name('packages.show');
 Route::get('/book/{id}/{date}', [TravelController::class, 'bookingForm'])->name('booking');
 Route::post('/book/{id}/{date}', [TravelController::class, 'submitBooking'])->middleware('throttle:10,1')->name('booking.submit');
-Route::post('/package/{package}/cart', [TravelController::class, 'addToCart'])->name('cart.add');
-Route::post('/package/{package}/wishlist', [TravelController::class, 'toggleWishlist'])->name('wishlist.toggle');
+Route::post('/package/{package}/cart', [TravelController::class, 'addToCart'])->middleware('throttle:60,1')->name('cart.add');
+Route::post('/package/{package}/wishlist', [TravelController::class, 'toggleWishlist'])->middleware('throttle:60,1')->name('wishlist.toggle');
 Route::get('/search', [TravelController::class, 'packages'])->name('search');
 Route::post('/newsletter', [TravelController::class, 'subscribeNewsletter'])->middleware('throttle:6,1')->name('newsletter.subscribe');
 Route::get('/deals', [TravelController::class, 'deals'])->name('deals');
@@ -26,23 +26,34 @@ Route::get('/ships/{ship}', [TravelController::class, 'ship'])->name('ships.show
 Route::get('/cart', [TravelController::class, 'cart'])->name('cart');
 Route::patch('/cart/{uid}', [TravelController::class, 'updateCartItem'])->name('cart.update');
 Route::delete('/cart/{uid}', [TravelController::class, 'removeFromCart'])->name('cart.remove');
-Route::post('/cart/promo', [TravelController::class, 'applyPromo'])->name('cart.promo');
+Route::post('/cart/promo', [TravelController::class, 'applyPromo'])->middleware('throttle:10,1')->name('cart.promo');
 Route::get('/checkout', [TravelController::class, 'checkout'])->name('checkout');
-Route::post('/checkout', [TravelController::class, 'placeOrder'])->name('checkout.place');
+Route::post('/checkout', [TravelController::class, 'placeOrder'])->middleware('throttle:20,1')->name('checkout.place');
 Route::get('/confirmation', [TravelController::class, 'confirmation'])->name('confirmation');
 Route::get('/confirmation/invoice/{reference}', [TravelController::class, 'invoice'])->name('confirmation.invoice');
 Route::get('/payment-failed', [TravelController::class, 'paymentFailed'])->name('payment.failed');
 
 Route::get('/login', [AuthController::class, 'loginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:6,1')->name('login.submit');
-Route::get('/register', fn () => view('auth.register'))->name('register');
+Route::get('/register', [AuthController::class, 'registerForm'])->name('register');
 Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:6,1')->name('register.submit');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::get('/login/verify', [AuthController::class, 'twoFactorForm'])->name('login.two-factor');
+Route::post('/login/verify', [AuthController::class, 'verifyTwoFactor'])->middleware('throttle:10,1')->name('login.two-factor.verify');
+Route::post('/login/verify/resend', [AuthController::class, 'resendTwoFactor'])->middleware('throttle:3,1')->name('login.two-factor.resend');
 Route::get('/forgot', [AuthController::class, 'forgotPassword'])->name('password.request');
 Route::post('/forgot', [AuthController::class, 'sendResetLink'])->middleware('throttle:6,1')->name('password.email');
 Route::get('/reset/{token}', [AuthController::class, 'resetPasswordForm'])->name('password.reset');
-Route::post('/reset', [AuthController::class, 'resetPassword'])->name('password.update');
+Route::post('/reset', [AuthController::class, 'resetPassword'])->middleware('throttle:6,1')->name('password.update');
 Route::get('/account', [AccountController::class, 'show'])->middleware('auth:web')->name('account');
+Route::middleware('auth:web')->group(function () {
+    Route::get('/email/verify/{id}/{hash}', [AccountController::class, 'verifyEmail'])
+        ->middleware(['signed', 'throttle:6,1'])
+        ->name('verification.verify');
+    Route::post('/email/verification-notification', [AccountController::class, 'resendVerification'])
+        ->middleware('throttle:3,1')
+        ->name('verification.send');
+});
 Route::middleware('auth:web')->prefix('account')->name('account.')->group(function () {
     Route::get('/notifications/{notificationId}', [AccountController::class, 'openNotification'])
         ->whereNumber('notificationId')
@@ -67,7 +78,7 @@ Route::get('/about', [TravelController::class, 'about'])->name('about');
 Route::get('/mice', [TravelController::class, 'mice'])->name('mice');
 Route::post('/mice', [TravelController::class, 'submitMiceEnquiry'])->middleware('throttle:6,1')->name('mice.submit');
 Route::get('/contact', [TravelController::class, 'contact'])->name('contact');
-Route::post('/contact', [TravelController::class, 'sendEnquiry'])->name('contact.send');
+Route::post('/contact', [TravelController::class, 'sendEnquiry'])->middleware('throttle:6,1')->name('contact.send');
 Route::get('/faq', [TravelController::class, 'faq'])->name('faq');
 Route::get('/terms', [TravelController::class, 'policy'])->defaults('policy', 'terms')->name('terms');
 Route::get('/privacy', [TravelController::class, 'policy'])->defaults('policy', 'privacy')->name('privacy');

@@ -11,14 +11,16 @@ class CredentialValidationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_registration_accepts_six_character_password_with_allowed_symbols_and_rejects_invalid_passwords(): void
+    public function test_registration_enforces_ten_character_password_with_a_letter_and_a_number(): void
     {
+        $tooShort = 'Password must be at least 10 characters.';
+        $needsBoth = 'Password must contain at least one letter and one number.';
         foreach ([
-            ['Ab1', 'Password must be at least 6 characters.'],
-            ['abcdef', 'Password must contain at least one letter and one number, and use only letters, numbers, or ~!@#$%^&*() with no spaces.'],
-            ['123456', 'Password must contain at least one letter and one number, and use only letters, numbers, or ~!@#$%^&*() with no spaces.'],
-            ['Abc123_', 'Password must contain at least one letter and one number, and use only letters, numbers, or ~!@#$%^&*() with no spaces.'],
-            ['Abc 123', 'Password must contain at least one letter and one number, and use only letters, numbers, or ~!@#$%^&*() with no spaces.'],
+            ['Ab1', $tooShort],
+            ['Abc123_', $tooShort],
+            ['abcdefghijkl', $needsBoth],
+            ['1234567890123', $needsBoth],
+            [str_repeat('Ab1', 50), 'Password must be 128 characters or fewer.'],
         ] as $index => [$password, $message]) {
             $this->from(route('register'))
                 ->post(route('register.submit'), [
@@ -31,11 +33,12 @@ class CredentialValidationTest extends TestCase
                 ->assertSessionHasErrors(['password' => $message]);
         }
 
+        // Any characters are allowed, including spaces and symbols outside the old list.
         $this->post(route('register.submit'), [
             'name' => 'Credential Traveller',
             'email' => 'valid@example.test',
-            'password' => 'A~!@#1',
-            'password_confirmation' => 'A~!@#1',
+            'password' => 'correct horse 7 battery_staple',
+            'password_confirmation' => 'correct horse 7 battery_staple',
         ])->assertRedirect(route('account'));
     }
 
@@ -45,8 +48,8 @@ class CredentialValidationTest extends TestCase
             ->post(route('password.update'), [
                 'token' => 'reset-token',
                 'email' => 'person@example.test',
-                'password' => 'NewPass_1',
-                'password_confirmation' => 'NewPass_1',
+                'password' => 'short1',
+                'password_confirmation' => 'short1',
             ])
             ->assertRedirect()
             ->assertSessionHasErrors('password');
@@ -55,8 +58,8 @@ class CredentialValidationTest extends TestCase
         $this->actingAs($user)->from(route('account', ['tab' => 'security']))
             ->put(route('account.password.update'), [
                 'current_password' => 'Current123',
-                'new_password' => 'new pass1',
-                'new_password_confirmation' => 'new pass1',
+                'new_password' => 'onlylettershere',
+                'new_password_confirmation' => 'onlylettershere',
             ])
             ->assertRedirect()
             ->assertSessionHasErrors('new_password');

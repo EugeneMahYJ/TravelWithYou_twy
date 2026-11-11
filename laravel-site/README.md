@@ -44,6 +44,15 @@ Do not commit `.env` or production credentials. Configure a production database,
 
 To deliver enquiry replies, configure `MAIL_MAILER`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM_ADDRESS`, and `MAIL_FROM_NAME` in `.env`. Do not commit mail credentials. With the default `log` mail driver, messages are written to `storage/logs` instead of being delivered to customers.
 
+## Customer account security
+
+- **Passwords** need at least 10 characters (maximum 128), including a letter and a number. Any characters are allowed. Existing passwords keep working until they are changed.
+- **Two-factor sign-in:** when a customer turns it on (Account > Security), each login sends a 6-digit code to their account email. Codes expire after 10 minutes and allow 5 attempts. The toggle needs a verified email address, and changing the email address turns it off until the new address is verified.
+- **Email verification:** a verification email is sent at registration and when the email address changes. It does not block booking or checkout; unverified customers see a reminder on their account page.
+- **Ending other sign-ins:** changing the password, resetting it, or choosing "Log out from all devices" ends the customer's other sessions. Listing sessions requires `SESSION_DRIVER=database`; with other drivers only "remember me" tokens are reset. Changing or resetting a password also forgets any "trust this device" admin cookies.
+- **Emails** are sent immediately, and a failure is logged without breaking the page the customer is on. No queue worker is required.
+- **Checkout** saves bookings as "Pending payment" first, then charges the payment gateway, then marks them paid. A declined payment removes the pending bookings and keeps the cart. If the gateway errors and the result is unknown, the bookings stay pending and are logged for you to reconcile.
+
 ## Validation
 
 ```powershell

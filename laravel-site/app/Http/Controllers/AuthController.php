@@ -4,13 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Models\TravelPackage;
 use App\Models\User;
+use App\Support\AccountSessions;
 use App\Support\CredentialRules;
+use App\Support\CustomerTwoFactor;
 use App\Support\Totp;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -24,6 +27,11 @@ class AuthController extends Controller
     public function loginForm(): View
     {
         return view('auth.login', ['adminLogin' => false]);
+    }
+
+    public function registerForm(): View
+    {
+        return view('auth.register');
     }
 
     public function adminLoginForm(Request $request): View|RedirectResponse
@@ -65,7 +73,11 @@ class AuthController extends Controller
         }
 
         if ($adminLogin && ! $user->is_admin) {
-            return back()->withErrors([$identityField => 'This account does not have administrator access.'])->onlyInput($identityField);
+            return back()->withErrors([$identityField => 'The username or password is incorrect.'])->onlyInput($identityField);
+        }
+
+        if (! $adminLogin && $user->account_mfa_enabled) {
+            return $this->beginCustomerTwoFactor($request, $user);
         }
 
         $guard = Auth::guard($adminLogin ? 'admin' : 'web');
@@ -104,11 +116,131 @@ class AuthController extends Controller
 
         $data['email'] = Str::lower($data['email']);
         $user = User::create($data);
+        $this->sendVerificationEmail($user);
         Auth::guard('web')->login($user);
         $request->session()->regenerate();
         $this->syncGuestWishlist($request);
 
         return redirect()->route('account')->with('success', 'Your account is ready.');
+    }
+
+    private function sendVerificationEmail(User $user): void
+    {
+        try {
+            $user->sendEmailVerificationNotification();
+        } catch (\Throwable $exception) {
+            Log::warning('Verification email could not be sent.', [
+                'user_id' => $user->id,
+                'exception' => $exception::class,
+            ]);
+        }
+    }
+
+    private function beginCustomerTwoFactor(Request $request, User $user): RedirectResponse
+    {
+        try {
+            CustomerTwoFactor::issue($user);
+        } catch (\Throwable $exception) {
+            Log::error('Customer sign-in code could not be sent.', [
+                'user_id' => $user->id,
+                'exception' => $exception::class,
+            ]);
+
+            return back()
+                ->withErrors(['email' => 'We could not send your sign-in code. Please try again in a few minutes.'])
+                ->onlyInput('email');
+        }
+
+        $request->session()->put('customer_2fa', [
+            'user_id' => $user->id,
+            'remember' => $request->boolean('remember'),
+        ]);
+        $request->session()->regenerate();
+
+        return redirect()->route('login.two-factor');
+    }
+
+    private function pendingTwoFactorUser(Request $request): ?User
+    {
+        $pending = $request->session()->get('customer_2fa');
+        if (! is_array($pending) || ! isset($pending['user_id'])) {
+            return null;
+        }
+
+        $user = User::query()->find((int) $pending['user_id']);
+        if (! $user || ! $user->account_mfa_enabled) {
+            $request->session()->forget('customer_2fa');
+
+            return null;
+        }
+
+        return $user;
+    }
+
+    public function twoFactorForm(Request $request): View|RedirectResponse
+    {
+        $user = $this->pendingTwoFactorUser($request);
+        if (! $user) {
+            return redirect()->route('login');
+        }
+
+        return view('auth.two-factor', [
+            'maskedEmail' => CustomerTwoFactor::maskEmail($user->email),
+            'minutes' => CustomerTwoFactor::TTL_MINUTES,
+        ]);
+    }
+
+    public function verifyTwoFactor(Request $request): RedirectResponse
+    {
+        $user = $this->pendingTwoFactorUser($request);
+        if (! $user) {
+            return redirect()->route('login');
+        }
+
+        $data = $request->validate(['code' => ['required', 'digits:6']]);
+        $result = CustomerTwoFactor::check($user, $data['code']);
+
+        if ($result === 'locked') {
+            $request->session()->forget('customer_2fa');
+
+            return redirect()->route('login')
+                ->withErrors(['email' => 'Too many incorrect codes. Please sign in again.']);
+        }
+        if ($result === 'expired') {
+            return back()->withErrors(['code' => 'That code has expired. Request a new one.']);
+        }
+        if ($result !== 'ok') {
+            return back()->withErrors(['code' => 'That code is incorrect. Check the email and try again.']);
+        }
+
+        $remember = (bool) ($request->session()->get('customer_2fa')['remember'] ?? false);
+        $request->session()->forget('customer_2fa');
+        Auth::guard('web')->login($user, $remember);
+        $request->session()->regenerate();
+        $this->syncGuestWishlist($request);
+
+        return redirect()->intended(route('account'));
+    }
+
+    public function resendTwoFactor(Request $request): RedirectResponse
+    {
+        $user = $this->pendingTwoFactorUser($request);
+        if (! $user) {
+            return redirect()->route('login');
+        }
+
+        try {
+            CustomerTwoFactor::issue($user);
+        } catch (\Throwable $exception) {
+            Log::error('Customer sign-in code could not be re-sent.', [
+                'user_id' => $user->id,
+                'exception' => $exception::class,
+            ]);
+
+            return back()->withErrors(['code' => 'We could not send a new code. Please try again in a few minutes.']);
+        }
+
+        return back()->with('success', 'We sent you a new code.');
     }
 
     private function syncGuestWishlist(Request $request): void
@@ -171,6 +303,8 @@ class AuthController extends Controller
                 'password' => Hash::make($password),
                 'remember_token' => Str::random(60),
             ])->save();
+            AccountSessions::endOtherSessions($user);
+            AccountSessions::revokeTrustedAdminDevices($user);
         });
 
         return $status === Password::PASSWORD_RESET

@@ -19,8 +19,10 @@ use Database\Seeders\TravelPackageSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -423,6 +425,109 @@ class CheckoutFlowTest extends TestCase
             ->assertOk()
             ->assertSee($booking->order_reference)
             ->assertSee('href="'.route('account', ['tab' => 'bookings']).'"', false);
+    }
+
+    public function test_declined_payment_leaves_no_booking_and_keeps_the_cart_and_documents(): void
+    {
+        $this->addPackageWithDetails('sakura-rail', 1);
+        $cartBefore = session('cart');
+
+        $this->post(route('checkout.place'), array_merge($this->checkoutInput(), ['card_number' => '4242424242420000']))
+            ->assertRedirect(route('payment.failed'));
+
+        $this->assertSame(0, Booking::count());
+        $this->assertCount(count($cartBefore), session('cart'));
+        $stagedPath = $cartBefore[0]['detail']['document_paths'][0] ?? $cartBefore[0]['document_paths'][0];
+        Storage::disk('local')->assertExists($stagedPath);
+    }
+
+    public function test_booking_is_saved_before_the_gateway_is_charged(): void
+    {
+        $this->addPackageWithDetails('sakura-rail', 1);
+        $seenDuringCharge = [];
+        $this->app->bind(PaymentGateway::class, function () use (&$seenDuringCharge) {
+            return new class($seenDuringCharge) implements PaymentGateway
+        {
+            public function __construct(private array &$seen) {}
+
+            public function process(string $method, array $details): array
+            {
+                $this->seen = Booking::pluck('status')->all();
+
+                return ['success' => true, 'status' => 'Paid'];
+            }
+
+            public function hostedFieldsView(): ?string
+            {
+                return null;
+            }
+            };
+        });
+
+        $this->post(route('checkout.place'), $this->checkoutInput())->assertRedirect(route('confirmation'));
+
+        $this->assertSame(['Pending payment'], $seenDuringCharge);
+        $this->assertSame(['Paid'], Booking::pluck('status')->all());
+    }
+
+    public function test_gateway_exception_keeps_the_booking_pending_instead_of_losing_the_order(): void
+    {
+        $this->addPackageWithDetails('sakura-rail', 1);
+        $this->app->bind(PaymentGateway::class, fn () => new class implements PaymentGateway
+        {
+            public function process(string $method, array $details): array
+            {
+                throw new \RuntimeException('gateway timeout');
+            }
+
+            public function hostedFieldsView(): ?string
+            {
+                return null;
+            }
+        });
+
+        $this->post(route('checkout.place'), $this->checkoutInput())
+            ->assertRedirect(route('confirmation'))
+            ->assertSessionHas('error');
+
+        $this->assertSame(['Pending payment'], Booking::pluck('status')->all());
+    }
+
+    public function test_second_submit_after_a_placed_order_does_not_create_or_charge_again(): void
+    {
+        $this->addPackageWithDetails('sakura-rail', 1);
+
+        $this->post(route('checkout.place'), $this->checkoutInput())->assertRedirect(route('confirmation'));
+        $this->post(route('checkout.place'), $this->checkoutInput())->assertRedirect(route('confirmation'));
+
+        $this->assertSame(1, Booking::count());
+    }
+
+    public function test_checkout_is_refused_while_another_submission_holds_the_lock(): void
+    {
+        $this->addPackageWithDetails('sakura-rail', 1);
+        $held = \Mockery::mock(\Illuminate\Contracts\Cache\Lock::class);
+        $held->shouldReceive('get')->once()->andReturn(false);
+        $held->shouldNotReceive('release');
+        Cache::partialMock()->shouldReceive('lock')->once()->with(\Mockery::pattern('/^checkout:/'), 60)->andReturn($held);
+
+        $this->post(route('checkout.place'), $this->checkoutInput())
+            ->assertRedirect(route('checkout'))
+            ->assertSessionHas('error');
+
+        $this->assertSame(0, Booking::count());
+    }
+
+    public function test_confirmation_email_failure_does_not_break_a_placed_order(): void
+    {
+        config(['mail.default' => 'array']);
+        Mail::shouldReceive('raw')->once()->andThrow(new \RuntimeException('smtp down'));
+        $this->addPackageWithDetails('sakura-rail', 1);
+
+        $this->post(route('checkout.place'), $this->checkoutInput())->assertRedirect(route('confirmation'));
+
+        $this->assertSame(1, Booking::count());
+        $this->get(route('confirmation'))->assertOk();
     }
 
     private function addPackage(string $slug, int $guests): TravelPackage

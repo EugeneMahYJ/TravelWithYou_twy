@@ -14105,3 +14105,31 @@ textarea.account-input {
         min-height: 44px;
     }
 }
+
+.account-email-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.account-email-control .account-input {
+    min-width: 0;
+}
+
+.account-email-resend {
+    flex-shrink: 0;
+    min-height: 46px;
+    padding: 10px 12px;
+    white-space: nowrap;
+}
+
+@media (max-width: 520px) {
+    .account-email-control {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .account-email-resend {
+        align-self: flex-start;
+    }
+}

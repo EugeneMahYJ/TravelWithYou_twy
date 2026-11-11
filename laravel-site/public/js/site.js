@@ -543,12 +543,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         const messages = [];
-        if (value.length < 6) messages.push("Password must be at least 6 characters.");
+        if (value.length < 10) messages.push("Password must be at least 10 characters.");
+        if (value.length > 128) messages.push("Password must be 128 characters or fewer.");
         if (!/[A-Za-z]/.test(value)) messages.push("Password must contain at least one letter.");
         if (!/\d/.test(value)) messages.push("Password must contain at least one number.");
-        if (!/^[A-Za-z0-9~!@#$%^&*()]*$/.test(value)) {
-            messages.push("Use only letters, numbers, or ~!@#$%^&*(); spaces and other symbols are not allowed.");
-        }
         return messages;
     };
     const validate = (input) => {

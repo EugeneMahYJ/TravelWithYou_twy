@@ -24,3 +24,7 @@
 - **Production payment processing:** The repository provides a simulated gateway for local/testing; it does not include a production payment-provider implementation. Production charging, settlement, and webhook validation cannot be assessed here. See [AppServiceProvider.php](./laravel-site/app/Providers/AppServiceProvider.php), [SimulatedPaymentGateway.php](./laravel-site/app/Payments/SimulatedPaymentGateway.php), and [TravelController.php](./laravel-site/app/Http/Controllers/TravelController.php).
 - **Uploaded media execution:** Uploads are stored under public assets and the saved filename extension is derived from the client filename. Whether a file could execute as active content depends on web-server configuration, which is not included in the repository. See [AssetLibrary.php](./laravel-site/app/Support/AssetLibrary.php) and [filesystems.php](./laravel-site/config/filesystems.php).
 - **Deployment configuration:** Effective production values for secure session cookies and debug mode depend on deployment environment settings and cannot be inferred from source defaults alone. See [session.php](./laravel-site/config/session.php) and [app.php](./laravel-site/config/app.php).
+
+## Update
+
+Finding 1 (password policy) is fixed: passwords now need at least 10 characters with a letter and a number, and any characters are allowed.

@@ -25,6 +25,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -56,6 +57,11 @@ class TravelController extends Controller
                 ['image' => 'package-photo-24', 'kicker' => 'Group discount · 10% off', 'title' => 'The Great Migration.', 'text' => 'Tented camps on the Mara. Bring five friends and save.', 'label' => 'View Deal', 'url' => route('deals')],
             ],
         ])->header('Cache-Control', 'no-store, private');
+    }
+
+    public function packagesRedirect(Request $request): RedirectResponse
+    {
+        return redirect()->route('search', $request->query(), 301);
     }
 
     public function packages(Request $request): View
@@ -1351,8 +1357,32 @@ class TravelController extends Controller
                 ->withInput($request->except(['card_number', 'card_expiry', 'card_cvc', 'payment_token']));
         }
 
+        // One checkout per session at a time, so a double-click, a refresh or a second
+        // tab can never place (or charge) the same order twice.
+        $lock = Cache::lock('checkout:'.$request->session()->getId(), 60);
+        if (! $lock->get()) {
+            return redirect()->route('checkout')
+                ->with('error', 'Your order is already being processed. Please wait a moment.');
+        }
+
+        try {
+            return $this->completeOrder($request, $notifications, $documentStorage);
+        } finally {
+            $lock->release();
+        }
+    }
+
+    private function completeOrder(
+        Request $request,
+        ClientNotifications $notifications,
+        TravellerDocumentStorage $documentStorage,
+    ): RedirectResponse {
         $items = $this->cartItems($request);
         if ($items->isEmpty()) {
+            if ($request->session()->has('confirmation_order_reference')) {
+                return redirect()->route('confirmation');
+            }
+
             return redirect()->route('search')->with('error', 'Your cart is empty.');
         }
         if ($items->contains(fn (array $item) => ! Pricing::itemAvailable($item))) {
@@ -1419,22 +1449,6 @@ class TravelController extends Controller
             $data['billing_address'] = $data['contact_address'];
         }
 
-        $paymentStatus = 'Pending payment';
-        if ($gateway) {
-            $paymentDetails = $needsCardInputs
-                ? $request->only(['card_number', 'card_expiry', 'card_cvc', 'card_name'])
-                : ['token' => $request->input('payment_token')];
-            $result = $gateway->process($data['payment_method'], $paymentDetails);
-            if (! ($result['success'] ?? false)) {
-                if ($request->user()) {
-                    $notifications->paymentFailed($request->user());
-                }
-
-                return redirect()->route('payment.failed');
-            }
-            $paymentStatus = $result['status'] ?? 'Pending payment';
-        }
-
         $totals = $this->cartTotals($items, $request);
         $orderReference = $this->uniqueOrderReference();
         $discounts = $totals['discount_allocations'];
@@ -1445,9 +1459,7 @@ class TravelController extends Controller
                 $data,
                 $totals,
                 $orderReference,
-                $paymentStatus,
                 $discounts,
-                $notifications,
                 $documentStorage,
                 &$movedDocuments,
             ) {
@@ -1457,10 +1469,8 @@ class TravelController extends Controller
                     $items,
                     $data,
                     $orderReference,
-                    $paymentStatus,
                     $discounts,
                     &$remainingTaxes,
-                    $notifications,
                     $documentStorage,
                     &$movedDocuments,
                 ) {
@@ -1523,7 +1533,7 @@ class TravelController extends Controller
                         'discount' => $discount,
                         'taxes' => $taxes,
                         'total' => round($subtotal - $discount + $taxes, 2),
-                        'status' => $paymentStatus,
+                        'status' => 'Pending payment',
                         'payment_method' => $data['payment_method'],
                     ]);
 
@@ -1548,8 +1558,6 @@ class TravelController extends Controller
                     $booking->guest_details = $guestDetails;
                     $booking->save();
 
-                    $notifications->bookingStatusChanged($booking);
-
                     return $booking;
                 });
             });
@@ -1565,21 +1573,81 @@ class TravelController extends Controller
 
             throw $exception;
         }
+        // Bookings now exist as "Pending payment", so a failure after this point can
+        // never leave a customer charged with nothing recorded.
+        $paymentStatus = 'Pending payment';
+        $paymentWarning = null;
+        if ($gateway) {
+            $paymentDetails = $needsCardInputs
+                ? $request->only(['card_number', 'card_expiry', 'card_cvc', 'card_name'])
+                : ['token' => $request->input('payment_token')];
+            try {
+                $result = $gateway->process($data['payment_method'], $paymentDetails);
+            } catch (\Throwable $exception) {
+                // The outcome is unknown, so keep the pending bookings for reconciliation.
+                Log::critical('Payment gateway error while placing an order; bookings kept as pending.', [
+                    'order_reference' => $orderReference,
+                    'exception' => $exception::class,
+                ]);
+                $result = ['success' => true, 'status' => 'Pending payment'];
+                $paymentWarning = 'We could not confirm your payment yet. Your booking is held as pending and our team will contact you.';
+            }
+            if (! ($result['success'] ?? false)) {
+                foreach (array_reverse($movedDocuments) as [$stagedPath, $bookingPath]) {
+                    if (! $documentStorage->restorePending($bookingPath, $stagedPath)) {
+                        Log::error('Unable to restore traveller document after payment failed.', [
+                            'staged_path' => $stagedPath,
+                            'booking_path' => $bookingPath,
+                        ]);
+                    }
+                }
+                Booking::whereIn('id', $bookings->pluck('id'))->delete();
+                if ($request->user()) {
+                    $notifications->paymentFailed($request->user());
+                }
+
+                return redirect()->route('payment.failed');
+            }
+            $paymentStatus = $result['status'] ?? 'Pending payment';
+        }
+
+        if ($paymentStatus !== 'Pending payment') {
+            Booking::whereIn('id', $bookings->pluck('id'))->update(['status' => $paymentStatus]);
+        }
+        $bookings = $bookings->map(function (Booking $booking) use ($paymentStatus) {
+            $booking->status = $paymentStatus;
+            $booking->syncOriginal();
+
+            return $booking;
+        });
+        foreach ($bookings as $booking) {
+            $notifications->bookingStatusChanged($booking);
+        }
+
         $request->session()->forget('cart');
         $request->session()->forget('promo_code');
         $request->session()->put('confirmation_order_reference', $orderReference);
         $recipient = $data['email'];
         $itinerary = $bookings->map(fn (Booking $booking) => $booking->package->name.' — '.fmt_date($booking->departure_date).' · '.$booking->guests.' guests')->implode("\n");
         if (config('mail.default') !== 'log') {
-            Mail::raw(
-                "Your TravelWithYou booking {$orderReference} has been received.\n\n{$itinerary}",
-                fn ($message) => $message->to($recipient)->subject('Your TravelWithYou booking'),
-            );
+            try {
+                Mail::raw(
+                    "Your TravelWithYou booking {$orderReference} has been received.\n\n{$itinerary}",
+                    fn ($message) => $message->to($recipient)->subject('Your TravelWithYou booking'),
+                );
+            } catch (\Throwable $exception) {
+                Log::error('Booking confirmation email could not be sent.', [
+                    'order_reference' => $orderReference,
+                    'exception' => $exception::class,
+                ]);
+            }
         } else {
             Log::info('TravelWithYou confirmation email queued.', ['order_reference' => $orderReference]);
         }
 
-        return redirect()->route('confirmation');
+        $redirect = redirect()->route('confirmation');
+
+        return $paymentWarning !== null ? $redirect->with('error', $paymentWarning) : $redirect;
     }
 
     public function confirmation(Request $request): View|RedirectResponse
