@@ -526,6 +526,39 @@ class TravelWebsiteTest extends TestCase
             ->assertDontSee('Aegean Island Hopper');
     }
 
+    public function test_search_more_filters_are_inside_the_search_card_and_preserve_existing_filters(): void
+    {
+        $response = $this->get(route('search', [
+            'q' => 'Japan',
+            'month' => '2027-03',
+            'ship' => 'Coral Horizon',
+            'dep_port' => 'Tokyo',
+            'dest_port' => 'Osaka',
+            'price' => 'lt2',
+            'region' => 'Asia',
+            'country' => 'Japan',
+            'type' => 'Cruise',
+            'duration' => '1-7',
+            'sort' => 'rating',
+            'tab' => 'details',
+        ]))->assertOk();
+
+        preg_match('/<form class="search-panel hybrid-search-panel"[^>]*>(.*?)<\/form>/s', $response->getContent(), $searchForm);
+        $this->assertNotEmpty($searchForm);
+        $this->assertStringContainsString('class="search-panel-more-filters"', $searchForm[1]);
+        $this->assertStringContainsString('<summary>More filters</summary>', $searchForm[1]);
+        $this->assertStringContainsString('name="region"', $searchForm[1]);
+        $this->assertStringContainsString('name="sort"', $searchForm[1]);
+        $this->assertSame(0, substr_count($searchForm[1], '<form'));
+        $this->assertStringContainsString('name="dest_port" value="Osaka"', $searchForm[1]);
+        $this->assertStringContainsString('name="duration" value="1-7"', $searchForm[1]);
+        $this->assertStringContainsString('name="tab" value="details"', $searchForm[1]);
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertDontSee('<summary>More filters</summary>', false);
+    }
+
     public function test_each_search_filter_matches_the_catalogue(): void
     {
         $cases = [

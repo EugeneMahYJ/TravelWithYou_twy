@@ -5171,6 +5171,28 @@ textarea.account-input {
     stroke-width: 1.8;
 }
 
+.search-panel-more-filters {
+    grid-column: 1 / -1;
+    margin-top: 13px;
+    padding-top: 8px;
+    border-top: 1px solid var(--line);
+}
+
+.search-panel-more-filters .more-filters {
+    margin: 0;
+    border: 0;
+}
+
+.search-panel-more-filters .more-filters>summary {
+    padding: 3px 0;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.search-panel-more-filters .more-filter-form {
+    padding: 10px 0 2px;
+}
+
 .section-block .section-heading {
     margin-bottom: 25px;
 }
@@ -5382,6 +5404,11 @@ textarea.account-input {
 
 .search-results-section {
     padding-block: 40px 80px;
+}
+
+.search-results-section>.search-panel+.search-results-grid,
+.search-results-section>.search-panel+.search-empty {
+    margin-top: 28px;
 }
 
 .more-filters {
