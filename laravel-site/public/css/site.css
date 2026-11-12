@@ -4999,6 +4999,14 @@ textarea.account-input {
     background: white;
 }
 
+.hero-dots button.hero-pause:disabled,
+.hero-dots button.hero-pause:disabled:hover {
+    color: white;
+    background: rgba(15, 34, 56, .55);
+    cursor: not-allowed;
+    opacity: .8;
+}
+
 .search-wrap {
     z-index: 5;
     margin-top: -56px;
@@ -5277,6 +5285,36 @@ textarea.account-input {
 
 .package-card .rating {
     font-size: 12px;
+}
+
+.package-home-details {
+    display: grid;
+    gap: 7px;
+    margin-top: 13px;
+}
+
+.package-home-details p {
+    display: grid;
+    gap: 2px;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.package-home-details span {
+    color: var(--muted);
+    font: 9px var(--mono);
+    letter-spacing: .12em;
+    text-transform: uppercase;
+}
+
+.package-home-details strong {
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.package-home-details + .package-meta .package-price-label {
+    max-width: 180px;
+    line-height: 1.4;
 }
 
 .package-card-button {

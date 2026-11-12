@@ -21,7 +21,7 @@
         <div class="admin-expiry-stats"><div><strong>{{ $expiry['expired'] }}</strong><span>Expired in last 7 days</span></div><div><strong>{{ $expiry['expiring'] }}</strong><span>Expiring in next 7 days</span></div><div><strong>{{ $expiry['next']?->format('j M Y') ?? '—' }}</strong><span>Next to expire</span></div></div>
     </section>
     <section class="admin-panel">
-        <div class="admin-panel-heading"><h2>Trending searches</h2><span>Top 5 this month</span></div>
+        <div class="admin-panel-heading"><h2>Trending searches</h2><span>Top 5 · past 6 months</span></div>
         @forelse($trending as $search)<div class="admin-trend-row"><span>{{ $search->query }}</span><span class="admin-trend-track"><i style="width: {{ max(4, (int) round($search->searches / max(1, $trending->max('searches')) * 100)) }}%"></i></span><strong>{{ $search->searches }}</strong></div>@empty<p class="muted">Search trends will appear here when travellers search.</p>@endforelse
     </section>
 </div>

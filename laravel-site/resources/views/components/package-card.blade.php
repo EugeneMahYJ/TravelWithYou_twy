@@ -1,8 +1,13 @@
-@props(['package', 'showCountry' => true])
+@props(['package', 'showCountry' => true, 'showHomeDetails' => false])
 
 @php($isSaved = auth()->check() ? auth()->user()->favorites()->whereKey($package->id)->exists() : in_array($package->id, session('wishlist', [])))
 @php($deal = \App\Support\Pricing::dealFor($package))
 @php($unitPrice = \App\Support\Pricing::unitPrice($package, 1))
+@if($showHomeDetails)
+    @php($route = collect([$package->departure_port, $package->destination_port])->filter(fn ($port) => filled($port))->join(' → '))
+    @php($nextDeparture = collect(\App\Support\Pricing::availableDepartureDates($package))->first(fn ($date) => \Illuminate\Support\Carbon::parse($date)->startOfDay()->greaterThanOrEqualTo(today())))
+    @php($route = $route ?: 'See itinerary on trip page')
+@endif
 
 <article class="package-card">
     <div class="package-media">
@@ -23,9 +28,15 @@
         </div>
         <h3><a href="{{ route('packages.show', ['package' => $package->slug]) }}">{{ $package->name }}</a></h3>
         <p>{{ $package->description }}</p>
+        @if($showHomeDetails)
+            <div class="package-home-details">
+                <p><span>Route</span><strong>{{ $route }}</strong></p>
+                <p><span>Next departure</span><strong>{{ $nextDeparture ? fmt_date($nextDeparture) : 'Dates to be announced' }}</strong></p>
+            </div>
+        @endif
         <div class="package-meta">
             <div class="package-price">
-                <span class="package-price-label">From</span>
+                <span class="package-price-label">{{ $showHomeDetails ? 'Starting price per person' : 'From' }}</span>
                 <strong>{{ fmt_rm($unitPrice) }}</strong>
                 @if($deal)
                     <del>{{ fmt_rm($package->price_from) }}</del>

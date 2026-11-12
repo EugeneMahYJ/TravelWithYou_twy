@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Booking;
 use App\Models\Country;
 use App\Models\Enquiry;
+use App\Models\SearchLog;
 use App\Models\TravelDeal;
 use App\Models\TravelPackage;
 use App\Models\User;
@@ -62,6 +63,29 @@ class AdminConsoleTest extends TestCase
             ->assertSee('value="'.$selectedMonth->format('Y-m').'" selected', false)
             ->assertSee('value="'.$currentMonth->format('Y-m').'"', false)
             ->assertSee('Confirmed booking value · '.$selectedMonth->format('F Y'));
+    }
+
+    public function test_dashboard_trending_searches_use_the_past_six_months(): void
+    {
+        $admin = $this->admin();
+        $this->actingAs($admin, 'admin')->withSession($this->verifiedSession());
+        $this->travelTo(Carbon::parse('2026-11-12 16:00:00'));
+
+        foreach (['Lisbon', 'lisbon', 'Japan'] as $query) {
+            SearchLog::create(['query' => $query]);
+        }
+        $oldSearch = SearchLog::create(['query' => 'Old trip']);
+        $oldSearch->forceFill([
+            'created_at' => now()->startOfMonth()->subMonths(5)->subDay(),
+            'updated_at' => now()->startOfMonth()->subMonths(5)->subDay(),
+        ])->save();
+
+        $dashboard = $this->get(route('admin.dashboard'))->assertOk()
+            ->assertSee('Top 5 · past 6 months');
+        $trending = $dashboard->viewData('trending');
+
+        $this->assertSame(['lisbon', 'japan'], $trending->pluck('normalized_query')->all());
+        $this->assertSame([2, 1], $trending->pluck('searches')->map(fn ($count) => (int) $count)->all());
     }
 
     public function test_paid_legacy_bookings_are_counted_and_displayed_as_confirmed(): void

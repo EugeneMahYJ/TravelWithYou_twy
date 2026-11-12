@@ -5,7 +5,7 @@
 @section('content')
 <section class="hero" aria-label="Featured journeys" aria-roledescription="carousel" data-carousel>
     @foreach($slides as $index => $slide)
-        <div class="hero-slide {{ $index === 0 ? 'is-active' : '' }}" data-slide="{{ $index }}" aria-hidden="{{ $index === 0 ? 'false' : 'true' }}">
+        <div class="hero-slide {{ $index === 0 ? 'is-active' : '' }}" data-slide="{{ $index }}" aria-hidden="{{ $index === 0 ? 'false' : 'true' }}" @if($index !== 0) inert @endif>
             @if(!empty($slide['video']))
                 <video class="hero-video" poster="{{ asset_img($slide['image']) }}" muted loop playsinline preload="metadata" aria-hidden="true" tabindex="-1">
                     <source src="{{ $slide['video'] }}" type="video/mp4">
@@ -27,8 +27,9 @@
     <button class="hero-arrow hero-next" type="button" aria-label="Next offer">→</button>
     <div class="hero-dots" role="group" aria-label="Choose offer">
         @foreach($slides as $index => $slide)<button type="button" aria-label="Show offer {{ $index + 1 }}" aria-pressed="{{ $index === 0 ? 'true' : 'false' }}" data-slide-to="{{ $index }}"></button>@endforeach
-        <button class="hero-pause" type="button" aria-label="Pause slideshow" aria-pressed="false" data-carousel-pause>Pause</button>
+        <button class="hero-pause" type="button" aria-label="Automatic slide changes" aria-pressed="false" data-carousel-pause>Pause</button>
     </div>
+    <span class="visually-hidden" data-carousel-status aria-live="polite" aria-atomic="true"></span>
 </section>
 
 <div class="wrap search-wrap">
@@ -37,15 +38,14 @@
 
 <section class="wrap section-block">
     <x-section-title number="01" title="Most popular trips"><a class="text-link" href="{{ route('destinations') }}">All destinations →</a></x-section-title>
-    <div class="trend-row"><span class="eyebrow">Trending searches</span>
-        <a href="{{ route('search', ['q' => 'sakura']) }}">Cherry blossom</a>
-        <a href="{{ route('search', ['q' => 'Mediterranean']) }}">Mediterranean cruise</a>
-        <a href="{{ route('search', ['q' => 'Great Migration']) }}">Safari</a>
-        <a href="{{ route('search', ['q' => 'Andaman', 'price' => '2-3.5']) }}">Beach under RM 3,500</a>
-        <a href="{{ route('search', ['q' => 'aurora']) }}">Northern lights</a>
-        <a href="{{ route('search', ['q' => 'Greece']) }}">Greek islands</a>
-    </div>
-    <div class="package-grid">@foreach($featured as $package)<x-package-card :package="$package" />@endforeach</div>
+    @if($trendingSearches->isNotEmpty())
+        <div class="trend-row"><span class="eyebrow">Trending searches</span>
+            @foreach($trendingSearches as $search)
+                <a href="{{ route('search', ['q' => $search->query]) }}">{{ $search->query }}</a>
+            @endforeach
+        </div>
+    @endif
+    <div class="package-grid">@foreach($featured as $package)<x-package-card :package="$package" show-home-details />@endforeach</div>
 </section>
 
 <section class="wrap section-block">

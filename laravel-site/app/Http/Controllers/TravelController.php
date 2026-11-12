@@ -18,6 +18,7 @@ use App\Models\TravelPackage;
 use App\Support\ClientNotifications;
 use App\Support\PackageItineraryPdf;
 use App\Support\Pricing;
+use App\Support\SearchTrends;
 use App\Support\TravellerDocumentStorage;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
@@ -49,6 +50,7 @@ class TravelController extends Controller
             'featured' => TravelPackage::where('published', true)->orderByDesc('reviews')->take(6)->get(),
             'destinations' => $destinations,
             'ships' => Ship::query()->inRandomOrder()->limit(5)->get(),
+            'trendingSearches' => SearchTrends::pastSixMonths(),
             'journalPosts' => Guide::where('published', true)->orderBy('sort_order')->take(3)->get(),
             'searchOptions' => $this->searchOptions(),
             'slides' => [

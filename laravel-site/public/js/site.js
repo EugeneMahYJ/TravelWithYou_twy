@@ -468,21 +468,33 @@ document.addEventListener("DOMContentLoaded", () => {
     let hovered = false;
     let focused = false;
     const pauseButton = document.querySelector("[data-carousel-pause]");
-    const show = (index) => {
+    const carouselStatus = document.querySelector("[data-carousel-status]");
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const syncPauseButton = () => {
+        if (!pauseButton) return;
+        const motionReduced = reducedMotion.matches;
+        pauseButton.disabled = motionReduced;
+        pauseButton.setAttribute("aria-pressed", String(paused || motionReduced));
+        pauseButton.setAttribute("aria-label", motionReduced ? "Slideshow paused for reduced motion" : "Automatic slide changes");
+        pauseButton.textContent = motionReduced ? "Reduced motion" : paused ? "Play" : "Pause";
+    };
+    const syncActiveVideo = () => {
+        const shouldPlay = !paused && !hovered && !focused && !reducedMotion.matches;
+        slides.forEach((slide, position) => {
+            const video = slide.querySelector(".hero-video");
+            if (!video) return;
+            if (position === active && shouldPlay) video.play().catch(() => {});
+            else video.pause();
+        });
+    };
+    const show = (index, announce = false) => {
         active = (index + slides.length) % slides.length;
         slides.forEach((slide, position) => {
             const selected = position === active;
             slide.classList.toggle("is-active", selected);
             slide.setAttribute("aria-hidden", String(!selected));
+            slide.inert = !selected;
             slide.querySelector(".hero-image")?.classList.toggle("kenburns", selected);
-            const video = slide.querySelector(".hero-video");
-            if (video) {
-                if (selected && !paused) {
-                    video.play().catch(() => {});
-                } else {
-                    video.pause();
-                }
-            }
             const copy = slide.querySelector(".hero-copy");
             if (selected && copy) {
                 copy.classList.remove("fade-up");
@@ -491,32 +503,28 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
         dots.forEach((dot, position) => dot.setAttribute("aria-pressed", String(position === active)));
+        if (announce && carouselStatus) {
+            const heading = slides[active].querySelector("h1")?.textContent?.trim() || "";
+            carouselStatus.textContent = `Slide ${active + 1} of ${slides.length}: ${heading}`;
+        }
+        syncActiveVideo();
         restart();
     };
     const restart = () => {
         window.clearTimeout(timer);
-        if (slides.length < 2 || paused || hovered || focused || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        if (slides.length < 2 || paused || hovered || focused || reducedMotion.matches) return;
         timer = window.setTimeout(() => show(active + 1), 7000);
     };
 
-    document.querySelector(".hero-prev")?.addEventListener("click", () => show(active - 1));
-    document.querySelector(".hero-next")?.addEventListener("click", () => show(active + 1));
+    document.querySelector(".hero-prev")?.addEventListener("click", () => show(active - 1, true));
+    document.querySelector(".hero-next")?.addEventListener("click", () => show(active + 1, true));
     dots.forEach((dot) => dot.addEventListener("click", () => {
-        show(Number(dot.dataset.slideTo));
+        show(Number(dot.dataset.slideTo), true);
     }));
     pauseButton?.addEventListener("click", () => {
         paused = !paused;
-        pauseButton.setAttribute("aria-pressed", String(paused));
-        pauseButton.setAttribute("aria-label", paused ? "Play slideshow" : "Pause slideshow");
-        pauseButton.textContent = paused ? "Play" : "Pause";
-        const activeVideo = slides[active]?.querySelector(".hero-video");
-        if (activeVideo) {
-            if (paused) {
-                activeVideo.pause();
-            } else {
-                activeVideo.play().catch(() => {});
-            }
-        }
+        syncPauseButton();
+        syncActiveVideo();
         restart();
     });
 
@@ -580,17 +588,38 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
     const carousel = document.querySelector("[data-carousel]");
-    carousel?.addEventListener("mouseenter", () => { hovered = true; restart(); });
-    carousel?.addEventListener("mouseleave", () => { hovered = false; restart(); });
-    carousel?.addEventListener("focusin", (event) => {
-        focused = event.target instanceof Element && event.target.matches(":focus-visible");
+    carousel?.addEventListener("mouseenter", () => {
+        hovered = true;
+        syncActiveVideo();
+        restart();
+    });
+    carousel?.addEventListener("mouseleave", () => {
+        hovered = false;
+        syncActiveVideo();
+        restart();
+    });
+    carousel?.addEventListener("focusin", () => {
+        focused = true;
+        syncActiveVideo();
         restart();
     });
     carousel?.addEventListener("focusout", (event) => {
         if (!carousel.contains(event.relatedTarget)) {
             focused = false;
+            syncActiveVideo();
             restart();
         }
     });
+    reducedMotion.addEventListener("change", () => {
+        syncPauseButton();
+        syncActiveVideo();
+        restart();
+    });
+    slides.forEach((slide, position) => {
+        slide.inert = position !== active;
+        slide.setAttribute("aria-hidden", String(position !== active));
+    });
+    syncPauseButton();
+    syncActiveVideo();
     restart();
 });

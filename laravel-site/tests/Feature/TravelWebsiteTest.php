@@ -127,6 +127,60 @@ class TravelWebsiteTest extends TestCase
             ->assertDontSee('Add to your trip');
     }
 
+    public function test_homepage_trip_cards_show_consistent_route_price_and_departure_details(): void
+    {
+        $home = $this->get(route('home'))
+            ->assertOk()
+            ->assertSee('data-carousel-status', false)
+            ->assertSee('aria-live="polite"', false)
+            ->assertSee('aria-atomic="true"', false)
+            ->assertSee(' inert', false)
+            ->assertSee('Starting price per person')
+            ->assertSee('Route')
+            ->assertSee('Next departure');
+
+        $content = $home->getContent();
+        $this->get(route('search'))
+            ->assertOk()
+            ->assertDontSee('package-home-details', false)
+            ->assertDontSee('Starting price per person');
+
+        preg_match_all('/class="hero-slide[^"]*" data-slide="\d+" aria-hidden="true"\s+inert/', $content, $inactiveSlides);
+        $this->assertCount(4, $inactiveSlides[0]);
+    }
+
+    public function test_homepage_shows_the_top_five_searches_from_the_past_six_months(): void
+    {
+        $this->travelTo(Carbon::parse('2026-11-12 16:00:00'));
+        $recordSearch = function (string $query, Carbon $createdAt): void {
+            $search = SearchLog::create(['query' => $query]);
+            $search->forceFill(['created_at' => $createdAt, 'updated_at' => $createdAt])->save();
+        };
+
+        foreach ([
+            ['Lisbon', 2],
+            ['lisbon', 2],
+            ['Japan', 3],
+            ['Greece', 2],
+            ['Aurora', 1],
+            ['Sakura', 1],
+            ['Safari', 1],
+        ] as [$query, $count]) {
+            for ($index = 0; $index < $count; $index++) {
+                $recordSearch($query, now()->subDays($index));
+            }
+        }
+        $recordSearch('Old trip', now()->startOfMonth()->subMonths(5)->subDay());
+
+        $response = $this->get(route('home'))->assertOk();
+        $trending = $response->viewData('trendingSearches');
+
+        $this->assertSame(['lisbon', 'japan', 'greece', 'aurora', 'safari'], $trending->pluck('normalized_query')->all());
+        $this->assertSame([4, 3, 2, 1, 1], $trending->pluck('searches')->map(fn ($count) => (int) $count)->all());
+        $response->assertSee(route('search', ['q' => 'Lisbon']), false)
+            ->assertDontSee('Old trip');
+    }
+
     public function test_home_search_clear_link_stays_on_home_without_query_filters(): void
     {
         $this->get(route('home', ['q' => 'Japan', 'price' => 'lt2']))

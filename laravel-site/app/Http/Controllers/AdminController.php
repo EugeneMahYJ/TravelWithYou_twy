@@ -22,6 +22,7 @@ use App\Support\AdminNotifications;
 use App\Support\AssetLibrary;
 use App\Support\ClientNotifications;
 use App\Support\Pricing;
+use App\Support\SearchTrends;
 use App\Support\TravellerDocumentStorage;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -74,9 +75,7 @@ class AdminController extends Controller
             'bookingTotal' => Booking::count(),
             'newBookings' => Booking::whereBetween('created_at', [$month, $month->copy()->endOfMonth()])->count(),
             'expiry' => $expiry,
-            'trending' => SearchLog::query()->whereNotNull('query')->where('query', '!=', '')
-                ->whereBetween('created_at', [$month, $month->copy()->endOfMonth()])
-                ->selectRaw('query, COUNT(*) as searches')->groupBy('query')->orderByDesc('searches')->limit(5)->get(),
+            'trending' => SearchTrends::pastSixMonths(),
             'recentBookings' => $recentBookings,
             'attention' => $notifications->items(),
         ]);
