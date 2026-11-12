@@ -16,6 +16,7 @@ use App\Models\Ship;
 use App\Models\TravelDeal;
 use App\Models\TravelPackage;
 use App\Support\ClientNotifications;
+use App\Support\PackageItineraryPdf;
 use App\Support\Pricing;
 use App\Support\TravellerDocumentStorage;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -205,45 +206,12 @@ class TravelController extends Controller
     {
         abort_unless($package->published, 404);
         $filename = $package->slug.'-TravelWithYou.pdf';
-        if ($package->itinerary_pdf_path !== null) {
-            $disk = Storage::disk('local');
-            abort_unless($disk->exists($package->itinerary_pdf_path), 404);
+        $contents = app(PackageItineraryPdf::class)->contents($package);
 
-            $path = $disk->path($package->itinerary_pdf_path);
-
-            return $request->boolean('download')
-                ? response()->download($path, $filename, ['Content-Type' => 'application/pdf'])
-                : response()->file($path, [
-                    'Content-Type' => 'application/pdf',
-                    'Content-Disposition' => 'inline; filename="'.$filename.'"',
-                ]);
-        }
-
-        $brochure = config('package_brochures.by_source_id.'.$package->source_id);
-        if ($brochure !== null) {
-            $path = public_path('assets/Package_Example/'.$brochure);
-            abort_unless(is_file($path), 404);
-
-            return $request->boolean('download')
-                ? response()->download($path, $filename, ['Content-Type' => 'application/pdf'])
-                : response()->file($path, [
-                    'Content-Type' => 'application/pdf',
-                    'Content-Disposition' => 'inline; filename="'.$filename.'"',
-                ]);
-        }
-
-        $ship = $package->ship
-            ? Ship::query()->with('cabins')->where('name', $package->ship)->first()
-            : null;
-        $filename = $package->slug.'-TravelWithYou.pdf';
-        $pdf = Pdf::loadView('packages.pdf', [
-            'package' => $package,
-            'ship' => $ship,
-        ])->setPaper('a4');
-
-        return $request->boolean('download')
-            ? $pdf->download($filename)
-            : $pdf->stream($filename);
+        return response($contents, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => ($request->boolean('download') ? 'attachment' : 'inline').'; filename="'.$filename.'"',
+        ]);
     }
 
     public function bookingForm(Request $request, string $id, string $date): View
@@ -1352,6 +1320,7 @@ class TravelController extends Controller
         Request $request,
         ClientNotifications $notifications,
         TravellerDocumentStorage $documentStorage,
+        PackageItineraryPdf $itineraryPdf,
     ): RedirectResponse
     {
         if ($request->boolean('apply_promo')) {
@@ -1378,7 +1347,7 @@ class TravelController extends Controller
         }
 
         try {
-            return $this->completeOrder($request, $notifications, $documentStorage);
+            return $this->completeOrder($request, $notifications, $documentStorage, $itineraryPdf);
         } finally {
             $lock->release();
         }
@@ -1388,6 +1357,7 @@ class TravelController extends Controller
         Request $request,
         ClientNotifications $notifications,
         TravellerDocumentStorage $documentStorage,
+        PackageItineraryPdf $itineraryPdf,
     ): RedirectResponse {
         $items = $this->cartItems($request);
         if ($items->isEmpty()) {
@@ -1645,10 +1615,15 @@ class TravelController extends Controller
         $bookings->each(fn (Booking $booking) => $booking->load('package'));
         if (config('mail.default') !== 'log') {
             try {
+                $attachments = $bookings->map(fn (Booking $booking): array => [
+                    'name' => $booking->package->slug.'-'.$booking->reference.'-itinerary.pdf',
+                    'contents' => $itineraryPdf->contents($booking->package),
+                ])->all();
                 Mail::to($recipient)->send(new BookingConfirmationMail(
                     $orderReference,
                     $bookings,
                     $paymentStatus,
+                    $attachments,
                 ));
             } catch (\Throwable $exception) {
                 Log::error('Booking confirmation email could not be sent.', [

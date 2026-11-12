@@ -4,6 +4,7 @@ namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
@@ -17,6 +18,7 @@ class BookingConfirmationMail extends Mailable
         public string $orderReference,
         public Collection $bookings,
         public string $paymentStatus,
+        public array $itineraryAttachments,
     ) {}
 
     public function envelope(): Envelope
@@ -30,6 +32,17 @@ class BookingConfirmationMail extends Mailable
     {
         return new Content(
             markdown: 'emails.booking-confirmation',
+        );
+    }
+
+    public function attachments(): array
+    {
+        return array_map(
+            fn (array $attachment) => Attachment::fromData(
+                fn (): string => $attachment['contents'],
+                $attachment['name'],
+            )->withMime('application/pdf'),
+            $this->itineraryAttachments,
         );
     }
 }

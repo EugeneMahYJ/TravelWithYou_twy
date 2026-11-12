@@ -32,22 +32,9 @@ Thank you for booking with TravelWithYou. Your order **{{ $orderReference }}** h
 @endif
 **Booking total:** {{ fmt_rm($booking->subtotal - $booking->discount + $booking->taxes) }}
 
-@php($dailyPlan = $booking->package->dailyPlan())
-@if($dailyPlan !== [])
-### Itinerary
-@foreach($dailyPlan as $index => $day)
-**Day {{ $index + 1 }} · {{ $day['place'] }}**  
-@if($day['activities']){{ $day['activities'] }}@endif
-@if($day['transport'])
-  
-Transport: {{ $day['transport'] }}
-@endif
-
-@endforeach
-@endif
 @endforeach
 
-Please keep this email for your records. Our travel team will contact you if any further information is needed.
+The itinerary PDF for each trip is attached to this email. Please keep this email and the attachments for your records. Our travel team will contact you if any further information is needed.
 
 Thanks,<br>
 {{ config('app.name', 'TravelWithYou') }}

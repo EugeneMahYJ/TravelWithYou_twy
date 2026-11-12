@@ -680,9 +680,18 @@ class BookingWizardTest extends TestCase
         $this->assertStringContainsString('Payment status', $emailHtml);
         $this->assertStringContainsString('Mediterranean Grand Cruise', $emailHtml);
         $this->assertStringContainsString('Athens', $emailHtml);
-        $this->assertStringContainsString('Embarkation and welcome dinner', $emailHtml);
+        $this->assertStringContainsString('itinerary PDF for each trip is attached', $emailHtml);
+        $this->assertStringNotContainsString('Embarkation and welcome dinner', $emailHtml);
         $this->assertStringContainsString('Aurelia Voyager', $emailHtml);
         $this->assertStringNotContainsString('A12345678', $emailHtml);
+        $this->assertCount(1, $confirmationMail->itineraryAttachments);
+        $attachment = $confirmationMail->itineraryAttachments[0];
+        $this->assertStringStartsWith('%PDF-', $attachment['contents']);
+        $confirmationMail->assertHasAttachedData(
+            $attachment['contents'],
+            $attachment['name'],
+            ['mime' => 'application/pdf'],
+        );
 
         $booking = Booking::firstOrFail();
         $this->assertEqualsWithDelta($expectedSubtotal, $booking->subtotal, 0.01);
