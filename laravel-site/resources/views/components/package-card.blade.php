@@ -1,4 +1,4 @@
-@props(['package', 'showCountry' => true, 'showHomeDetails' => false])
+@props(['package', 'showCountry' => true, 'showHomeDetails' => false, 'showNextDeparture' => false])
 
 @php($isSaved = auth()->check() ? auth()->user()->favorites()->whereKey($package->id)->exists() : in_array($package->id, session('wishlist', [])))
 @php($deal = \App\Support\Pricing::dealFor($package))
@@ -7,6 +7,9 @@
     @php($route = collect([$package->departure_port, $package->destination_port])->filter(fn ($port) => filled($port))->join(' → '))
     @php($nextDeparture = collect(\App\Support\Pricing::availableDepartureDates($package))->first(fn ($date) => \Illuminate\Support\Carbon::parse($date)->startOfDay()->greaterThanOrEqualTo(today())))
     @php($route = $route ?: 'See itinerary on trip page')
+@endif
+@if($showNextDeparture)
+    @php($nextDeparture = \App\Support\Pricing::upcomingDepartureDates($package)[0] ?? null)
 @endif
 
 <article class="package-card">
@@ -28,6 +31,15 @@
         </div>
         <h3><a href="{{ route('packages.show', ['package' => $package->slug]) }}">{{ $package->name }}</a></h3>
         <p>{{ $package->description }}</p>
+        @if($showNextDeparture && $nextDeparture)
+            <div class="package-next-departure">
+                <svg aria-hidden="true" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="16" rx="1"></rect><path d="M7.5 3v4M16.5 3v4M3.5 9h17"></path></svg>
+                <span>
+                    <span class="package-next-departure-label">Next departure</span>
+                    <strong>{{ fmt_date($nextDeparture) }}</strong>
+                </span>
+            </div>
+        @endif
         @if($showHomeDetails)
             <div class="package-home-details">
                 <p><span>Route</span><strong>{{ $route }}</strong></p>

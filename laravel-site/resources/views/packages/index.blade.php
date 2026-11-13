@@ -128,7 +128,7 @@
     @else
         <div class="package-grid search-results-grid">
             @foreach($packages as $package)
-                <x-package-card :package="$package" />
+                <x-package-card :package="$package" :show-next-departure="true" />
             @endforeach
         </div>
         <div class="pagination">{{ $packages->links() }}</div>

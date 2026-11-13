@@ -759,6 +759,43 @@ class TravelWebsiteTest extends TestCase
         );
     }
 
+    public function test_search_hides_packages_without_upcoming_departures_and_shows_the_next_date(): void
+    {
+        $this->travelTo(Carbon::parse('2026-11-13 12:00:00'));
+        $future = $this->createPublishedPackage('upcoming-date-test', 'Upcoming Date Test Journey', [
+            'departures' => ['2026-12-20', '2026-12-02'],
+        ]);
+        $today = $this->createPublishedPackage('today-date-test', 'Today Date Test Journey', [
+            'departures' => ['2026-11-13'],
+        ]);
+        $past = $this->createPublishedPackage('past-date-test', 'Past Date Test Journey', [
+            'departures' => ['2026-11-12'],
+        ]);
+        $noDates = $this->createPublishedPackage('no-date-test', 'No Date Test Journey', [
+            'departures' => [],
+        ]);
+        $fareOnly = $this->createPublishedPackage('fare-date-test', 'Fare Date Test Journey', [
+            'departures' => [],
+            'fares' => [['date' => '2027-01-18', 'price' => 2400]],
+        ]);
+
+        $this->get(route('search'))
+            ->assertOk()
+            ->assertSee($future->name)
+            ->assertSee($today->name)
+            ->assertSee($fareOnly->name)
+            ->assertSee(fmt_date('2026-12-02'))
+            ->assertSee(fmt_date('2026-11-13'))
+            ->assertSee(fmt_date('2027-01-18'))
+            ->assertDontSee($past->name)
+            ->assertDontSee($noDates->name);
+
+        $this->get(route('search', ['month' => '2027-01']))
+            ->assertOk()
+            ->assertSee($fareOnly->name)
+            ->assertDontSee($future->name);
+    }
+
     public function test_search_logs_nonempty_queries_and_filters(): void
     {
         $this->get(route('search', ['q' => 'Greece']));
@@ -1661,7 +1698,7 @@ class TravelWebsiteTest extends TestCase
             'price_to' => 2000,
             'rating' => 4.5,
             'reviews' => 10,
-            'departures' => [],
+            'departures' => [today()->addMonths(3)->toDateString()],
             'image' => 'test-journey.jpg',
             'published' => true,
         ], $attributes));

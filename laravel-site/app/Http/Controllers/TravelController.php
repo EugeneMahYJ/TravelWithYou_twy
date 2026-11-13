@@ -84,7 +84,16 @@ class TravelController extends Controller
             'sort' => ['nullable', 'in:price-asc,price-desc,rating,duration'],
             'page' => ['nullable', 'integer', 'min:1'],
         ]);
-        $query = TravelPackage::query()->where('published', true);
+        $publishedPackages = TravelPackage::query()->where('published', true)->get();
+        $upcomingDepartures = $publishedPackages->mapWithKeys(fn (TravelPackage $package): array => [
+            $package->id => Pricing::upcomingDepartureDates($package),
+        ]);
+        $eligiblePackages = $publishedPackages->filter(
+            fn (TravelPackage $package): bool => $upcomingDepartures->get($package->id) !== [],
+        );
+        $query = TravelPackage::query()
+            ->where('published', true)
+            ->whereIn('id', $eligiblePackages->modelKeys());
         $query->when($request->filled('q'), function ($builder) use ($request) {
             $term = '%'.Str::lower(trim($request->string('q')->toString())).'%';
             $builder->where(function ($matches) use ($term) {
@@ -112,9 +121,9 @@ class TravelController extends Controller
         }
         if ($request->filled('month')) {
             $month = $request->string('month')->toString();
-            $matchingIds = TravelPackage::query()->where('published', true)->get(['id', 'departures'])
-                ->filter(fn (TravelPackage $package) => collect($package->departures)->contains(fn ($date) => str_starts_with($date, $month)))
-                ->modelKeys();
+            $matchingIds = $upcomingDepartures
+                ->filter(fn (array $dates): bool => collect($dates)->contains(fn ($date) => str_starts_with($date, $month)))
+                ->keys();
             $query->whereIn('id', $matchingIds);
         }
         if ($request->filled('price')) {
@@ -157,7 +166,7 @@ class TravelController extends Controller
             'regions' => Country::query()->select('region')->distinct()->orderBy('region')->pluck('region'),
             'countries' => Country::query()->orderBy('name')->pluck('name'),
             'types' => TravelPackage::TRIP_TYPES,
-            'searchOptions' => $this->searchOptions(),
+            'searchOptions' => $this->searchOptions($eligiblePackages),
             'activeFilters' => $filters,
         ]);
     }

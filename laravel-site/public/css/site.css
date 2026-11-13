@@ -5361,6 +5361,42 @@ textarea.account-input {
     line-height: 1.4;
 }
 
+.package-next-departure {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin: 12px 0;
+    padding: 7px 10px;
+    border: 1px solid #e8c9b0;
+    background: #FBE9DC;
+}
+
+.package-next-departure svg {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 auto;
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 1.6;
+}
+
+.package-next-departure>span {
+    display: grid;
+}
+
+.package-next-departure-label {
+    color: var(--accent-dark);
+    font: 10px var(--mono);
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+}
+
+.package-next-departure strong {
+    font-size: 14px;
+    font-weight: 700;
+}
+
 .package-card-button {
     width: 100%;
     margin-top: 15px;

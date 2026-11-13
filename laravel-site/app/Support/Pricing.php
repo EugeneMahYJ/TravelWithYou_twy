@@ -6,6 +6,7 @@ use App\Models\PromoCode;
 use App\Models\Ship;
 use App\Models\TravelDeal;
 use App\Models\TravelPackage;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
 
@@ -119,6 +120,14 @@ final class Pricing
             ->filter()
             ->unique()
             ->sort()
+            ->values()
+            ->all();
+    }
+
+    public static function upcomingDepartureDates(TravelPackage|array $package): array
+    {
+        return collect(self::availableDepartureDates($package))
+            ->filter(fn ($date) => Carbon::parse($date)->startOfDay()->greaterThanOrEqualTo(today()))
             ->values()
             ->all();
     }
