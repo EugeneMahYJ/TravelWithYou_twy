@@ -203,6 +203,39 @@ class TravelWebsiteTest extends TestCase
             ->assertSee('href="'.route('search').'" data-preserve-scroll-on-clear', false);
     }
 
+    public function test_search_empty_state_suggests_only_active_filters_and_preserves_the_rest_when_removed(): void
+    {
+        $month = now()->format('Y-m');
+        $response = $this->get(route('search', [
+            'q' => 'no-matching-trip',
+            'month' => $month,
+            'ship' => 'Coral Horizon',
+            'sort' => 'rating',
+            'page' => 2,
+        ]))->assertOk()
+            ->assertSee('No trips match your search')
+            ->assertSee('Your current search')
+            ->assertSee('Broaden your search')
+            ->assertSee('Departure month:')
+            ->assertSee('Ship: Coral Horizon')
+            ->assertDontSee('Departure port:')
+            ->assertDontSee('Price range:')
+            ->assertDontSee('Travel style:');
+
+        $monthRemovalUrl = route('search', [
+            'q' => 'no-matching-trip',
+            'ship' => 'Coral Horizon',
+            'sort' => 'rating',
+        ]);
+        $this->assertStringContainsString('href="'.e($monthRemovalUrl).'"', $response->getContent());
+
+        $this->get(route('search', ['q' => 'no-matching-trip']))
+            ->assertOk()
+            ->assertSee('No filters remain to remove.')
+            ->assertSee('Clear all filters')
+            ->assertDontSee('>Remove filter</a>', false);
+    }
+
     public function test_home_destinations_are_four_random_distinct_source_countries_and_uncached(): void
     {
         $response = $this->get(route('home'))
