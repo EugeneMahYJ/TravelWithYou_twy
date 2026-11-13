@@ -151,6 +151,63 @@ document.addEventListener("DOMContentLoaded", () => {
         trigger.hidden = false;
     });
 
+    const mobileSearch = document.querySelector("[data-mobile-search]");
+    if (mobileSearch) {
+        const searchForm = mobileSearch.querySelector(".search-panel");
+        const inlineContainer = mobileSearch.querySelector("[data-mobile-search-inline]");
+        const trigger = mobileSearch.querySelector("[data-mobile-search-trigger]");
+        const dialog = mobileSearch.querySelector("[data-mobile-search-dialog]");
+        const dialogContent = mobileSearch.querySelector("[data-mobile-search-content]");
+        const closeButton = mobileSearch.querySelector("[data-mobile-search-close]");
+        const mobileViewport = window.matchMedia("(max-width: 760px)");
+
+        if (searchForm && inlineContainer && trigger instanceof HTMLButtonElement
+            && dialog instanceof HTMLDialogElement && dialogContent && closeButton instanceof HTMLButtonElement
+            && typeof dialog.showModal === "function") {
+            const restoreForm = () => {
+                inlineContainer.append(searchForm);
+                trigger.setAttribute("aria-expanded", "false");
+            };
+            const closeDialog = () => {
+                if (dialog.open) dialog.close();
+                restoreForm();
+                if (mobileViewport.matches) trigger.focus();
+            };
+            const syncViewport = () => {
+                if (mobileViewport.matches) {
+                    mobileSearch.classList.add("is-mobile-enhanced");
+                    trigger.hidden = false;
+                } else {
+                    mobileSearch.classList.remove("is-mobile-enhanced");
+                    trigger.hidden = true;
+                    if (dialog.open) dialog.close();
+                    restoreForm();
+                }
+            };
+
+            trigger.addEventListener("click", () => {
+                dialogContent.append(searchForm);
+                dialog.showModal();
+                trigger.setAttribute("aria-expanded", "true");
+                closeButton.focus();
+            });
+            closeButton.addEventListener("click", closeDialog);
+            dialog.addEventListener("cancel", (event) => {
+                event.preventDefault();
+                closeDialog();
+            });
+            dialog.addEventListener("close", () => {
+                restoreForm();
+                if (mobileViewport.matches) trigger.focus();
+            });
+            dialog.addEventListener("click", (event) => {
+                if (event.target === dialog) closeDialog();
+            });
+            mobileViewport.addEventListener("change", syncViewport);
+            syncViewport();
+        }
+    }
+
     document.querySelectorAll("[data-clear-filters-in-place]").forEach((link) => {
         link.addEventListener("click", (event) => {
             event.preventDefault();

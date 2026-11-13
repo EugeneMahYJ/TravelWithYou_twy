@@ -592,6 +592,34 @@ class TravelWebsiteTest extends TestCase
             ->assertDontSee('<summary>More filters</summary>', false);
     }
 
+    public function test_mobile_search_compaction_reuses_the_existing_form_only_on_results_page(): void
+    {
+        $response = $this->get(route('search', ['q' => 'Japan', 'ship' => 'Coral Horizon']))
+            ->assertOk()
+            ->assertSee('data-mobile-search', false)
+            ->assertSee('data-mobile-search-trigger', false)
+            ->assertSee('aria-controls="search-filter-dialog"', false)
+            ->assertSee('aria-labelledby="search-filter-dialog-title"', false)
+            ->assertSee('name="ship"', false)
+            ->assertSee('name="region"', false);
+
+        $this->assertSame(1, substr_count($response->getContent(), 'class="search-panel hybrid-search-panel"'));
+        preg_match('/<form class="search-panel hybrid-search-panel"[^>]*>(.*?)<\/form>/s', $response->getContent(), $searchForm);
+        $this->assertNotEmpty($searchForm);
+        $this->assertSame(0, substr_count($searchForm[1], '<form'));
+
+        $siteStyles = preg_replace('/\s+/', '', file_get_contents(public_path('css/site.css')));
+        $this->assertStringContainsString('.search-results-section>.mobile-search-shell+.search-results-grid', $siteStyles);
+        $this->assertStringContainsString('.search-results-section>.mobile-search-shell+.search-empty', $siteStyles);
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertDontSee('data-mobile-search', false);
+        $this->get(route('deals'))
+            ->assertOk()
+            ->assertDontSee('data-mobile-search', false);
+    }
+
     public function test_each_search_filter_matches_the_catalogue(): void
     {
         $cases = [

@@ -44,7 +44,7 @@
 @endphp
 <x-page-head kicker="Search results" :title="$queryText !== '' ? 'Results for “'.$queryText.'”' : 'Find your trip'" :lead="$resultLead" />
 <section class="wrap search-results-section">
-    <x-search-bar :options="$searchOptions" :preserve-scroll-on-clear="true" :show-more-filters="true">
+    <x-search-bar :options="$searchOptions" :preserve-scroll-on-clear="true" :show-more-filters="true" :compact-on-mobile="true">
         <details class="more-filters">
             <summary>More filters</summary>
             <div class="more-filter-form">

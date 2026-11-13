@@ -1,5 +1,16 @@
-@props(['options', 'action' => null, 'cta' => 'Search trips', 'clearUrl' => null, 'clearInPlace' => false, 'preserveScrollOnClear' => false, 'showMoreFilters' => false])
+@props(['options', 'action' => null, 'cta' => 'Search trips', 'clearUrl' => null, 'clearInPlace' => false, 'preserveScrollOnClear' => false, 'showMoreFilters' => false, 'compactOnMobile' => false])
 
+@if($compactOnMobile)
+    <div class="mobile-search-shell" data-mobile-search>
+        <button class="mobile-search-trigger" type="button" data-mobile-search-trigger aria-controls="search-filter-dialog" aria-haspopup="dialog" aria-expanded="false" hidden>
+            <span class="mobile-search-trigger-main">
+                <span class="mobile-search-trigger-label">Where to?</span>
+                <strong>{{ request('q') ?: 'All destinations' }}</strong>
+            </span>
+            <span class="mobile-search-trigger-action">Edit search</span>
+        </button>
+        <div class="mobile-search-inline" data-mobile-search-inline>
+@endif
 <form class="search-panel hybrid-search-panel" action="{{ $action ?? route('search') }}" method="get" role="search">
     <label>
         <span>Where to?</span>
@@ -73,3 +84,14 @@
         <div class="search-panel-more-filters">{{ $slot }}</div>
     @endif
 </form>
+@if($compactOnMobile)
+        </div>
+        <dialog class="mobile-search-dialog" id="search-filter-dialog" data-mobile-search-dialog aria-labelledby="search-filter-dialog-title">
+            <div class="mobile-search-dialog-header">
+                <h2 id="search-filter-dialog-title">Edit your search</h2>
+                <button class="mobile-search-dialog-close" type="button" data-mobile-search-close aria-label="Close search filters">×</button>
+            </div>
+            <div class="mobile-search-dialog-content" data-mobile-search-content></div>
+        </dialog>
+    </div>
+@endif

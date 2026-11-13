@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="@yield('description', 'Thoughtful small-group journeys, slow escapes and boutique cruises with Travel With You.')">
     <title>@yield('title', 'Travel With You — journeys at your own pace')</title>
-    <link rel="stylesheet" href="{{ asset('css/site.css') }}">
-    <script src="{{ asset('js/site.js') }}" defer></script>
+    <link rel="stylesheet" href="{{ asset('css/site.css') }}?v={{ filemtime(public_path('css/site.css')) }}">
+    <script src="{{ asset('js/site.js') }}?v={{ filemtime(public_path('js/site.js')) }}" defer></script>
     <script src="{{ asset('js/slideshow.js') }}" defer></script>
 </head>
 <body>
