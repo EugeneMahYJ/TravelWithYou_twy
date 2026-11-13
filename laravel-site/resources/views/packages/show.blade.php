@@ -1,5 +1,26 @@
 @extends('layouts.app')
 @section('title', $package->name.' — Travel With You')
+@section('description', \Illuminate\Support\Str::limit(trim(strip_tags((string) ($package->description ?: $package->details))), 155))
+@section('og_image', url(asset_img((string) $package->image)))
+@section('og_type', 'product')
+@push('structured-data')
+<script type="application/ld+json">{!! json_encode([
+    '@context' => 'https://schema.org',
+    '@type' => 'TouristTrip',
+    'name' => $package->name,
+    'description' => \Illuminate\Support\Str::limit(trim(strip_tags((string) ($package->description ?: $package->details))), 300),
+    'image' => url(asset_img((string) $package->image)),
+    'url' => route('packages.show', ['package' => $package->slug]),
+    'provider' => ['@type' => 'Organization', 'name' => 'Travel With You', 'url' => url('/')],
+    'offers' => [
+        '@type' => 'Offer',
+        'priceCurrency' => 'MYR',
+        'price' => (float) $package->price_from,
+        'url' => route('packages.show', ['package' => $package->slug]),
+        'availability' => 'https://schema.org/InStock',
+    ],
+], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) !!}</script>
+@endpush
 @section('content')
 @php
     $isSaved = auth()->check()
@@ -27,7 +48,7 @@
     </p>
 </div>
 <div class="wrap package-detail-layout">
-    <main class="package-detail-main">
+    <div class="package-detail-main">
         <x-slideshow :slides="$gallery" :alt="$package->name" />
         <div class="package-detail-meta">
             <span class="package-type-chip">{{ $package->type }}</span>
@@ -86,7 +107,7 @@
                 <span class="sailing-arrow" aria-hidden="true">→</span>
             </a>
         @endif
-    </main>
+    </div>
 
     <aside class="package-booking-aside">
         <div class="package-booking-card">
@@ -246,7 +267,7 @@
                 <a class="package-coming-link" href="{{ route('search') }}">Explore other trips <span aria-hidden="true">→</span></a>
             </div>
             @if($countryThumbnail)
-                <img class="package-coming-image" src="{{ $countryThumbnail }}" alt="{{ $package->country }} destination">
+                <img class="package-coming-image" src="{{ $countryThumbnail }}" alt="{{ $package->country }} destination" loading="lazy" decoding="async">
             @endif
         </article>
     @endif

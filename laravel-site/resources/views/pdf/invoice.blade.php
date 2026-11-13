@@ -12,7 +12,7 @@
     </style>
 </head>
 <body>
-    <h1>TravelWithYou booking invoice</h1>
+    <h1>Travel With You booking invoice</h1>
     <p class="reference">Booking reference: <strong>{{ $orderReference }}</strong></p>
     <table>
         <thead><tr><th>Package</th><th>Departure</th><th>Guests</th><th class="right">Total</th></tr></thead>

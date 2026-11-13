@@ -1,12 +1,12 @@
 @extends('layouts.app')
-@section('title', $post ? $post->title.' — Travel guides' : 'Travel guides — TravelWithYou')
+@section('title', $post ? $post->title.' — Travel guides' : 'Travel guides — Travel With You')
 @section('content')
 @if($post)
     <article class="wrap guide-article">
         <a class="guide-back" href="{{ route('blog') }}">← Travel guides</a>
         <p class="guide-meta">{{ $post->category }} · {{ $post->read_time }} read</p>
         <h1>{{ $post->title }}</h1>
-        <img class="guide-hero-image" src="{{ asset_img($post->image) }}" alt="{{ $post->title }}">
+        <img class="guide-hero-image" src="{{ asset_img($post->image) }}" alt="{{ $post->title }}" fetchpriority="high">
         <p>{{ $post->body }}</p>
     </article>
 @else

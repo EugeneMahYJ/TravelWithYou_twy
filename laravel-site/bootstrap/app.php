@@ -23,12 +23,29 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->render(function (Throwable $exception, Request $request) {
-            if (! $request->is('admin', 'admin/*')) {
-                return null;
-            }
-
             $tokenMismatch = $exception instanceof TokenMismatchException
                 || ($exception instanceof HttpExceptionInterface && $exception->getStatusCode() === 419);
+
+            if (! $request->is('admin', 'admin/*')) {
+                if (! $tokenMismatch || $request->expectsJson()) {
+                    return null;
+                }
+
+                // Public form posted after its session expired: go back to the form with a
+                // friendly message. Booking, checkout and traveller forms never get their
+                // input restored, and passwords, card details and codes are never restored.
+                $redirect = back()->with('error', 'Your session expired. Please try again.');
+                if (! $request->is('checkout', 'book/*', 'account/travellers')) {
+                    $redirect->withInput(collect($request->input())->except([
+                        '_token', 'password', 'password_confirmation', 'current_password', 'new_password',
+                        'new_password_confirmation', 'code', 'card_number', 'card_expiry', 'card_cvc',
+                        'card_name', 'payment_token',
+                    ])->all());
+                }
+
+                return $redirect;
+            }
+
             if ($tokenMismatch) {
                 Auth::guard('admin')->logout();
                 if ($request->hasSession()) {

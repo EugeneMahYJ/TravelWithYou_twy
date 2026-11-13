@@ -7,7 +7,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const search = picker.querySelector("[data-asset-picker-search]");
     const status = picker.querySelector("[data-asset-picker-status]");
     const empty = picker.querySelector("[data-asset-picker-empty]");
-    const folderLinks = [...picker.querySelectorAll("[data-asset-folder]")];
+    // Only the links in the folder list: each picture button also has a data-asset-folder
+    // attribute (used for filtering), and must not be mistaken for a folder link.
+    const folderSelector = "[data-asset-picker-folders] [data-asset-folder]";
+    const folderLinks = [...picker.querySelectorAll(folderSelector)];
     const kindButtons = [...picker.querySelectorAll("[data-asset-kind-filter]")];
     const breadcrumb = picker.querySelector("[data-asset-picker-breadcrumb]");
     const countLabel = picker.querySelector("[data-asset-picker-count]");
@@ -123,7 +126,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        const folderLink = event.target.closest("[data-asset-folder]");
+        const folderLink = event.target.closest(folderSelector);
         if (folderLink && picker.contains(folderLink)) {
             event.preventDefault();
             activeFolder = folderLink.dataset.assetFolder;

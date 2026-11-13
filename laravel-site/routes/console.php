@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Booking;
+use App\Models\SearchTermCount;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -49,3 +50,13 @@ Artisan::command('traveller-documents:cleanup', function (TravellerDocumentStora
 })->purpose('Delete staged traveller documents after 30 days and booking documents 90 days after departure');
 
 Schedule::command('traveller-documents:cleanup')->daily();
+
+Artisan::command('search-terms:prune {--days=190 : Keep this many days of search history}', function () {
+    $deleted = SearchTermCount::query()
+        ->where('searched_on', '<', now()->subDays(max(1, (int) $this->option('days')))->toDateString())
+        ->delete();
+
+    $this->info("Deleted {$deleted} old search-term rows.");
+})->purpose('Delete search-term counts older than 190 days (trending searches look back six months)');
+
+Schedule::command('search-terms:prune')->daily();

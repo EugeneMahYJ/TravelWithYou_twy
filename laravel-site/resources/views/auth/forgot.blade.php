@@ -1,5 +1,6 @@
 @extends('layouts.app')
 @section('title', 'Reset password — Travel With You')
+@section('robots', 'noindex')
 @section('content')
 <x-auth-shell title="Reset password" sub="We will email you a reset link.">
     <form class="auth-form" method="post" action="{{ route('password.email') }}">@csrf

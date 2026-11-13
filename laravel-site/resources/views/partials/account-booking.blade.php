@@ -5,7 +5,7 @@
     </div>
     <div class="account-trip-main">
         <a class="account-trip-image" href="{{ route('packages.show', ['package' => $booking->package->slug]) }}">
-            <img src="{{ asset_img($booking->package->image) }}" alt="{{ $booking->package->country }}">
+            <img src="{{ asset_img($booking->package->image) }}" alt="{{ $booking->package->country }}" loading="lazy" decoding="async">
         </a>
         <div class="account-trip-copy">
             <h3><a href="{{ route('packages.show', ['package' => $booking->package->slug]) }}">{{ $booking->package->name }}</a></h3>

@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Contact us — TravelWithYou')
+@section('title', 'Contact us — Travel With You')
 @section('content')
 <x-page-head kicker="Contact us" title="Leave us a message." />
 <section class="wrap contact-layout contact-port">

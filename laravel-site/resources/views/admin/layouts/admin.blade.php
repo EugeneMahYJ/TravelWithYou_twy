@@ -4,14 +4,16 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="robots" content="noindex, nofollow">
     <title>@yield('title', 'Dashboard') · Travel With You Admin</title>
-    <link rel="stylesheet" href="{{ asset('css/site.css') }}">
-    <script src="{{ asset('js/admin.js') }}" defer></script>
-    @if(request()->routeIs('admin.media'))<script src="{{ asset('js/admin-media.js') }}" defer></script>@endif
-    @if(request()->routeIs('admin.packages.create', 'admin.packages.edit', 'admin.ships.create', 'admin.ships.edit', 'admin.guides.create', 'admin.guides.edit'))<script src="{{ asset('js/admin-asset-picker.js') }}" defer></script>@endif
-    @if(request()->routeIs('admin.packages.create', 'admin.packages.edit'))<script src="{{ asset('js/admin-package-form.js') }}" defer></script>@endif
-    @if(request()->routeIs('admin.ships.create', 'admin.ships.edit'))<script src="{{ asset('js/admin-ship-form.js') }}" defer></script>@endif
-    @if(request()->routeIs('admin.promos.create', 'admin.promos.edit'))<script src="{{ asset('js/admin-promo-form.js') }}" defer></script>@endif
+    @php $assetUrl = fn (string $path): string => asset($path).'?v='.filemtime(public_path($path)); @endphp
+    <link rel="stylesheet" href="{{ $assetUrl('css/site.css') }}">
+    <script src="{{ $assetUrl('js/admin.js') }}" defer></script>
+    @if(request()->routeIs('admin.media'))<script src="{{ $assetUrl('js/admin-media.js') }}" defer></script>@endif
+    @if(request()->routeIs('admin.packages.create', 'admin.packages.edit', 'admin.ships.create', 'admin.ships.edit', 'admin.guides.create', 'admin.guides.edit'))<script src="{{ $assetUrl('js/admin-asset-picker.js') }}" defer></script>@endif
+    @if(request()->routeIs('admin.packages.create', 'admin.packages.edit'))<script src="{{ $assetUrl('js/admin-package-form.js') }}" defer></script>@endif
+    @if(request()->routeIs('admin.ships.create', 'admin.ships.edit'))<script src="{{ $assetUrl('js/admin-ship-form.js') }}" defer></script>@endif
+    @if(request()->routeIs('admin.promos.create', 'admin.promos.edit'))<script src="{{ $assetUrl('js/admin-promo-form.js') }}" defer></script>@endif
 </head>
 <body class="admin-body" data-activity-url="{{ route('admin.activity') }}" data-login-url="{{ route('admin.login') }}" data-idle-login-url="{{ route('admin.login', ['reason' => 'idle']) }}">
     <a class="skip-link" href="#admin-main">Skip to content</a>

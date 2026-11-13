@@ -2,7 +2,7 @@
 @section('title', $country.' — Destinations — Travel With You')
 @section('content')
 <section class="country-hero">
-    <img src="{{ asset_img($destination->image) }}" alt="{{ $country }}">
+    <img src="{{ asset_img($destination->image) }}" alt="{{ $country }}" fetchpriority="high">
     <div class="country-hero-shade"></div>
     <div class="wrap country-hero-copy">
         <p class="country-breadcrumb"><a href="{{ route('destinations') }}">Destinations</a> / <a href="{{ route('destinations.region', ['region' => $region]) }}">{{ $region }}</a></p>

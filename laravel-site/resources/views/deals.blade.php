@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Deals — TravelWithYou')
+@section('title', 'Deals — Travel With You')
 @section('content')
 @include('partials.page-head', ['kicker' => 'Deals', 'heading' => 'Savings with the small print up front.', 'intro' => 'Every offer shows what you pay, what you save and the terms, with no surprises at checkout.'])
 <section class="wrap deals-search-section">

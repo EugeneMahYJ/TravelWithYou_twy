@@ -6,7 +6,7 @@ use App\Models\Enquiry;
 use App\Models\Faq;
 use App\Models\Country;
 use App\Models\NewsletterSubscriber;
-use App\Models\SearchLog;
+use App\Models\SearchTermCount;
 use App\Models\Ship;
 use App\Models\TravelDeal;
 use App\Models\TravelPackage;
@@ -100,7 +100,7 @@ class TravelWebsiteTest extends TestCase
             ->assertOk()
             ->assertSee('Sakura Rail Journey')
             ->assertSee('name="ship"', false);
-        $allTrips->assertSee('alt="TravelWithYou"', false)
+        $allTrips->assertSee('alt="Travel With You"', false)
             ->assertSee('placeholder="Search trips, countries…"', false)
             ->assertSee('Tour packages and cruises to forty countries, planned by people who have been there.')
             ->assertSee('Copyright © 2026 Travel With You Sdn Bhd | All rights reserved.')
@@ -152,9 +152,11 @@ class TravelWebsiteTest extends TestCase
     public function test_homepage_shows_the_top_five_searches_from_the_past_six_months(): void
     {
         $this->travelTo(Carbon::parse('2026-11-12 16:00:00'));
-        $recordSearch = function (string $query, Carbon $createdAt): void {
-            $search = SearchLog::create(['query' => $query]);
-            $search->forceFill(['created_at' => $createdAt, 'updated_at' => $createdAt])->save();
+        $recordSearch = function (string $query, Carbon $day): void {
+            SearchTermCount::query()->firstOrCreate(
+                ['searched_on' => $day->toDateString(), 'term' => SearchTermCount::normalise($query)],
+                ['label' => SearchTermCount::label($query), 'hits' => 0],
+            )->increment('hits');
         };
 
         foreach ([
@@ -796,14 +798,55 @@ class TravelWebsiteTest extends TestCase
             ->assertDontSee($future->name);
     }
 
-    public function test_search_logs_nonempty_queries_and_filters(): void
+    public function test_search_counts_terms_per_day_without_storing_users_or_filters(): void
     {
         $this->get(route('search', ['q' => 'Greece']));
-        $this->assertDatabaseHas('search_logs', ['query' => 'Greece']);
+        $this->get(route('search', ['q' => '  greece ']));
+        $this->assertDatabaseHas('search_term_counts', ['term' => 'greece', 'hits' => 1]);
+
+        // The same term on another day is counted again, as a separate daily row.
+        \Illuminate\Support\Carbon::setTestNow(now()->addDay());
+        $this->get(route('search', ['q' => 'Greece']));
+        $this->assertSame(2, SearchTermCount::where('term', 'greece')->count());
+        \Illuminate\Support\Carbon::setTestNow();
 
         $this->get(route('search', ['region' => 'Asia']));
-        $filterSearch = SearchLog::query()->whereNull('query')->latest('id')->firstOrFail();
-        $this->assertSame(['region' => 'Asia'], $filterSearch->filters);
+        $this->assertSame(2, SearchTermCount::count());
+        $this->assertFalse(\Illuminate\Support\Facades\Schema::hasColumn('search_term_counts', 'user_id'));
+    }
+
+    public function test_recording_a_term_twice_on_the_same_day_updates_one_row(): void
+    {
+        SearchTermCount::record('Lisbon');
+        SearchTermCount::record('lisbon ');
+        SearchTermCount::record('LISBON');
+
+        $this->assertSame(1, SearchTermCount::count());
+        $row = SearchTermCount::firstOrFail();
+        $this->assertSame(3, $row->hits);
+        $this->assertSame('Lisbon', $row->label);
+        $this->assertSame(now()->toDateString(), $row->searched_on);
+    }
+
+    public function test_search_ignores_bots_and_one_letter_terms(): void
+    {
+        $this->withHeader('User-Agent', 'Mozilla/5.0 (compatible; Googlebot/2.1)')->get(route('search', ['q' => 'Japan']));
+        $this->get(route('search', ['q' => 'a']));
+
+        $this->assertSame(0, SearchTermCount::count());
+    }
+
+    public function test_old_search_terms_are_pruned_after_six_months(): void
+    {
+        SearchTermCount::create(['searched_on' => now()->subDays(250)->toDateString(), 'term' => 'old', 'label' => 'Old', 'hits' => 4]);
+        SearchTermCount::create(['searched_on' => now()->subDays(120)->toDateString(), 'term' => 'kept', 'label' => 'Kept', 'hits' => 2]);
+        SearchTermCount::create(['searched_on' => now()->toDateString(), 'term' => 'langkawi', 'label' => 'Langkawi', 'hits' => 7]);
+
+        $this->artisan('search-terms:prune')->assertSuccessful();
+
+        $this->assertDatabaseMissing('search_term_counts', ['term' => 'old']);
+        $this->assertDatabaseHas('search_term_counts', ['term' => 'kept']);
+        $this->assertDatabaseHas('search_term_counts', ['term' => 'langkawi']);
     }
 
     public function test_search_pagination_preserves_active_filters(): void
@@ -959,7 +1002,7 @@ class TravelWebsiteTest extends TestCase
 
         $this->get(route('register'))
             ->assertOk()
-            ->assertSee('Join TravelWithYou')
+            ->assertSee('Join Travel With You')
             ->assertSee('Save trips, speed up checkout and get new-user deals.')
             ->assertSee('Confirm password')
             ->assertDontSee('name="username"', false);
@@ -1097,6 +1140,22 @@ class TravelWebsiteTest extends TestCase
 
         $this->get('/cancellation')->assertNotFound();
         $this->get(route('terms'))->assertDontSee('Cancellation &amp; Refunds', false);
+    }
+
+    public function test_public_pages_render_a_single_main_landmark(): void
+    {
+        $urls = [
+            route('about'),
+            route('faq'),
+            route('terms'),
+            route('privacy'),
+            route('packages.show', ['package' => 'sakura-rail']),
+        ];
+
+        foreach ($urls as $url) {
+            $content = $this->get($url)->assertOk()->getContent();
+            $this->assertSame(1, preg_match_all('/<main\b/', $content), "Expected one main landmark at {$url}");
+        }
     }
 
     public function test_unknown_page_uses_prototype_not_found_page(): void

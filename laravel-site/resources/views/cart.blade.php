@@ -1,5 +1,6 @@
 @extends('layouts.app')
-@section('title', 'Cart — TravelWithYou')
+@section('title', 'Cart — Travel With You')
+@section('robots', 'noindex')
 @section('content')
 @include('partials.page-head', ['kicker' => 'Cart', 'heading' => 'Your trips.'])
 @php
@@ -29,7 +30,7 @@
                         $addons = collect(\App\Support\Pricing::ADDONS)->keyBy('id');
                     @endphp
                     <article class="cart-row cart-row-full">
-                        <img src="{{ asset_img($package->image) }}" alt="{{ $package->country }} landscape">
+                        <img src="{{ asset_img($package->image) }}" alt="{{ $package->country }} landscape" loading="lazy" decoding="async">
                         <div class="cart-row-copy">
                             <p class="eyebrow">{{ $package->country }} · {{ $package->days }} days</p>
                             <h2><a href="{{ route('packages.show', ['package' => $package->slug]) }}">{{ $package->name }}</a></h2>

@@ -18,7 +18,7 @@
     </style>
 </head>
 <body>
-    <p class="brand">TravelWithYou</p>
+    <p class="brand">Travel With You</p>
     <h1>{{ $package->name }}</h1>
     <p>{{ $package->country }} | {{ $package->type }} | {{ $package->days }} days | {{ $package->departure_port }} to {{ $package->destination_port }}</p>
     <p>From {{ fmt_rm($package->price_from) }} per person | Rated {{ number_format($package->rating, 1) }}/5 ({{ $package->reviews }} reviews)</p>

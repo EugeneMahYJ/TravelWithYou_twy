@@ -1,5 +1,6 @@
 @extends('layouts.app')
-@section('title', 'Booking confirmation — TravelWithYou')
+@section('title', 'Booking confirmation — Travel With You')
+@section('robots', 'noindex')
 @section('content')
 @if($bookings->isEmpty())
     <section class="wrap confirmation-empty">

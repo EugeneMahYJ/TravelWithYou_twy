@@ -537,6 +537,55 @@ class CheckoutFlowTest extends TestCase
         $this->get(route('confirmation'))->assertOk();
     }
 
+    public function test_cash_at_office_reserves_the_booking_without_charging(): void
+    {
+        $this->addPackageWithDetails('sakura-rail', 1);
+        $this->app->bind(PaymentGateway::class, fn () => new class implements PaymentGateway
+        {
+            public function process(string $method, array $details): array
+            {
+                throw new \LogicException('Cash reservations must never reach the payment gateway.');
+            }
+
+            public function hostedFieldsView(): ?string
+            {
+                return null;
+            }
+        });
+
+        $this->post(route('checkout.place'), array_merge($this->checkoutInput(), ['payment_method' => 'cash']))
+            ->assertRedirect(route('confirmation'))
+            ->assertSessionHas('success');
+
+        $booking = Booking::firstOrFail();
+        $this->assertSame('Pending payment', $booking->status);
+        $this->assertSame('cash', $booking->payment_method);
+    }
+
+    public function test_cash_checkout_does_not_require_card_details(): void
+    {
+        $this->addPackageWithDetails('sakura-rail', 1);
+        $input = $this->checkoutInput();
+        unset($input['card_number'], $input['card_expiry'], $input['card_cvc'], $input['card_name']);
+
+        $this->post(route('checkout.place'), array_merge($input, ['payment_method' => 'cash']))
+            ->assertRedirect(route('confirmation'))
+            ->assertSessionHasNoErrors();
+    }
+
+    public function test_confirmation_email_with_itinerary_is_sent_once_after_the_response(): void
+    {
+        config(['mail.default' => 'array']);
+        Mail::fake();
+        $this->addPackageWithDetails('sakura-rail', 1);
+
+        $this->post(route('checkout.place'), $this->checkoutInput())->assertRedirect(route('confirmation'));
+        $this->get(route('confirmation'))->assertOk();
+
+        Mail::assertSent(BookingConfirmationMail::class, 1);
+        Mail::assertSent(BookingConfirmationMail::class, fn (BookingConfirmationMail $mail) => count($mail->itineraryAttachments) === 1);
+    }
+
     private function addPackage(string $slug, int $guests): TravelPackage
     {
         $package = TravelPackage::where('slug', $slug)->firstOrFail();

@@ -1,5 +1,7 @@
 @extends('layouts.app')
 @section('title', 'Search results — Travel With You')
+@section('robots', request()->query() === [] ? 'index,follow' : 'noindex,follow')
+@section('canonical', route('search'))
 @section('content')
 @php
     $queryText = trim(request('q', ''));

@@ -11,7 +11,7 @@ use App\Models\Faq;
 use App\Models\Guide;
 use App\Models\NewsletterSubscriber;
 use App\Models\PromoCode;
-use App\Models\SearchLog;
+use App\Models\SearchTermCount;
 use App\Models\Ship;
 use App\Models\TravelDeal;
 use App\Models\TravelPackage;
@@ -61,6 +61,25 @@ class TravelController extends Controller
                 ['image' => 'package-photo-24', 'kicker' => 'Group discount · 10% off', 'title' => 'The Great Migration.', 'text' => 'Tented camps on the Mara. Bring five friends and save.', 'label' => 'View Deal', 'url' => route('deals')],
             ],
         ])->header('Cache-Control', 'no-store, private');
+    }
+
+    /** Count a search term for the admin "trending" box, ignoring bots and repeats in one session. */
+    private function shouldRecordSearch(Request $request, string $term): bool
+    {
+        $agent = (string) $request->userAgent();
+        if ($agent === '' || preg_match('/bot|crawl|spider|slurp|preview|facebookexternalhit|curl|wget|python-requests|headless/i', $agent)) {
+            return false;
+        }
+
+        $key = now()->toDateString().'|'.SearchTermCount::normalise($term);
+        $seen = (array) $request->session()->get('recorded_searches', []);
+        if (in_array($key, $seen, true)) {
+            return false;
+        }
+        $seen[] = $key;
+        $request->session()->put('recorded_searches', array_slice($seen, -50));
+
+        return true;
     }
 
     public function packagesRedirect(Request $request): RedirectResponse
@@ -152,13 +171,8 @@ class TravelController extends Controller
         $packages = $query->paginate(12)->withQueryString();
         $searchTerm = trim($request->string('q')->toString());
         $activeFilters = collect($filters)->except(['page', 'sort'])->filter(fn ($value) => $value !== null && $value !== '')->all();
-        if ($searchTerm !== '' || $activeFilters !== []) {
-            SearchLog::create([
-                'user_id' => Auth::id(),
-                'query' => $searchTerm !== '' ? $searchTerm : null,
-                'filters' => $activeFilters,
-                'results_count' => $packages->total(),
-            ]);
+        if ($searchTerm !== '' && $this->shouldRecordSearch($request, $searchTerm)) {
+            SearchTermCount::record($searchTerm);
         }
 
         return view('packages.index', [
@@ -1404,7 +1418,7 @@ class TravelController extends Controller
             'email' => ['required', 'email', 'max:255'],
             'phone' => ['required', 'string', 'max:40'],
             'contact_address' => ['required', 'string', 'max:500'],
-            'payment_method' => ['required', Rule::in(['card', 'paypal', 'bank'])],
+            'payment_method' => ['required', Rule::in(['card', 'paypal', 'bank', 'cash'])],
             'billing_same' => ['nullable', 'boolean'],
             'billing_address' => ['required_unless:billing_same,1', 'nullable', 'string', 'max:500'],
             'terms' => ['accepted'],
@@ -1570,7 +1584,9 @@ class TravelController extends Controller
         // never leave a customer charged with nothing recorded.
         $paymentStatus = 'Pending payment';
         $paymentWarning = null;
-        if ($gateway) {
+        // Cash at the office is a reservation: nothing is charged and the booking stays
+        // "Pending payment" until staff confirm the cash has been received.
+        if ($gateway && $data['payment_method'] !== 'cash') {
             $paymentDetails = $needsCardInputs
                 ? $request->only(['card_number', 'card_expiry', 'card_cvc', 'card_name'])
                 : ['token' => $request->input('payment_token')];
@@ -1623,30 +1639,44 @@ class TravelController extends Controller
         $request->session()->forget('promo_code');
         $request->session()->put('confirmation_order_reference', $orderReference);
         $recipient = $data['email'];
-        $bookings->each(fn (Booking $booking) => $booking->load('package'));
         if (config('mail.default') !== 'log') {
-            try {
-                $attachments = $bookings->map(fn (Booking $booking): array => [
-                    'name' => $booking->package->slug.'-'.$booking->reference.'-itinerary.pdf',
-                    'contents' => $itineraryPdf->contents($booking->package),
-                ])->all();
-                Mail::to($recipient)->send(new BookingConfirmationMail(
-                    $orderReference,
-                    $bookings,
-                    $paymentStatus,
-                    $attachments,
-                ));
-            } catch (\Throwable $exception) {
-                Log::error('Booking confirmation email could not be sent.', [
-                    'order_reference' => $orderReference,
-                    'exception' => $exception::class,
-                ]);
-            }
+            // Building the itinerary PDFs and sending the email happen after the response has
+            // been sent, so "Confirm Booking" is not slowed down; failures are only logged.
+            $bookingIds = $bookings->pluck('id')->all();
+            $emailDone = false;
+            app()->terminating(function () use (&$emailDone, $recipient, $orderReference, $bookingIds, $paymentStatus, $itineraryPdf): void {
+                // Terminating callbacks stay registered; make sure the email goes out exactly once.
+                if ($emailDone) {
+                    return;
+                }
+                $emailDone = true;
+                try {
+                    $sent = Booking::with('package')->whereIn('id', $bookingIds)->orderBy('id')->get();
+                    $attachments = $sent->map(fn (Booking $booking): array => [
+                        'name' => $booking->package->slug.'-'.$booking->reference.'-itinerary.pdf',
+                        'contents' => $itineraryPdf->contents($booking->package),
+                    ])->all();
+                    Mail::to($recipient)->send(new BookingConfirmationMail(
+                        $orderReference,
+                        $sent,
+                        $paymentStatus,
+                        $attachments,
+                    ));
+                } catch (\Throwable $exception) {
+                    Log::error('Booking confirmation email could not be sent.', [
+                        'order_reference' => $orderReference,
+                        'exception' => $exception::class,
+                    ]);
+                }
+            });
         } else {
-            Log::info('TravelWithYou confirmation email queued.', ['order_reference' => $orderReference]);
+            Log::info('Travel With You confirmation email skipped (mail driver is log).', ['order_reference' => $orderReference]);
         }
 
         $redirect = redirect()->route('confirmation');
+        if ($data['payment_method'] === 'cash') {
+            $redirect->with('success', 'Your booking is reserved. Please pay at our office within 48 hours.');
+        }
 
         return $paymentWarning !== null ? $redirect->with('error', $paymentWarning) : $redirect;
     }

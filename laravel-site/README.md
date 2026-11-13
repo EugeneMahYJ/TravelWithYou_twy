@@ -7,57 +7,79 @@ A Laravel 12 + Blade travel storefront and administration area styled after the 
 - PHP 8.2+
 - Composer 2+
 - SQLite (enabled by default) or another Laravel-supported database
+- PHP extensions required by Laravel and the selected database driver
+- A web server configured to serve the `public/` directory over HTTPS
 
-## Local setup
+## Production deployment
 
-From this directory:
+### 1. Prepare the host and release
 
-```powershell
-composer install
-Copy-Item .env.example .env
-php artisan key:generate
-php artisan migrate --seed
-php artisan serve
+- Deploy the contents of `laravel-site/` from a clean source checkout. Do not publish `twy_website.zip` or copy your development `.env`, SQLite database, logs, or `storage/app/private` files into a release.
+- Set the site's document root to the release's `public/` directory. Do not expose the Laravel project root, `.env`, `database/`, or `storage/` through the web server.
+- Use the same supported PHP version and extensions for the command-line PHP and the web-server PHP. Enable HTTPS before accepting customer sign-ins or uploads.
+- Make `storage/` and `bootstrap/cache/` writable by the PHP worker. Also make `public/assets/uploads/` writable if administrators will upload public media. Keep `storage/app/private/` private and back it up securely.
+
+From the deployed project directory, install production dependencies:
+
+```sh
+composer install --no-dev --prefer-dist --optimize-autoloader
 ```
 
-The canonical prototype catalogue, package itineraries and galleries, ship cabins, offers, promo codes, guides, and FAQs are seeded idempotently into the database. Package images and the Newsreader (including italic), Hanken Grotesk, and DM Mono fonts are stored under `public/assets/` and `public/fonts/`; the site does not require a frontend build step.
+### 2. Configure production environment
 
-To fetch any missing self-hosted prototype photographs, run `scripts/fetch-assets.ps1` on Windows or `scripts/fetch-assets.sh` on Unix-like systems. The source is documented in `public/assets/CREDITS.md`.
+Create the production `.env` on the server or configure the same values through the hosting provider's secret manager. Never commit it, include it in a release archive, or reuse the local development `.env`.
 
-Admin media uploads accept images and videos up to 500 MB. Configure PHP with `upload_max_filesize=500M` and `post_max_size=510M` (plus a request timeout long enough for large files), and ensure PHP's temporary upload directory and `public/assets/uploads` are writable. Restart the web server after changing PHP or server limits.
+At minimum, configure:
 
-Package itinerary PDFs can be uploaded from the package editor, up to 50 MB each. They are stored on Laravel's private local disk and served through the published package PDF route for preview and download. Apply the PHP upload settings above to the active web-server PHP runtime; the CLI runtime may use different limits.
+```dotenv
+APP_NAME="Travel With You"
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://your-domain
+LOG_LEVEL=warning
 
-Booking requires one JPG, JPEG, or PNG passport/ID image (up to 5 MB) per traveller. Enter traveller dates as `DD/MM/YYYY` or choose them from the calendar. Quick-added cart packages must be completed in the booking wizard before payment; dietary, medical, and accessibility requests are collected there. Images are kept on the private local disk in `storage/app/private/Clients/<Region>/<Country>/<Package-Slug>_<YYYY-MM-DD>/<Booking-Reference>/`, with random filenames. Administrators can download them from the protected booking detail page. Staged cart uploads are cleaned after 30 days; booked documents are deleted 90 days after departure. Run Laravel's scheduler continuously (or invoke `php artisan schedule:run` from Windows Task Scheduler every minute) so the daily `traveller-documents:cleanup` job runs. Configure the active web-server PHP `upload_max_filesize` above 5 MB and `post_max_size` above the maximum combined booking upload (up to 80 MB for a 16-traveller cruise); the existing 500M/510M settings satisfy this.
+DB_CONNECTION=sqlite
+DB_DATABASE=
 
-The configured tax rate is `TRAVEL_TAX_RATE` in `.env` (defaults to `0.07`); promo-code stacking on package deals is controlled by `TRAVEL_STACK_PROMO_ON_DEALS` (defaults to `true`).
+SESSION_SECURE_COOKIE=true
+SESSION_ENCRYPT=true
+FILESYSTEM_LOCAL_SERVE=false
 
-Cruise packages are linked to their prototype fleet ships, and guests can save journeys before signing in; saved guest journeys are added to the account when the guest logs in or registers.
-
-## Administrator account
-
-Set `ADMIN_NAME`, `ADMIN_EMAIL`, and a strong `ADMIN_PASSWORD` in `.env`, then run `php artisan db:seed`. The seeder creates or updates that administrator account. Admin access is at `/admin/login`. On first sign-in, register the displayed Base32 secret with an authenticator app and verify its 6-digit code. Public registration cannot grant administrator privileges.
-
-Do not commit `.env` or production credentials. Configure a production database, mail transport, `APP_DEBUG=false`, HTTPS, backups, and your chosen payment provider before accepting paid reservations. Checkout currently records a pending booking request; it does not collect payment.
-
-## Sending email
-
-To deliver enquiry replies, configure `MAIL_MAILER`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM_ADDRESS`, and `MAIL_FROM_NAME` in `.env`. Do not commit mail credentials. With the default `log` mail driver, messages are written to `storage/logs` instead of being delivered to customers.
-
-## Customer account security
-
-- **Passwords** need at least 10 characters (maximum 128), including a letter and a number. Any characters are allowed. Existing passwords keep working until they are changed.
-- **Two-factor sign-in:** when a customer turns it on (Account > Security), each login sends a 6-digit code to their account email. Codes expire after 10 minutes and allow 5 attempts. The toggle needs a verified email address, and changing the email address turns it off until the new address is verified.
-- **Email verification:** a verification email is sent at registration and when the email address changes. It does not block booking or checkout; unverified customers see a reminder on their account page.
-- **Ending other sign-ins:** changing the password, resetting it, or choosing "Log out from all devices" ends the customer's other sessions. Listing sessions requires `SESSION_DRIVER=database`; with other drivers only "remember me" tokens are reset. Changing or resetting a password also forgets any "trust this device" admin cookies.
-- **Emails** are sent immediately, and a failure is logged without breaking the page the customer is on. No queue worker is required.
-- **Checkout** saves bookings as "Pending payment" first, then charges the payment gateway, then marks them paid. A declined payment removes the pending bookings and keeps the cart. If the gateway errors and the result is unknown, the bookings stay pending and are logged for you to reconcile.
-
-## Validation
-
-```powershell
-php artisan test
-php artisan route:list
+ADMIN_NAME="Travel With You Admin"
+ADMIN_EMAIL=your-admin-email
+ADMIN_PASSWORD=use-a-unique-strong-password
 ```
 
-The site uses responsive CSS breakpoints for phone, tablet, laptop, and desktop widths. It is self-contained in this directory and does not depend on the former React/Vite prototype.
+Use the database credentials and host supplied by your provider. SQLite is also supported if the host provides persistent storage: set `DB_CONNECTION=sqlite` and `DB_DATABASE` to an absolute path to a production SQLite file outside the public web root, and ensure PHP can write to both the file and its directory. Do not copy the development `database/database.sqlite` to production. Keep the database, private traveller documents, and uploaded files on persistent storage; back them up and test restoring them.
+
+Generate `APP_KEY` once for a new production installation with `php artisan key:generate`, then keep it secret and unchanged across deployments. It protects encrypted application data; changing it can make existing encrypted data unreadable. Do not generate a new key during routine releases.
+
+Configure outbound email before relying on verification, sign-in codes, booking confirmations, or enquiry replies. For Resend, set `MAIL_MAILER=resend`, `RESEND_API_KEY`, `MAIL_FROM_ADDRESS`, and `MAIL_FROM_NAME`, and verify the sender domain with the provider. For SMTP, set `MAIL_MAILER=smtp` and the provider's `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, and sender address. `MAIL_MAILER=log` writes messages to application logs instead of delivering them.
+
+### 3. Initialize and release
+
+On a new production database, run:
+
+```sh
+php artisan migrate --force
+php artisan db:seed --force
+php artisan config:cache
+php artisan view:cache
+```
+
+Run the seeder only when initializing a fresh production database: it seeds the catalogue and creates or updates the administrator from `ADMIN_NAME`, `ADMIN_EMAIL`, and `ADMIN_PASSWORD`. On later releases, run migrations and refresh the configuration/view caches as needed; do not rerun the seeder unless you intend to update seeded data and the administrator account.
+
+After deployment, verify the home page over HTTPS, administrator sign-in and MFA setup, customer email delivery, booking/enquiry flows, file upload/download permissions, and a database backup/restore. Recheck these after changing environment values or upgrading dependencies.
+
+The application schedules daily cleanup of expired staged and booked traveller documents and old search-term counts. Configure the host scheduler to run Laravel's scheduler every minute:
+
+```cron
+* * * * * cd /absolute/path/to/laravel-site && php artisan schedule:run >> /dev/null 2>&1
+```
+
+Admin media uploads can be as large as 500 MB. If that feature is needed, configure PHP `upload_max_filesize=500M` and `post_max_size=510M`, plus compatible web-server/proxy body limits, temporary storage, and request timeouts. Do not raise upload limits unless the host has enough capacity and the feature is needed.
+
+### Payment processing is not production-ready
+
+The current payment gateway is simulated and is bound only in local/testing environments. No live payment provider is configured for production. The `PAYMENT_*_ENABLED` settings do not connect a payment processor. Do not represent bookings as paid or accept live card payments until a real provider integration, its callback/webhook handling, and payment reconciliation have been implemented and tested.
+

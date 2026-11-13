@@ -4,7 +4,7 @@
     <div class="slideshow-track">
         @foreach($slides as $index => $slide)
             <figure class="slideshow-slide {{ $index === 0 ? 'is-active' : '' }}" data-slideshow-slide aria-hidden="{{ $index === 0 ? 'false' : 'true' }}">
-                <img src="{{ asset_img($slide['image']) }}" alt="{{ $index === 0 ? $slide['caption'] : '' }}" data-slideshow-image>
+                <img src="{{ asset_img($slide['image']) }}" alt="{{ $index === 0 ? $slide['caption'] : '' }}" data-slideshow-image {!! $index === 0 ? '' : 'loading="lazy" decoding="async"' !!}>
                 <figcaption>{{ $slide['caption'] }}</figcaption>
             </figure>
         @endforeach

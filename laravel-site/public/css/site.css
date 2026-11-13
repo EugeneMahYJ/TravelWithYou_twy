@@ -9629,10 +9629,11 @@ textarea.account-input {
     position: relative;
     width: 100%;
     overflow: hidden;
-    border: 1px solid var(--line);
+    border: 0;
     background-color: var(--paper-deep);
-    background-image: linear-gradient(135deg, transparent 49.8%, rgba(31, 78, 95, .12) 50%, transparent 50.2%), linear-gradient(45deg, transparent 49.8%, rgba(185, 61, 23, .1) 50%, transparent 50.2%);
-    background-size: 100% 100%;
+    background-image: none;
+    background-size: cover;
+    background-position: center;
 }
 
 .about-story-photo-ratio-4-3 {
@@ -9641,13 +9642,6 @@ textarea.account-input {
 
 .about-story-photo-ratio-16-9 {
     aspect-ratio: 16 / 9;
-}
-
-.about-story-photo::after {
-    position: absolute;
-    inset: 5%;
-    border: 1px solid rgba(15, 34, 56, .15);
-    content: "";
 }
 
 .about-team {
@@ -9668,17 +9662,11 @@ textarea.account-input {
 .about-team-photo-empty {
     position: relative;
     overflow: hidden;
-    border: 1px solid var(--line);
+    border: 0;
     background-color: var(--paper-deep);
-    background-image: linear-gradient(135deg, transparent 49.8%, rgba(31, 78, 95, .14) 50%, transparent 50.2%), linear-gradient(45deg, transparent 49.8%, rgba(185, 61, 23, .12) 50%, transparent 50.2%);
-    background-size: 100% 100%;
-}
-
-.about-team-photo-empty::after {
-    position: absolute;
-    inset: 13%;
-    border: 1px solid rgba(15, 34, 56, .16);
-    content: "";
+    background-image: none;
+    background-size: cover;
+    background-position: center;
 }
 
 .policy-sections {

@@ -1,5 +1,6 @@
 @extends('layouts.app')
 @section('title', isset($package) ? 'Booking — '.$package->name : 'Booking — Travel With You')
+@section('robots', 'noindex')
 @section('content')
 @if($state)
     @php

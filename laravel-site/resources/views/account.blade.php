@@ -1,5 +1,6 @@
 @extends('layouts.app')
 @section('title', 'My account — Travel With You')
+@section('robots', 'noindex')
 @section('content')
 @php
     $tabs = [

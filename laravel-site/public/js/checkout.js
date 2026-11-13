@@ -21,10 +21,10 @@
             panel.hidden = panel.dataset.paymentPanel !== method;
         });
         selectionError.hidden = true;
-        const methodIsAvailable = method === 'card';
+        const methodIsAvailable = method === 'card' || method === 'cash';
         button.disabled = button.dataset.cartUnavailable === 'true' || !methodIsAvailable;
         button.textContent = methodIsAvailable
-            ? button.dataset.cardLabel
+            ? (method === 'cash' ? (button.dataset.cashLabel || button.dataset.cardLabel) : button.dataset.cardLabel)
             : `${options.find((option) => option.dataset.paymentOption === method)?.dataset.paymentLabel || 'This method'} not available yet`;
     };
 
@@ -64,7 +64,7 @@
     form.addEventListener('submit', (event) => {
         if (event.submitter?.name === 'apply_promo') return;
 
-        if (methodInput.value !== 'card') {
+        if (methodInput.value !== 'card' && methodInput.value !== 'cash') {
             event.preventDefault();
             selectionError.hidden = false;
             selectionError.tabIndex = -1;

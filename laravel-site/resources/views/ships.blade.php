@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', $selectedShip ? $selectedShip->name.' — Ships' : 'Ships — TravelWithYou')
+@section('title', $selectedShip ? $selectedShip->name.' — Ships' : 'Ships — Travel With You')
 @section('content')
 @if($selectedShip)
     <section class="ship-detail-hero" style="--hero-image:url('{{ asset_img($selectedShip->image) }}')">

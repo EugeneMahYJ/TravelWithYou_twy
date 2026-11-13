@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use App\Models\Booking;
 use App\Models\Country;
 use App\Models\Enquiry;
-use App\Models\SearchLog;
+use App\Models\SearchTermCount;
 use App\Models\TravelDeal;
 use App\Models\TravelPackage;
 use App\Models\User;
@@ -72,13 +72,14 @@ class AdminConsoleTest extends TestCase
         $this->travelTo(Carbon::parse('2026-11-12 16:00:00'));
 
         foreach (['Lisbon', 'lisbon', 'Japan'] as $query) {
-            SearchLog::create(['query' => $query]);
+            SearchTermCount::record($query);
         }
-        $oldSearch = SearchLog::create(['query' => 'Old trip']);
-        $oldSearch->forceFill([
-            'created_at' => now()->startOfMonth()->subMonths(5)->subDay(),
-            'updated_at' => now()->startOfMonth()->subMonths(5)->subDay(),
-        ])->save();
+        SearchTermCount::create([
+            'searched_on' => now()->startOfMonth()->subMonths(5)->subDay()->toDateString(),
+            'term' => 'old trip',
+            'label' => 'Old trip',
+            'hits' => 1,
+        ]);
 
         $dashboard = $this->get(route('admin.dashboard'))->assertOk()
             ->assertSee('Top 5 · past 6 months');

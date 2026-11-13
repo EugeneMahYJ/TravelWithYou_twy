@@ -2,7 +2,7 @@
 
 namespace App\Support;
 
-use App\Models\SearchLog;
+use App\Models\SearchTermCount;
 use Illuminate\Support\Collection;
 
 class SearchTrends
@@ -12,12 +12,10 @@ class SearchTrends
         $now = now();
         $start = $now->copy()->startOfMonth()->subMonths(5);
 
-        return SearchLog::query()
-            ->whereNotNull('query')
-            ->whereRaw("TRIM(query) <> ''")
-            ->whereBetween('created_at', [$start, $now])
-            ->selectRaw('LOWER(TRIM(query)) as normalized_query, MIN(TRIM(query)) as query, COUNT(*) as searches')
-            ->groupByRaw('LOWER(TRIM(query))')
+        return SearchTermCount::query()
+            ->whereBetween('searched_on', [$start->toDateString(), $now->toDateString()])
+            ->selectRaw('term as normalized_query, MIN(label) as query, SUM(hits) as searches')
+            ->groupBy('term')
             ->orderByDesc('searches')
             ->orderBy('normalized_query')
             ->limit(5)

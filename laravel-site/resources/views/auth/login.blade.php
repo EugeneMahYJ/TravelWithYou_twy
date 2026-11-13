@@ -1,5 +1,6 @@
 @extends('layouts.app')
 @section('title', $adminLogin ? 'Admin sign in — Travel With You' : 'Sign in — Travel With You')
+@section('robots', 'noindex')
 @section('content')
 @if($adminLogin)
     @include('partials.page-head', ['kicker' => 'Team access', 'heading' => 'Admin sign in', 'intro' => 'Sign in with an administrator account to manage the travel collection.'])

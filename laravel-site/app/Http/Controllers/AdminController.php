@@ -13,7 +13,6 @@ use App\Models\Enquiry;
 use App\Models\EnquiryReply;
 use App\Models\Guide;
 use App\Models\PromoCode;
-use App\Models\SearchLog;
 use App\Models\Ship;
 use App\Models\TravelDeal;
 use App\Models\TravelPackage;

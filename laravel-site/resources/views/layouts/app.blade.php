@@ -5,6 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="@yield('description', 'Thoughtful small-group journeys, slow escapes and boutique cruises with Travel With You.')">
     <title>@yield('title', 'Travel With You — journeys at your own pace')</title>
+    @php
+        $pageTitle = trim($__env->yieldContent('title')) ?: 'Travel With You — journeys at your own pace';
+        $pageDescription = trim($__env->yieldContent('description')) ?: 'Thoughtful small-group journeys, slow escapes and boutique cruises with Travel With You.';
+        $canonicalUrl = trim($__env->yieldContent('canonical')) ?: rtrim((string) config('app.url'), '/').request()->getPathInfo();
+        $shareImage = trim($__env->yieldContent('og_image')) ?: asset('assets/company-logo.png');
+    @endphp
+    <link rel="canonical" href="{{ $canonicalUrl }}">
+    @hasSection('robots')<meta name="robots" content="@yield('robots')">@endif
+    <meta property="og:site_name" content="Travel With You">
+    <meta property="og:type" content="@yield('og_type', 'website')">
+    <meta property="og:title" content="{{ $pageTitle }}">
+    <meta property="og:description" content="{{ $pageDescription }}">
+    <meta property="og:url" content="{{ $canonicalUrl }}">
+    <meta property="og:image" content="{{ $shareImage }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ $pageTitle }}">
+    <meta name="twitter:description" content="{{ $pageDescription }}">
+    <meta name="twitter:image" content="{{ $shareImage }}">
+    @stack('structured-data')
     <link rel="stylesheet" href="{{ asset('css/site.css') }}?v={{ filemtime(public_path('css/site.css')) }}">
     <script src="{{ asset('js/site.js') }}?v={{ filemtime(public_path('js/site.js')) }}" defer></script>
     <script src="{{ asset('js/slideshow.js') }}" defer></script>
@@ -13,8 +32,8 @@
     <a class="skip-link" href="#main">Skip to main content</a>
     <header class="site-header">
         <div class="header-inner">
-            <a class="brand" href="{{ route('home') }}" aria-label="TravelWithYou home">
-                <img class="brand-logo" src="{{ asset('assets/company-logo.png') }}" width="120" height="53" alt="TravelWithYou">
+            <a class="brand" href="{{ route('home') }}" aria-label="Travel With You home">
+                <img class="brand-logo" src="{{ asset('assets/company-logo.png') }}" width="120" height="53" alt="Travel With You">
             </a>
             @php
                 $primaryNav = [
@@ -118,15 +137,15 @@
         @endphp
         <div class="wrap footer-grid">
             <div class="footer-brand-column">
-                <a class="brand-footer" href="{{ route('home') }}" aria-label="TravelWithYou home"><img class="brand-logo" src="{{ asset('assets/home/TWY_Logo_White_Blurry_Base.jpg') }}" width="142" height="62" alt="TravelWithYou"></a>
+                <a class="brand-footer" href="{{ route('home') }}" aria-label="Travel With You home"><img loading="lazy" decoding="async" class="brand-logo" src="{{ asset('assets/home/TWY_Logo_White_Blurry_Base.jpg') }}" width="142" height="62" alt="Travel With You"></a>
                 <p>Tour packages and cruises to forty countries, planned by people who have been there.</p>
                 <div class="footer-social">
                     <span>Find us on</span>
                     <div>
-                        <a href="https://www.instagram.com/travelwityou/" aria-label="Instagram"><img src="{{ asset('assets/instagram.png') }}" width="40" height="40" alt=""></a>
-                        <a href="https://wa.me/60132883003?text=Hi%2C%20I%20want%20to%20know%20more%20about%20your%20tour%20packages." aria-label="WhatsApp"><img src="{{ asset('assets/home/WhatsApp_Logo.png') }}" width="40" height="40" alt=""></a>
-                        <a href="https://www.facebook.com/TravelwizU" aria-label="Facebook"><img src="{{ asset('assets/facebook.png') }}" width="40" height="40" alt=""></a>
-                        <a href="https://www.tiktok.com/@travelwithyoupuchong" aria-label="TikTok"><img src="{{ asset('assets/tiktok.png') }}" width="40" height="40" alt=""></a>
+                        <a href="https://www.instagram.com/travelwityou/" aria-label="Instagram"><img loading="lazy" decoding="async" src="{{ asset('assets/instagram.png') }}" width="40" height="40" alt=""></a>
+                        <a href="https://wa.me/60132883003?text=Hi%2C%20I%20want%20to%20know%20more%20about%20your%20tour%20packages." aria-label="WhatsApp"><img loading="lazy" decoding="async" src="{{ asset('assets/home/WhatsApp_Logo.png') }}" width="40" height="40" alt=""></a>
+                        <a href="https://www.facebook.com/TravelwizU" aria-label="Facebook"><img loading="lazy" decoding="async" src="{{ asset('assets/facebook.png') }}" width="40" height="40" alt=""></a>
+                        <a href="https://www.tiktok.com/@travelwithyoupuchong" aria-label="TikTok"><img loading="lazy" decoding="async" src="{{ asset('assets/tiktok.png') }}" width="40" height="40" alt=""></a>
                     </div>
                 </div>
                 @if($company['email'])
@@ -168,11 +187,11 @@
                 <section class="footer-payment-methods" aria-labelledby="footer-payment-methods-title">
                     <h2 id="footer-payment-methods-title">Payment Methods</h2>
                     <div class="footer-payment-logos">
-                        <img class="footer-payment-logo footer-payment-logo-fpx" src="{{ asset('assets/home/FPX_Logo.png') }}" alt="FPX online banking payments">
-                        <img class="footer-payment-logo footer-payment-logo-visa" src="{{ asset('assets/home/Visa_Logo.jpg') }}" alt="Visa">
-                        <img class="footer-payment-logo footer-payment-logo-mastercard" src="{{ asset('assets/home/Mastercard_Logo.png') }}" alt="Mastercard">
-                        <img class="footer-payment-logo footer-payment-logo-duitnow" src="{{ asset('assets/home/Duitnow_Logo.png') }}" alt="DuitNow">
-                        <img class="footer-payment-logo footer-payment-logo-tng" src="{{ asset('assets/home/TNG_Logo.png') }}" alt="Touch 'n Go eWallet">
+                        <img loading="lazy" decoding="async" class="footer-payment-logo footer-payment-logo-fpx" src="{{ asset('assets/home/FPX_Logo.png') }}" alt="FPX online banking payments">
+                        <img loading="lazy" decoding="async" class="footer-payment-logo footer-payment-logo-visa" src="{{ asset('assets/home/Visa_Logo.jpg') }}" alt="Visa">
+                        <img loading="lazy" decoding="async" class="footer-payment-logo footer-payment-logo-mastercard" src="{{ asset('assets/home/Mastercard_Logo.png') }}" alt="Mastercard">
+                        <img loading="lazy" decoding="async" class="footer-payment-logo footer-payment-logo-duitnow" src="{{ asset('assets/home/Duitnow_Logo.png') }}" alt="DuitNow">
+                        <img loading="lazy" decoding="async" class="footer-payment-logo footer-payment-logo-tng" src="{{ asset('assets/home/TNG_Logo.png') }}" alt="Touch 'n Go eWallet">
                     </div>
                 </section>
             </div>

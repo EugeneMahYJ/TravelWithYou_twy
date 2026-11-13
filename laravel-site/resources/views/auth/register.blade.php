@@ -1,7 +1,8 @@
 @extends('layouts.app')
-@section('title', 'Join TravelWithYou')
+@section('title', 'Join Travel With You')
+@section('robots', 'noindex')
 @section('content')
-<x-auth-shell title="Join TravelWithYou" sub="Save trips, speed up checkout and get new-user deals.">
+<x-auth-shell title="Join Travel With You" sub="Save trips, speed up checkout and get new-user deals.">
     <form class="auth-form" method="post" action="{{ route('register.submit') }}">@csrf
         <label><span>Full name</span><input name="name" value="{{ old('name') }}" autocomplete="name" required>@error('name')<small class="field-error" role="alert">{{ $message }}</small>@enderror</label>
         <label><span>Email</span><input type="email" name="email" value="{{ old('email') }}" autocomplete="email" required>@error('email')<small class="field-error" role="alert">{{ $message }}</small>@enderror</label>

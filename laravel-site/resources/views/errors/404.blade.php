@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Error 404 — TravelWithYou')
+@section('title', 'Error 404 — Travel With You')
 @section('content')
 <section class="wrap not-found-page">
     <svg aria-hidden="true" viewBox="0 0 48 48">

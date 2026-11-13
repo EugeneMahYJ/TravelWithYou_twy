@@ -13,7 +13,9 @@ class SaveAdminPromoCodeRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->is_admin === true;
+        // Administrators sign in with the separate "admin" guard, so check that guard
+        // explicitly (the default guard is "web" for a real request).
+        return $this->user('admin')?->is_admin === true;
     }
 
     public function rules(): array

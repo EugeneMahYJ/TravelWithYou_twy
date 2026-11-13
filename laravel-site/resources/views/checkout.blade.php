@@ -1,5 +1,6 @@
 @extends('layouts.app')
-@section('title', 'Checkout — TravelWithYou')
+@section('title', 'Checkout — Travel With You')
+@section('robots', 'noindex')
 @section('content')
 @include('partials.page-head', ['kicker' => 'Checkout', 'heading' => 'Almost there.'])
 @php
@@ -84,7 +85,6 @@
                             <svg viewBox="0 0 24 24" focusable="false"><rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M5.5 9a2 2 0 0 0 2-2m9 10a2 2 0 0 1 2-2"/></svg>
                         </span>
                         <span class="payment-method-copy"><strong>Cash at our office</strong><small>Payment held for 48 hours</small></span>
-                        <span class="payment-method-status">Coming soon</span>
                     </button>
                 </div>
                 <input type="hidden" name="payment_method" value="card" data-payment-method>
@@ -139,10 +139,9 @@
                 </div>
                 <div class="payment-detail-panel" id="payment-details-cash" data-payment-panel="cash" hidden>
                     <h3>Pay cash at our office</h3>
-                    <p>Your booking would be held for 48 hours. It remains awaiting payment until staff confirm that cash has been received.</p>
-                    <p class="payment-unavailable-note">Cash-at-office checkout is not available yet.</p>
+                    <p>Your booking is held for 48 hours. It remains awaiting payment until staff confirm that cash has been received. Nothing is charged online.</p>
                 </div>
-                <p class="payment-selection-error" data-payment-selection-error role="alert" hidden>Please select the available card demo checkout or return when your selected payment method is ready.</p>
+                <p class="payment-selection-error" data-payment-selection-error role="alert" hidden>Please choose card or cash at our office, or return when your selected payment method is ready.</p>
                 <label class="checkout-checkbox"><input type="checkbox" name="billing_same" value="1" @checked(old('billing_same', '1') === '1') data-billing-same> Billing address same as contact</label>
                 <label class="billing-address-field" data-billing-address hidden>Billing address<input name="billing_address" value="{{ old('billing_address') }}">@error('billing_address')<small class="field-error" role="alert">{{ $message }}</small>@enderror</label>
                 <p class="checkout-help">Payments are encrypted and processed securely.</p>
@@ -190,7 +189,7 @@
             @if($unavailableItems->isNotEmpty())
                 <p class="notice notice-warn">Update your cart</p>
             @endif
-            <button class="button button-primary button-full" type="submit" data-confirm-button data-card-label="{{ $paymentGateway instanceof \App\Payments\SimulatedPaymentGateway ? 'Confirm Booking (Demo)' : 'Confirm Booking' }}" data-cart-unavailable="{{ $unavailableItems->isNotEmpty() ? 'true' : 'false' }}" @disabled($unavailableItems->isNotEmpty())>
+            <button class="button button-primary button-full" type="submit" data-confirm-button data-cash-label="Reserve Booking" data-card-label="{{ $paymentGateway instanceof \App\Payments\SimulatedPaymentGateway ? 'Confirm Booking (Demo)' : 'Confirm Booking' }}" data-cart-unavailable="{{ $unavailableItems->isNotEmpty() ? 'true' : 'false' }}" @disabled($unavailableItems->isNotEmpty())>
                 {{ $paymentGateway instanceof \App\Payments\SimulatedPaymentGateway ? 'Confirm Booking (Demo)' : 'Confirm Booking' }}
             </button>
             <p class="checkout-help">You can apply a promo code and review everything once more at payment.</p>

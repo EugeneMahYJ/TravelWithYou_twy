@@ -1,7 +1,7 @@
 @extends('admin.layouts.admin')
 @section('title', $guide->exists ? 'Edit guide' : 'New guide')
 @section('content')
-<div class="admin-heading"><div><p class="eyebrow accent">Travel guides</p><h1>{{ $guide->exists ? 'Edit guide' : 'New guide' }}</h1><p>Write a guide for the TravelWithYou journal.</p></div><a class="text-link" href="{{ route('admin.guides') }}">← Guides</a></div>
+<div class="admin-heading"><div><p class="eyebrow accent">Travel guides</p><h1>{{ $guide->exists ? 'Edit guide' : 'New guide' }}</h1><p>Write a guide for the Travel With You journal.</p></div><a class="text-link" href="{{ route('admin.guides') }}">← Guides</a></div>
 <form class="admin-editor-form" method="post" action="{{ $guide->exists ? route('admin.guides.update', $guide) : route('admin.guides.store') }}">@csrf @if($guide->exists) @method('put') @endif
     <div class="form-grid"><label><span>Title</span><input name="title" value="{{ old('title', $guide->title) }}" required>@error('title')<small class="field-error">{{ $message }}</small>@enderror</label>
         <label><span>Slug</span><input name="slug" value="{{ old('slug', $guide->slug) }}" placeholder="Generated from title">@error('slug')<small class="field-error">{{ $message }}</small>@enderror</label>

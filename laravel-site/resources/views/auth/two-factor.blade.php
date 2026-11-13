@@ -1,5 +1,6 @@
 @extends('layouts.app')
 @section('title', 'Verify sign-in — Travel With You')
+@section('robots', 'noindex')
 @section('content')
 <x-auth-shell title="Check your email" sub="We sent a 6-digit sign-in code to {{ $maskedEmail }}. It expires in {{ $minutes }} minutes.">
     <form class="auth-form" method="post" action="{{ route('login.two-factor.verify') }}">@csrf

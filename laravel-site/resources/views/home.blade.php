@@ -1,6 +1,20 @@
 @extends('layouts.app')
 
 @section('title', 'Travel With You — thoughtful journeys at your own pace')
+@push('structured-data')
+<script type="application/ld+json">{!! json_encode([
+    '@context' => 'https://schema.org',
+    '@type' => 'TravelAgency',
+    'name' => 'Travel With You',
+    'url' => url('/'),
+    'logo' => asset('assets/company-logo.png'),
+    'sameAs' => [
+        'https://www.instagram.com/travelwityou/',
+        'https://www.facebook.com/TravelwizU',
+        'https://www.tiktok.com/@travelwithyoupuchong',
+    ],
+], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) !!}</script>
+@endpush
 
 @section('content')
 <section class="hero" aria-label="Featured journeys" aria-roledescription="carousel" data-carousel>
@@ -12,7 +26,7 @@
                 </video>
                 <div class="hero-video-shade" aria-hidden="true"></div>
             @else
-                <img class="hero-image {{ $index === 0 ? 'kenburns' : '' }}" src="{{ asset_img($slide['image']) }}" alt="">
+                <img class="hero-image {{ $index === 0 ? 'kenburns' : '' }}" src="{{ asset_img($slide['image']) }}" alt="" {!! $index === 0 ? 'fetchpriority="high"' : 'loading="lazy" decoding="async"' !!}>
             @endif
             <div class="wrap hero-copy fade-up">
                 <p class="eyebrow hero-kicker">{{ $slide['kicker'] }}</p>

@@ -4,9 +4,12 @@ use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminShipController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\TravelController;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/robots.txt', [SitemapController::class, 'robots'])->name('robots');
+Route::get('/sitemap.xml', [SitemapController::class, 'sitemap'])->name('sitemap');
 Route::get('/', [TravelController::class, 'home'])->name('home');
 Route::get('/destinations', [TravelController::class, 'destinations'])->name('destinations');
 Route::get('/destinations/region/{region}', [TravelController::class, 'destinations'])->name('destinations.region');

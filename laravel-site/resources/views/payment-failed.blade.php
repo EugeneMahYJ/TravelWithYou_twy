@@ -1,5 +1,6 @@
 @extends('layouts.app')
-@section('title', 'Payment failed — TravelWithYou')
+@section('title', 'Payment failed — Travel With You')
+@section('robots', 'noindex')
 @section('content')
 <section class="wrap payment-failed-page">
     <div class="payment-failed-icon" aria-hidden="true">×</div>
