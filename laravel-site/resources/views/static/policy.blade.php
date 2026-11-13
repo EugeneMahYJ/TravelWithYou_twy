@@ -21,7 +21,7 @@
 @section('content')
 <x-page-head kicker="Legal" :title="$currentPolicy['title']" :lead="'Last updated '.\Illuminate\Support\Carbon::parse(config('company.legal_updated'))->format('j F Y').'.'" />
 @if($policy === 'privacy')
-    <main class="wrap policy-sections privacy-sections">
+    <div class="wrap policy-sections privacy-sections">
         <p class="privacy-intro"><strong>Your privacy is important to us. Here's how we handle your data.</strong></p>
         <article>
             <h2><span>1.</span>Introduction</h2>
@@ -95,9 +95,9 @@
                 <span>Tel: +60 13-2883003</span>
             </address>
         </article>
-    </main>
+    </div>
 @elseif($policy === 'terms')
-    <main class="wrap policy-sections terms-sections">
+    <div class="wrap policy-sections terms-sections">
         <header class="terms-document-title">
             <h2>TOURISM INDUSTRY ACT 1992</h2>
             <h2>TOURISM INDUSTRY (TOUR OPERATING BUSINESS AND TRAVEL AGENCY BUSINESS) REGULATIONS 1992</h2>
@@ -242,7 +242,7 @@
             <h2><span>12.</span>Travel Insurance</h2>
             <p>All tour members are encouraged to purchase travel insurance to cover unforeseen circumstances such as illness, cancellations, or lost baggage.</p>
         </article>
-    </main>
+    </div>
 @else
     <section class="wrap policy-sections">
         @foreach($currentPolicy['items'] as [$heading, $body])

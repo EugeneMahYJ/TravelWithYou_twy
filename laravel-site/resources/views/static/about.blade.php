@@ -16,7 +16,7 @@
         <span class="about-hero-mark" aria-hidden="true"></span>
     </div>
 </header>
-<main class="wrap about-port">
+<div class="wrap about-port">
     <div class="about-sections">
         @foreach($sections as $index => [$title, $body])
             <article class="about-section {{ in_array($index, [0, 2], true) ? 'about-section-reversed' : '' }} {{ $index < 3 ? 'about-section-with-photo about-section-photo-'.($index + 1) : '' }} {{ $index === 0 ? 'about-section-featured' : '' }} {{ $index === 3 ? 'about-team' : '' }}">
@@ -34,5 +34,5 @@
             </article>
         @endforeach
     </div>
-</main>
+</div>
 @endsection
