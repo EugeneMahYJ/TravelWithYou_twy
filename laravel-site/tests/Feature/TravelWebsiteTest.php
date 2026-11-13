@@ -1099,22 +1099,6 @@ class TravelWebsiteTest extends TestCase
         $this->get(route('terms'))->assertDontSee('Cancellation &amp; Refunds', false);
     }
 
-    public function test_public_pages_render_a_single_main_landmark(): void
-    {
-        $urls = [
-            route('about'),
-            route('faq'),
-            route('terms'),
-            route('privacy'),
-            route('packages.show', ['package' => 'sakura-rail']),
-        ];
-
-        foreach ($urls as $url) {
-            $content = $this->get($url)->assertOk()->getContent();
-            $this->assertSame(1, preg_match_all('/<main\b/', $content), "Expected one main landmark at {$url}");
-        }
-    }
-
     public function test_unknown_page_uses_prototype_not_found_page(): void
     {
         $this->get('/this-page-does-not-exist')

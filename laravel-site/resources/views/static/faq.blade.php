@@ -9,7 +9,7 @@
         <span class="faq-hero-mark" aria-hidden="true"></span>
     </div>
 </header>
-<div class="wrap faq-layout">
+<main class="wrap faq-layout">
     <aside class="faq-sidebar">
         <p class="faq-side-title">Browse topics</p>
         <nav class="faq-topic-nav" aria-label="FAQ topics">
@@ -43,5 +43,5 @@
         </section>
     @endforeach
     </div>
-</div>
+</main>
 @endsection

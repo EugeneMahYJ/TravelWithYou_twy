@@ -27,7 +27,7 @@
     </p>
 </div>
 <div class="wrap package-detail-layout">
-    <div class="package-detail-main">
+    <main class="package-detail-main">
         <x-slideshow :slides="$gallery" :alt="$package->name" />
         <div class="package-detail-meta">
             <span class="package-type-chip">{{ $package->type }}</span>
@@ -86,7 +86,7 @@
                 <span class="sailing-arrow" aria-hidden="true">→</span>
             </a>
         @endif
-    </div>
+    </main>
 
     <aside class="package-booking-aside">
         <div class="package-booking-card">
